@@ -1,0 +1,43 @@
+   ##FilePrint(finalreport, gSubNum+","+totPersErr+","+Roundoff(totPersErr/num,4)*100+","+num)
+## ##FilePrint(report," Participant Code: " + gSubNum)
+
+## ##FilePrint(report,"Run length to move to next category: "+runlength)
+## ##FilePrint(report,"Number of times through deck: "+repeats)
+## ##FilePrint(report,"Deck Size: "+ decksize)
+  
+## ##FilePrint_(report,"Order of Cards: Rule 1  (color): ")
+##    loop(i,gColors)
+##    {
+##       ##FilePrint_(report,i+" ")
+##    }
+## ##FilePrint(report,"")
+##
+## ##FilePrint_(report,"                Rule 2  (shape):  " )
+##    loop(i,gShapes)
+##    {
+##       ##FilePrint_(report,i+" ")
+##    }
+## ##FilePrint(report,"")
+
+## ##FilePrint_(report,"                Rule 3 (number):  ")
+##    loop(i,gNumbers)
+##    {
+##       ##FilePrint_(report,i+" ")
+##    }
+## ##FilePrint(report,"")
+
+## ##FilePrint(report,"2. Number of Trials:             " + num)
+##
+## ##FilePrint(report,"                        ---------------------------")
+## ##FilePrint(report,"                            Total Percent Mean/Cat")
+## ##FilePrint(report,"3. Correct Responses:         " + totCorr + Tab(1) + Roundoff(totCorr/num,4)*100 + Tab(1) + Roundoff(totCorr/numcatsExp,3))
+## ##FilePrint(report,"4. Total Errors:              " + err + Tab(1) + Roundoff(err/num,4)*100 + Tab(1) + Roundoff(err/numCatsExp,3))
+## ##FilePrint(report,"5. Perseverative Responses    " + totPers + Tab(1) + Roundoff(totPers/num,4)*100 + Tab(1) + Roundoff(totPers/(numCatsExp-1),3))
+## ##FilePrint(report,"6. Perseverative Errors       " + totPersErr + Tab(1) + Roundoff(totPersErr/num,4)*100 + Tab(1) + Roundoff(totPersErr/(numCatsExp-1),3))
+## ##FilePrint(report,"7. Non-Perseverative Errors   " + nonp + Tab(1) + Roundoff(nonp/num,4)*100 + Tab(1) + Roundoff(nonp/(numCatsExp),3))
+## ##FilePrint(report,"8. Unique Errors              " + totUnique + Tab(1) + Roundoff(totUnique/num,4)*100 + Tab(1) + Roundoff(totUnique/(numCatsExp),3))
+
+## ##FilePrint(report,"8. Trials to complete 1st cat:   "+ firstcat) 
+## ##FilePrint(report,"12. Perseverative Runs: Min    Max   Mean   Total")
+## ##FilePrint(report,"                         "+Min(persrun)+ "      "+ Max(persrun) + "     "  + Roundoff(Mean(persrun),3) + "   " + Sum(persrun))
+

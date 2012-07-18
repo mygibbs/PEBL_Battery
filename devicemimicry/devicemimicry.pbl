@@ -1,0 +1,605 @@
+define Start(p)
+{
+  gVideoWidth <- 800
+  gVideoHeight<- 600
+
+
+
+  gStepSize <- .2  #small number specifying hom many rads/ms the
+                     #apparatus moves
+  gSleepEasy <- 1
+  ShowCursor(0)
+
+  gWin <- MakeWindow("black")
+  gCanvas <- MakeCanvas(800,600,MakeColor("black"))
+  AddObject(gCanvas,gWin)
+  Move(gCanvas,400,300)
+
+  gridcol <- MakeColor("grey20")
+  gTargetcolor <- MakeColor("salmon")
+  gDrawColor <- MakeColor("green")
+
+  gHomeX <- gVideoWidth/2
+  gHomeY <- gVideoheight/2
+
+  gSubNum <- GetSubNum(gWin)
+  gFileOut <- FileOpenAppend("device-"+gSubNum+".dat")
+
+  ##device colors
+   gArm1Col <- MakeColor("red")
+   gArm2Col <- MakeColor("orange")  
+
+   gArm1Length <- 100
+   gArm2Length <- 100
+
+  grid <-[]
+  x <- Sequence(0,800,100)
+  y <- Sequence(0,600,100)
+  #Vertical lines
+  loop(i,x)
+   {
+     line <-Line(i,0,0,gVideoHeight,gridcol)
+     AddObject(line,gWin)
+     grid <-Append(grid,line)
+   }
+  loop(i,y)
+   {
+     line <-Line(0,i,gVideoWidth,0,gridcol)
+     AddObject(line,gWin)
+     grid <-Append(grid,line)
+   }
+
+  instr <- EasyLabel("[1|2]: rotate inner arm   [X] Restart draw        [ENTER] accept   [9|0] rotate outer arm",
+            gHomeX,gVideoHeight-25,gWin,15)
+  instrb<- EasyLabel("[4|5] arm1 length                                                  [6|7] arm2 length",    gHomeX,gVideoHeight-10,gWin,15)
+
+  path <- 1
+  font <- MakeFont(gPEBLBaseFont,0,18,MakeColor("white"),MakeColor("black"),1)
+  gInstr2 <- MakeTextBox("",font,gVideoWidth-100,gVideoHeight-100)
+  AddObject(gInstr2,gWin)
+  Move(gInstr2,50,50)
+;   Draw()
+
+  ##Get the paths data file names: 
+   paths <- []
+   seq <- Sequence(1,10,1)
+   loop(i,seq)
+   {
+     paths <- Append(paths,"paths/99-"+i+"-path.csv")
+   }
+   
+   paths <- Shuffle(paths)
+   show <- Shuffle([1,1,1,1,1,0,0,0,0,0])
+    conds <- Transpose([paths,show])
+
+  ##Loop through the problems:
+  loop(i,conds)
+   {
+
+     Print(i)
+     path <- First(i)
+     showdev <- Second(i)
+     results <-  Trial(path,showdev)
+   
+}
+
+}
+
+define Trial (pathname,showarms)
+ {
+
+    ResetCanvas(gCanvas)
+    gInstr2.text  <- "Hit space bar to see path "
+    Show(gInstr2)
+    Draw()
+    WaitforKeyPress(" ")
+    Hide(gInstr2)
+
+    pathxy <- ReadPath(pathname)
+
+    Print("drawing path") 
+    p1 <-  DrawPath(gHomeX, gHomeY, gArm1Length,gArm2Length,pathxy,0,showarms)
+
+    Print("evolving")
+    ev <- PathEvolve(First(p1),.01)
+
+
+	p1 <- Append(p1,DrawPoints(ev,3,gTargetColor))
+
+    Show(gInstr2)
+    RemoveObject(gInstr2,gWin)
+    AddObject(gInstr2,gWin)
+    gInstr2.text  <- "Hit space bar to Draw path"
+    Draw()
+    WaitforKeyPress(" ")
+    Hide(gInstr2)
+
+    Print("getting new path")
+    path <-   CollectPath(gHomeX,gHomeY,Third(First(pathxy)),Fourth(First(pathxy)),First(First(pathxy)),Second(First(pathxy)))
+
+    stats <- Third(path)
+    ev2 <- PathEvolve(Second(path),.01)
+ 
+
+    ##Compute some statistics 
+    ##Critical score
+    targetlength <- Length(First(p1))
+    targetdist <- PathLength(First(p1))
+    targetCrit <- Length(ev)
+
+    subLength <- Length(Second(path))
+    subDist   <- PathLength(Second(path))
+    subCrit   <- Length(ev2)
+
+    Print("computing score")
+    score <- (Score(ev,ev2))
+    Print("score computed:" + score)
+
+    FilePrint(gFileOut, gSubNum + " " + pathname + " " + showarms + " "  +  
+         targetlength + " " + targetdist + " " + targetCrit + " " +
+         subLength + " " +subDist + " " + subCrit + " " +
+         First(stats) + " " + Second(stats) + " " +Third(stats) + " "+
+          Fourth(stats)+ " " + score)
+ 
+
+    RemoveComplex(p1)
+    RemoveComplex(path) 
+}
+
+
+
+define ReadPath(filename)
+  {
+    data <- FileReadTable(filename)
+    newdat <- []
+    loop(i,data)
+    {
+      newdat <- Append(newdat, [ToNumber(First(i)),ToNumber(Second(i)),
+                                ToNumber(Third(i)),ToNumber(Fourth(i))     ])
+    }
+  return (newdat)
+}
+
+define WriteCSV(file,table)
+{
+   file <- FileOpenWrite(file)
+   loop(i,table)
+   {
+       FilePrint(file, MakeCSVLine(i))  
+   }
+   FileClose(file)
+}
+
+define MakeCSVLine(list)
+{
+  txt <- ""
+
+  loop(i,list) 
+   {
+     txt <- txt + i + ", "
+   }
+ return txt
+}
+
+
+define CollectPath(homeX,homeY,arm1,arm2,theta10,theta20)
+{
+
+
+
+  arm1l <- arm1
+  arm2l <- arm2
+
+  theta1 <- theta10
+  theta2 <- theta20
+  ret <- DrawDevice(homeX,homeY, arm1,arm2,theta1,theta2,1)
+  x <- First(ret)
+  lastpoint <- Second(ret)
+  lastdrawpoint <- lastpoint ##We don't draw every sample.
+
+  retries <- 0
+
+  Draw()
+  cont <- 1
+      
+  trace <- [lastpoint]
+  trline <- []
+  time <- GetTime()
+  Wait(10)
+
+  time0 <- GetTime()
+  time1 <- GetTime()
+  while(cont)
+   {
+    lasttime <- time
+    time <- GetTime()
+
+      a1l <-  IsKeyDown("1")>0
+      a1r <-  IsKeyDown("2")>0
+      a2l <-  IsKeyDown("9")>0
+      a2r <-  IsKeyDown("0")>0
+
+      l1s <- IsKeyDown("4")>0
+      l1l <- IsKeyDown("5")>0
+      l2s <- IsKeyDown("6")>0
+      l2l <- IsKeyDown("7")>0
+
+      replay <- IsKeydown("r")
+      restart <- IsKeydown("x")
+      quit <- IsKeyDown("<return>")
+
+
+     if(quit)
+     {
+        RemoveComplex(x)
+        timeEnd <- GetTime()
+        cont <- 0
+     }elseif(restart)
+     {
+
+      retries <- retries + 1 
+      time1 <- GetTime()
+
+      theta1 <- theta10
+      theta2 <- theta20
+      arm1l <- arm1
+      arm2l <- arm2
+	  ResetCanvas(gCanvas)
+      RemoveComplex(x)
+      RemoveComplex(trline)
+       ret <- DrawDevice(homeX,homeY, arm1l,arm2l,theta1,theta1+theta2,1)
+       x <- First(ret)
+       lastpoint <- Second(ret)
+       lastdrawpoint <- lastpoint
+       trace <- [lastpoint]
+
+       trline <- []
+       time <- GetTime()
+
+
+     } else{
+
+
+    
+        arm1l <- arm1l + (l1l-l1s)
+        arm2l <- arm2l + (l2l-l2s)
+        theta1 <- theta1 + (a1r - a1l)*gStepSize/(time-lasttime) 
+        theta2 <- theta2 + (a2r - a2l)*gStepSize/(time-lasttime)
+        
+        RemoveComplex(x)
+        ret <- DrawDevice(homex,homeY,arm1l,arm2l,theta1,theta2+theta1,1)
+        x <- First(ret)  
+        point <- Second(ret)
+     
+         change <- Abs(First(point)-First(lastdrawpoint))+ Abs(Second(point)-Second(lastdrawpoint)) 
+
+
+        ##only draw the line when we go 4 or more pixels  
+        if(change  > 1)
+         {
+#           tr1 <-  ThickLine(First(lastdrawpoint),Second(lastdrawpoint), First(point),Second(point),2,gDrawColor)
+           SetPoint(gCanvas,First(point),Second(point),gDrawColor)
+#            tr1 <- Circle(First(point),Second(point),3,gDrawColor,1)
+#           AddObject(tr1,gWin)
+#          trline <- Append(trline,tr1)
+           lastdrawpoint <- point
+           
+         }
+        
+        trace <- Append(trace, point)
+        lastpoint <- point
+
+     }
+
+    Draw()
+   }
+
+  stats <- [retries, time0,timeEnd-time0,timeEnd-time1]
+  return [trline, trace,stats]
+   
+}
+
+
+## This draws a pre-specified path 'robotically'
+
+define DrawPath(centerX,centerY,arm1,arm2,params,step,showarms)
+{
+      
+      start <- First(params)
+
+      theta1 <- First(start)
+      theta2 <- Second(start)
+      arm1   <- Third(start)
+      arm2 <- Fourth(start)
+
+      ret <- DrawDevice(centerx, centery, arm1,arm2,theta1,theta1+theta2,showarms)
+      x <- First(ret)
+      lastpoint <- Second(ret)
+
+      lastdrawpoint <- lastpoint
+      trace <- [lastpoint]
+      trline <- []
+
+     
+       loop(i,params)
+        {
+
+         theta1 <- First(i)
+         theta2 <- Second(i)
+         arm1   <- Third(i)
+         arm2 <- Fourth(i)
+         RemoveComplex(x)
+
+         ret <- DrawDevice(gHomeX,gHomeY, arm1, arm2,theta1,theta2+theta1,showarms)
+         x <- First(ret)
+         point <- Second(ret)
+
+
+
+        change <- Abs(First(point)-First(lastdrawpoint))+  Abs(Second(point)-Second(lastdrawpoint))
+
+        if(change>=1)
+        {
+         trace <- Append(trace, point)
+        }
+
+        ##only draw the line when we go 4 or more pixels  
+        if(change  > 1)
+         {
+
+#           tr1 <-  ThickLine(First(lastdrawpoint),Second(lastdrawpoint), First(point),Second(point),4,gTargetColor)
+#            tr1 <- Circle(First(point),Second(point),5,gTargetColor,1)
+#           AddObject(tr1,gWin)
+#           trline <- Append(trline,tr1)
+
+           SetPoint(gCanvas,First(point),Second(point),gTargetColor)
+
+           lastdrawpoint <- point
+          Draw()
+          Wait(step)
+           
+         }
+    
+
+        lastpoint <- point
+       
+        }
+        RemoveComplex(x)
+ return [trace,trLine]
+}
+
+
+##This draws a set of points, taking points as inputs and 
+##instead of angles/lengths
+define DrawPoints(points,size,col)
+{
+	lastpoint <- First(points)    
+    trace <- []
+    loop(point,SubList(points,2,Length(points)))
+    {
+         tr1 <-  ThickLine(First(lastpoint),Second(lastpoint),
+		                    First(point),Second(point),size,col)
+         tr2 <- Circle(First(point),Second(point),Ceiling(size/2),col,1)
+         AddObject(tr1,gWin)
+         AddObject(tr2,gWin)
+         trace <- Append(trace,tr1) 
+         trace <- Append(trace,tr2) 
+#        SetPoint(gCanvas,First(point),Second(point),gTargetColor)
+
+		 lastpoint <- point
+
+    }
+  return trace
+}
+
+
+
+define DrawDevice(centerX,centerY, arm1, arm2, theta1,theta2,show)
+{
+
+  end1X <- centerX + arm1 * Cos(theta1)
+  end1Y <- centerY + arm1 * Sin(theta1)
+  end2X <- end1X + arm2 * Cos(theta2)
+  end2y <-end1y + arm2 * Sin(theta2)
+  arm1 <- ThickLine(centerX, centerY,end1X,end1Y,4,gArm1col)
+  arm2 <- ThickLine(end1X,end1Y,end2x,end2y,4,gArm2col)
+  AddObject(arm1,gWin)
+  AddObject(arm2,gWin)
+  if(not show)
+   {
+    Hide(arm1)
+    Hide(arm2)
+   }
+  return [[arm1,arm2],[end2x,end2y]]
+
+}
+
+
+define RemoveComplex(objs)
+{
+    loop(i,Flatten(objs))
+   {
+      if(IsWidget(i))
+      {
+      RemoveObject(i,gWin)
+      }
+   }
+}
+
+
+
+
+define PathEvolve(path,tol)
+{
+    ##Identify just the critical points ala Latecki
+
+    lastpoint <- First(path)
+    midpoint <- Second(path)    
+    points <- SubList(path,3,Length(path))
+
+    newpts <- [[Round(First(lastpoint)),Round(Second(lastpoint))]]
+    loop(point,points)
+    {
+
+       i <- point
+       ##We need to get best estimate of midpoint if it were not there.
+	   dist12 <- Dist(lastpoint,midpoint)
+       dist23 <- Dist(midpoint,i)
+       dist13 <- Dist(lastpoint,i)
+
+       if((dist12 + dist23)<dist13+tol)
+       {
+
+            ##If we don't violate the triangle inequality, get rid
+            ##of midpoint
+            midpoint <- i
+
+       } else {
+
+
+            ##midpoint is needed; add it to the list
+            newpts <- Append(newpts,[Round(First(midpoint)),Round(Second(midpoint))])
+            lastpoint <- midpoint
+            midpoint <- i
+  
+       }
+    }
+
+   return Append(newpts,i)
+}
+
+define PathInterpolate(path)
+{
+  ##Take a path and interpolate every pixel along it.
+
+
+    lastpoint <- First(path)
+    newpts <- [First(path)]
+    loop(point, SubList(path,2,Length(path)))
+    {
+     dist <- Dist(point,lastpoint)
+     diff <- VecDiff(point,lastpoint)   #A vector describing a->b
+     ##The distance between point and lastpoint is dist pixels.
+     ##We need to interpolate a point every 1 pixel.
+     ##We need to >= 2 pixels apart to want to interpolate.
+
+     x1 <- First(diff)/dist
+     y1 <- Second(diff)/dist     
+
+    if(dist > 1.999)
+     {
+        pts <- Sequence(1,Floor(dist),1)
+        lastX <- First(lastpoint)
+        lastY <- Second(lastpoint)
+
+        loop(j,pts)
+        {
+
+          newpts <- Append(newpts, [lastx + j *x1,lasty+j*y1])
+        }
+
+     }
+
+
+
+     lastpoint <- point
+
+
+    }
+  return newpts
+}
+
+##Computes a-b
+define VecDiff(a,b)
+{
+   return [First(a)-First(b),Second(a)-Second(b)]
+}
+
+
+
+
+define Score(pts1,pts2)
+{
+##pts1 and pts2 are possibly of different sizes.
+#   dist <- MakeDistMatrix(pts1,pts2)
+#   
+#   mins1 <- GetMins(dist)
+#   mins2 <- GetMins(Transpose(dist))
+#   
+#  return Mean(Merge(mins1,mins2))
+   return SurveyorsDistance(pts1, pts2)
+}
+
+
+define GetMins(matrix)
+{
+    mins<-[]
+    loop(i,matrix)
+    {
+       mins <- Append(mins,Min(i))
+
+    }
+
+  return mins
+}
+
+
+define MakeDistMatrix(pts1,pts2)
+ {
+
+
+   dist<- []
+   loop(i,pts1)
+    {
+      tmp <- []
+      loop(j,pts2)
+       {
+         
+          tmp<- Append(tmp,Dist(i,j))
+       }
+     dist <- Append(dist,tmp)
+    }
+   return dist
+ }
+
+
+
+define PathLength(pts)
+{
+   length <- 0
+   lastpt <- First(pts)
+
+   loop(point,SubList(pts,2,Length(pts)))
+   {
+      length <- length + Dist(lastpt,point)
+      lastpt <- point
+   }
+  return length
+}
+
+
+define ResetCanvas(canvas)
+{
+   canvas.bgcolor <- canvas.bgcolor
+}
+
+
+##This finds the distance between a set of points p1 and p2, using
+##the "surveyor's formula" of the polygon formed by concatenating the two.
+define SurveyorsDistance(p1, p2)
+{
+   pall <- Merge(p1,Reverse(p2))
+   pall2 <- Rotate(pall,1)
+
+   points <- Transpose(Merge(Transpose(pall), Transpose(pall2)))
+
+   dist <- 0
+   loop(i,points)
+   {
+    ##     Add determinate of p1p2
+     dist <- dist + (First(i) * Fourth(i) - Third(i)*Second(i))
+   }
+
+ return dist/2
+}
+

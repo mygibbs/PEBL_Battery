@@ -1,0 +1,322 @@
+define Start(p)
+{
+
+  blocktime <- 1000 * 180    # Duration of block in ms (default should be  3 min)
+  lengths <-    [2,3,4]
+  deadlines <-  [1500,3000,4000]
+  
+  sums <-[1,2,3,4,6,7,8,9]
+  gFeedback <- 1
+  gSleepEasy <- 1
+  gFileOut <- FileOpenWrite("mathproc-"+gSubNum+".txt")
+
+  gWin <- MakeWindow()
+
+  footer1 <- EasyLabel("Left Shift                                 Right Shift",gVideoWidth/2,gVideoHeight-80,gWin,30)
+  footer2 <- EasyLabel("Sum less than 5                        Sum greater than 5",gVideoWidth/2,gVideoHeight-30,gWin,30)
+
+   inst <- "In this task, you must solve a number of simple addition and subtraction problems to determine whether the correct answer is greater or less than 5. The two possible reponses on the task are 'greater than' (>) and 'less than' (<).  Less-than responses are made by pressing the left shift key on the keyboard, and greater-than responses are made by pressing the right shift key on  the keyboard. No problem will ever have the value 5 as the correct answer.
+
+You start the task whenever you are ready by pressing any key on the keyboard.  Testing periods last for 3 minutes each. Math problems appear one at a time on the screen, and should be solved from left to right. Always perform the additions and subtractions in the order that they appear in the problems. As soon as you respond to a problem, a new problem will appear. Try to perform the task as quickly and accurately as possible. Go as fast as you can, but if you start to make errors because you are trying to go too fast, slow down. You should try to respond correctly to every problem. At the end of the 3-minute testing period, the task will automatically stop.
+
+The number of additions and subtractions to be performed in each problem will vary from one 3-minute period to another. On some periods problems will require only one addition or subtraction to be performed; on others, two additions and/or subtractions; and on others, three operations. However, in a given 3-minute test period, all problems will have the same number of mathematical operations.
+
+    Press any key to begin."
+
+    tb  <- EasyTextBox(inst,0,0,gWin,18,gVideoWidth,gVideoHeight)
+    Draw()
+    WaitForAnyKeyPress()   
+
+
+
+  Draw()
+  design <- DesignFullCounterBalance(sums,lengths)
+  stimuli <- Shuffle(design)
+
+  FilePrint(gFileOut, "subnum trial feedback val length stim resp corr tooslow time rt")
+
+
+  blockdat <- Shuffle(Transpose([lengths,deadlines]))
+
+  ##Data should include condition(length), correct, time
+  gDat <- []
+
+  block <- 1
+  loop(b, blockdat)
+   {
+
+
+   length <-First(b)
+   deadline <- Nth(b,2)
+   tb.text <- "                             Block " + block + ":
+The problems in this block will all have " + length + " numbers. You have a deadline of " + deadline/1000 + " seconds to solve each one. Good luck.  Press any key to begin."
+   Show(tb)
+   Draw()
+   WaitForAnyKeyPress()
+   Hide(tb)
+   Draw()
+   
+   trial <- 1
+   starttime <- GetTime()
+   endTime <- starttime + blocktime
+
+   while(GetTime() < endtime)
+    {
+    if(Mod(trial,9)==1)
+      {
+      sums <- Shuffle(sums)
+      }  
+
+     val <- First(sums)     #This is the value
+     sums <- Rotate(sums,1)  #Move to the next value
+  
+     x <- MakeProblem(val,length)
+     FilePrint_(gFileOut, gSubNum + " " + trial + " " + gFeedback + " " + val + " " + length + " " +   ListToString(x))
+
+     Trial(x,deadline)
+
+    trial <- trial + 1
+   } 
+
+ }
+
+  cdat <- Transpose(gDat)
+
+  Print(gDat)
+
+  trials <-  (SummaryStats(Nth(cdat,2),First(cdat)))
+  rt <- (SummaryStats(Nth(cdat,3),First(cdat)))
+  slow <- SummaryStats(Nth(cdat,4),First(cdat))
+  ttrials <- Transpose(trials)
+  trt <- Transpose(rt)
+  tslow <- Transpose(slow)
+
+   Print(trials)
+   Print(rt)
+   Print(slow)
+   
+  ntrials <- Nth(ttrials,2)
+  ncorr <- VecTimes(Nth(ttrials,4), Nth(ttrials,2))
+  nslow <-   VecTimes(Nth(tslow,4), Nth(tslow,2))
+  nerrs  <- VecSum(ntrials, VecTimes(ncorr,[-1,-1,-1]))
+  ncomm <-  VecSum(nerrs,VecTimes(nslow,[-1,-1,-1]))
+
+  sumfile <- FileOpenWrite("mathproc-summary-"+gSubNum+".txt")
+  FilePrint(sumfile,"----------------------------------------------")
+  FilePrint(sumfile,"Summary for the PEBL Mathematical Processing Task, Version 0.1")
+  FilePrint(sumfile,"Released into public domain 2008 by Shane T. Mueller, Ph.D. (smueller at obereed dot net)")
+  FilePrint(sumfile,TimeStamp())
+  FilePrint(sumfile,GetPEBLVersion())
+  FilePrint(sumfile,"----------------------------------------------")
+  FilePrint(sumfile,"participant code: " + gSubNum)
+  FilePrint(sumfile,"Time per block: " + blocktime/1000 + " s")
+  FilePrint(sumfile,"Deadlines:")
+  FilePrintList(sumfile,lengths)
+  FilePrintList(sumfile,deadlines)
+  FilePrint(sumfile,"----------------------------------------------")
+  FilePrint(sumfile, "Statistic                     Conditions")
+  FilePrint(sumfile, "                         2         3        4")
+  FilePrint(sumfile,"----------------------------------------------")
+  FilePrint_(sumfile,"Length              ")
+  FilePrintList(sumfile,First(ttrials))
+  FilePrint_(sumfile,"Number of trials    ")
+  FilePrintList(sumfile,ntrials)
+  FilePrint_(sumfile,"Total Correct       ")
+  FilePrintList(sumfile,ncorr)
+  FilePrint_(sumfile,"Total Errors        ")
+  FilePrintList(sumfile,nerrs)
+  FilePrint_(sumfile,"Total Too slow      ")
+  FilePrintList(sumfile,nslow)
+  FilePrint_(sumfile,"Total Committed Errors ")
+  FilePrintList(sumfile,ncomm)
+  FilePrint_(sumfile,"Proportion Correct  ")
+  FilePrintList(sumfile,Nth(ttrials,4))
+  FilePrint_(sumfile,"RT Mean             ")
+  FilePrintList(sumfile,Nth(trt,4))
+  FilePrint_(sumfile,"RT Median           ")
+  FilePrintList(sumfile,Nth(trt,3))
+
+  FilePrint(sumfile,"----------------------------------------------")
+
+ FileClose(gFileOut)
+ FileClose(sumfile)
+  tb.text <- "Thanks for participating."
+  Show(tb)
+  Draw()
+  WaitForAnyKeyPress()
+
+}
+
+
+define VecTimes(a,b)
+{
+   tmp <- Transpose([a,b])
+   out <- []
+   loop(i,tmp)
+   {
+     out <- Append(out, First(i) * Nth(i,2))
+   }
+  return out
+}
+
+define VecSum(a,b)
+{
+   tmp <- Transpose([a,b])
+   out <- []
+   loop(i,tmp)
+   {
+     out <- Append(out, First(i) + Nth(i,2))
+   }
+  return out
+}
+
+define Trial(list,deadline)
+{
+  string <- MakeStimString(list)
+  ans <- Sum(list)
+  lab <- EasyLabel(string,gVideoWidth/2,gVideoHeight/2,gWin,40)
+  Draw()
+  time0 <- GetTime()
+  resp <- WaitForListKeyPressWithTimeout(["<lshift>","<rshift>"],deadline,1)
+  time1 <- GetTime()
+
+  tooslow <- 0
+  sum <- Sum(list)
+  corr <- 0
+  text <- "Incorrect"
+
+  Print(resp)
+
+  if(IsList(resp))
+    {
+     corr <- 0
+     tooslow <- 1
+     text <- "Too Slow"
+
+    }elseif(resp == "<lshift>")
+   {
+     if (sum < 5) 
+      {
+          corr <- 1
+          text <- "Correct" 
+     }
+   } else { 
+     if (sum > 5)
+       {
+          corr <- 1
+          text <- "Correct"
+       }
+   }
+
+  if(gFeedback)
+   {
+     lab.text <-text
+     Draw()
+     Wait(500)
+   }
+
+  rt <- time1-time0
+  gDat <- Append(gDat, [Length(list),corr,rt,tooslow])
+  FilePrint(gFileOut, sum + " " + resp + " " + corr + " " + tooslow + " " + time1 + " " + rt )
+  RemoveObject(lab,gWin)
+  Draw()
+  Wait(200)
+}
+
+
+define MakeStimString(list)
+ {
+  string <- ""
+  start <- 1
+  loop(i,list)
+  {
+   if(start)
+    {
+      start <- 0
+    } else { 
+     if(i > 0)
+    {
+       string <- string + " + "
+    } else {
+       string <- string + " - "
+    }
+   
+   }
+    string <- string + Abs(i)
+
+  }
+  return string + " =" 
+ }
+
+
+define MakeProblem(answer,length)
+{
+  ##Make a series of digits to add that satisfies the requirements:
+
+
+ 
+  list <- []
+  l <- 1
+   while(l < length)
+   {
+     tmp <- AddDigit(list,answer)
+ 
+     list <- First(tmp)
+     answer <- Nth(tmp,2)
+     l <- l + 1
+   }
+
+  return Append(list,answer)
+}
+
+
+define AddDigit(list, last)
+{
+
+  sum <- Sum(list)
+
+  ##We need to divide last into two numbers n1 and n2, so that:
+  ## n1 + n2 = last
+  ## n1, n2 are in [-9...-1,1...9]
+  ## -n1, -n2 have not been used already
+  ## intermediate sum > 0
+
+  cont <- 1
+  tries <- 0
+
+  while(cont)
+   {
+    newval <- RandomDiscrete(9)  *(RandomDiscrete(2)*2-3)
+    n2 <-  newval
+    n1 <-  last - newval
+
+
+
+    #The new intermediate number must be correct
+    if( Abs(n1) < 10 and Abs(n2) < 10 and
+       Abs(n1) > 0 and Abs(n2) > 0 and
+       sum + n1 > 0  and
+       (not IsMember(-n1,list)) and
+       (not IsMember(-n2,list)) and
+       (not n2 == -9)     )
+       {
+         cont <- 0
+       }
+
+
+
+    if(tries > 100)
+     {
+      SignalFatalError("Error")
+      cont <- 0
+     }
+     tries <- tries + 1
+  }
+  return [Append(list,n1),n2]
+}
+
+
+define Rest(list)
+{
+  return SubList(list,2,Length(list))
+}

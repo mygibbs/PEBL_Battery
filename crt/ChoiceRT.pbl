@@ -1,0 +1,62 @@
+#!/usr/local/bin/pebl
+define Start(lPar)
+{ #Initialize Window
+  gWindow <- MakeWindow("RED") 
+  
+  #Initialize Font and colors
+  fg <- MakeColor("GREY")
+  bg <- MakeColor("RED")
+  gFont <- MakeFont(gPEBLBaseFont,0,22,fg,bg,1)
+  gFixation <- MakeLabel("+",gFont)
+  AddObject(gFixation,gWindow)		
+  Move(gFixation, 300,200)
+  Draw()
+  stimuli <- Shuffle(["a", "d", "c", "e", "d", "o", "n"])
+
+  loop(i, stimuli)
+  {
+    Wait(200)
+    Print_(i + "   ")
+    Print( Trial(i))	
+  }
+}
+
+
+define Trial(lStim)
+{
+
+  lText <- MakeLabel(lStim,gFont)  ##Make stimulus label
+  ##Add label to window
+  AddObject(lText,gWindow)	
+
+  ##Move text to center
+  Move(lText, 300,200)
+  ##Hide the text; show the fixation
+  Hide(lText)
+  Show(gFixation)
+  Draw()
+
+  #Wait 1250 msecs and hide the fixation
+  Hide(gFixation)
+  Wait(100)
+  Draw()
+
+  #Wait up to 800 msecs and show the text.
+  Show(lText)
+  Wait(100 + RandomDiscrete(100))
+  Draw()
+
+  #Get start time.
+  start <- GetTime()
+  #Wait for response, hiding stimulus as soon as it occurs.
+  Hide(lText)
+  lResponse <- WaitForKeyPress(lStim)
+
+  #Get the response time.
+  end <- GetTime()
+  Draw()
+
+  RemoveObject(lText, gWindow)
+  return (end - start)
+}
+

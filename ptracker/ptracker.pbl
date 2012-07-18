@@ -1,0 +1,252 @@
+#######################################
+## 
+## PEBL Tracker Version 0.1
+## A work-alike for 'CompTrack' by Makeig & Jolley (1995),
+## a compensatory tracking task.
+##
+##
+## Originally used to investigate vigilance, as the cursor must be
+## continuously adjusted to keep it 'in the bullseye'.
+## Originally used with a trackball.  A mouse works fine, but the
+## little 'pencil eraser' device on most laptops is great for it too.
+##
+##
+## See http://sccn.ucsd.edu/~scott
+##     http://sccn.ucsd.edu/~scott/pdf/COMPTRACK.pdf
+##    http://oai.dtic.mil/oai/oai?&verb=getRecord&metadataPrefix=html&identifier=ADA311977
+##
+##  Works basically like the task described in the above documents, although
+##  some of the constants have been changed for better performance (or
+##  because they were described incorrectly in the pdf.
+##
+##  Part of the PEBL Test Battery.
+##  Version 0.1 Released Sept 2008, Shane T. Mueller (smueller@obereed.net)
+##
+
+##Initialize many of the 
+define Init()
+{
+  gVideoWidth <- 800
+  gVideoHeight <- 600
+
+  gHomeX <- Round(gVideoWidth/2)
+  gHomeY <- Round(gVideoHeight/2)
+
+  gPI <- 3.141597
+  gRadius <- 10           #Radius of disc
+  gGutter <- 2 * gRadius  #Radius of 2nd ring
+  gOuterRadius <- 20*gRadius  
+
+  ## For the 'pencil eraser' mice, this should be small (.05)
+  ## For other devices, it might need to be larger.
+
+  gMouseSensitivity <- .4
+
+  gAngles <- []
+  i <- 1
+  while(i <=5)
+   {
+     gAngles <- Append(gAngles,Random()*2*gPI)
+     i <- i + 1
+   }
+ 
+
+
+   gTimeStep <- .015    # in seconds
+
+   mass     <- 1       # mass of object
+   c        <- 3       # Screen friction
+   k        <- .5      # users spring constant. A higher
+                       # k value gives the user stronger
+                       # pull on the target.
+
+   bfscale <- .44
+   inscale <- 250
+
+  gDamping <- 1/(mass + c*gTimestep + k*gTimestep^2)
+
+}
+
+define Start(p)
+{
+
+  Init()
+
+  ShowCursor(0)  
+  gSleepEasy <- 1
+
+  gFileOut <- FileOpenWrite("ptracker-"+gSubNum+".dat")
+  gWin <- MakeWindow("grey10")
+
+  inst <- EasyTextBox("Your goal in this task is to keep the ball near
+  the target using your mouse or pointing device.  The test lasts
+  three minutes.  To stop early, hit the <esc> key.
+
+Press any key to begin", 20,20,gwin, 18,gVideoWidth-40,250)
+  Draw()
+  WaitForAnyKeyPress()
+  Hide(inst)
+  Draw() 
+
+  center  <-  Circle(gHomeX,gHomeY,gRadius,MakeColor("black"),1)
+  ring  <-  Circle(gHomeX,gHomeY,gGutter,MakeColor("grey"),1)
+  AddObject(ring,gWin)
+  AddObject(center,gWin)
+
+  target <- Circle(gHomeX,gHomeY,gRadius,MakeColor("white"),1)
+  AddObject(target,gWin)
+  t <- GetTime()
+  SetMouseCursorPosition(gHomeX,gHomeY)
+  Wait(10)
+  Draw()
+  lastpos <- [0,0]
+  newpos <- lastpos
+
+  endtime <- 1* 1000*60 + GetTime()
+  timelab <- EasyLabel(GetRemaining(endtime,GetTime()),gHomeX,10,gWin,24)
+  lasttime <- 0
+
+  Draw()
+
+  cont <- 1
+  while(cont)
+  {
+     t<- GetTime()
+     mousepos <- GetMouseCursorPosition()
+
+     userdelta <- AddVectors(mousepos,[-gHomeX,-gHomeY])
+
+     newpos <-NewPos(newpos,lastpos,userdelta)
+
+     Move(target, gHomeX+First(newpos), gHomeY+Nth(newpos,2))
+     SetMouseCursorPosition(gHomeX,gHomeY)
+
+     ##update list every few seconds
+     if((t-lasttime) > 1000)
+       {
+            timelab.text <- GetRemaining(endtime,t)
+            lasttime <- t
+       }
+
+
+     lastpos <- newpos
+     dat <- Flatten([t, newpos, userdelta])
+     FilePrintList(gFileOut,dat)
+
+
+     Draw()
+
+	 Wait((t + gTimeStep*1000)-GetTime())
+     if(t  > endtime or IsKeyDown("<esc>"))
+     {
+     cont <- 0
+     }
+
+  }
+ FileClose(gFileOut)
+
+}
+
+
+define GetRemaining(endtime,curtime)
+{
+  timeleft <- (endtime - curtime)/1000/60
+  mins <-    Floor(timeleft)
+  secs <-    Ceiling((timeleft - mins)*60)
+
+  return  mins + " minutes " + secs + "secs remaining"
+}
+
+define Buffet(t)
+{
+   cx <- (1+Sqrt(5))/2
+   cy <- gPI/2
+
+  ##Add increment for each direction
+  fBX <- 0
+  fBY <- 0
+
+  n <- 0
+  loop(i,gAngles)
+    {
+      fBX <- fBX + cx^(-n) * Cos(cx^n*t+i)
+      fBY <- fBY + cx^(-n) * Sin(cy^n*t+i)
+      n <- n + 1
+    }
+
+  return [fBX,fBY]
+}
+
+
+
+##Exerts a radial force.  This matches the code, which is inconsistent
+## with the pdf write-up (-3/2 versus 3/2)
+define Gravity (pos)
+{
+   r <- NormVector(pos)
+
+   if(r<=6*gRadius)
+   {
+     x <-    1/2 * r^2
+   } else {
+     x <- -3/2 * (r-20*gRadius)
+   }
+
+ return ScaleVector(ScaleVector(pos,1/r),x)
+}
+
+##pos1 is current position
+##pos0 is previous position
+define NewPos(pos1, pos0,userinput)
+{
+ x0 <- First(pos0)
+ y0 <- Nth(pos0,2)
+
+ x1 <- First(pos1)
+ y1 <- Nth(pos1,2)
+
+  grav <- ScaleVector(Gravity(pos1),.5382)  
+  buff <- Buffet(GetTime()/1000)
+  scaleduser <- ScaleVector(userinput,gMouseSensitivity)
+  force <- ScaleVector(AddVectors(buff,scaleduser),.8288)
+  prevdrag <- ScaleVector(pos0,.0003)
+  delta <- ScaleVector(AddVectors(pos1, ScaleVector(pos0,-1)),gDamping)
+  newpos <- AddVectors(AddVectors(AddVectors(pos1, delta),prevdrag),force)
+
+ return newpos
+}
+
+
+define AddVectors(vec1, vec2)
+{
+   newvec <- []
+   loop(i,Transpose([vec1,vec2]))
+    {
+
+      newvec <- Append(newvec, Sum(i))
+    }
+  return newvec
+}
+
+define ScaleVector(vec,scale)
+{
+  newvec <- []
+  loop(i,vec)
+  {
+    newvec <- Append(newvec,i*scale)
+
+  }
+  return newvec
+}
+
+define NormVector(vec)
+{
+   sum <- 0
+   loop(i,vec)
+   {
+
+     sum <- sum + i^2
+   }
+
+  return Sqrt(sum)
+}

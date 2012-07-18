@@ -1,0 +1,681 @@
+#!/usr/local/bin/pebl
+###########################################################
+##  Partial Report of Iconic Memory, Version 0.1
+##  For use with PEBL 0.08 or later
+##  http://pebl.sf.net
+##  Part of  The PEBL Psychological Testing Battery
+##  2006-02 Released into Public Domain
+##  by Shane T. Mueller, Ph.D. (smueller at obereed dot net)
+##
+##
+##
+##
+##
+##
+##
+##
+##
+##
+## This task is thought to provide early indications for alzheimer's, 
+## among other things.
+## e.g.,
+## Lu, Neuse, Madigan, & Dosher (2005).  fast decay of iconic memory
+## in observers with mild cognitive impairments.  PNAS 2006; 102;
+## 1797-1802.
+##
+##
+##
+###########################################################
+
+define Start(lPar)
+{
+  #Print(TimeStamp())
+ # x <- [[0, 56, 1, 4.1], [116, 58, 0.603448, 1.54876], [137, 58, 0.568966, 1.41228], [179, 58, 0.758621,
+# 2.25376], [326, 60, 0.583333, 1.46859], [621, 57, 0.649123, 1.73789], [1210, 53, 0.566038, 1.40089]]
+
+
+
+  ####################################
+  ##
+  ## Parameters/Variables controlling experiment
+  ##
+   
+  blocks <- 9              ## The number of trial blocks
+  blocklength <-  50       ## The number of trials per block
+
+
+  numtrials <- blocks * blocklength 
+	
+  ## SOA in ms.
+  soas <- [0,116,137,179,326,621,1210]
+
+  ####################################
+  ##
+  ## Begin Initialization Procedures.
+  ##
+  Initialize()
+  stimLetters <- ["D","F","J","K"]
+
+  ## Lists storing the actual RT values, along with the presentation time.
+  rts     <- []
+  delayCond <- []
+
+  deltaX <- 15
+  deltaY <- 15
+  ##These dictate where the stimuli will appear.
+  gPosX <- [-3*deltax, -deltax, deltax,3*deltax, 3*deltax, deltax,-deltax,-3*deltax]
+  gPosY <- [deltay, 3*deltay,3*deltay,deltay,-deltay, -3*deltay,-3*deltay,-deltay]
+
+
+##  We should test computer hardware here.
+##  
+  
+  ##First, test whether the machine can handle this.
+  gInstructions.text<- "Place your fingers on th D F J K keys."
+
+  Show(gInstructions)
+  Draw()
+  WaitForAnyKeyPress()
+
+  Hide(gInstructions)
+  Draw()
+#  Wait(500)
+
+  
+
+  ## The delays are pre-generated to make it easier to control things, 
+  ## like sequential dependencies, distributions, fixed delays, etc.
+
+  delayseq <- Shuffle(DesignBalancedSampling(soas, numtrials))
+  gDatafile   <- FileOpenAppend("partreport-"+ gSubNum + ".txt")
+  gInstructions.text <- "You are about to take part in a simple task.  On each trial, you will see a + sign, surrounded by a circle of eight letters.  The letters are chosen randomly from D F J and K.  The letters will disappear quickly, but shortly after they appear an arrow will appear, pointing to the location of a letter.  Your task is to identify what letter the arrow pointed to.
+
+  This task is very difficult.  It will measure how your iconic memory decays with time. We need to test you on "+blocks+ " blocks of "+blocklength + " trials,  but have a chance to rest between each block.  The first block is only for practice.  After the final block, we will show you your data, and how it compares to others."
+
+
+  #####################################
+  ## Begin Experiment with Instructions
+
+  Show(gInstructions)
+  Draw()	  
+  WaitForAnyKeyPress()
+  Hide(gInstructions)
+  gInstructions.text <- "Please take a short break.  Press any key to continue."
+  Draw()
+  blocknum <- 1
+  trialnum <- 1
+  isis <- []
+  accs <- []
+
+  loop(i, delayseq)
+   {
+
+     FilePrint_(gDataFile,gSubNum + " " + blocknum + " " + trialnum +" ")
+     corr <- Trial(SampleNWithReplacement(stimLetters,8),i)
+
+    ##Keep track of data after practice block:
+    if(blocknum > 1)
+     {
+         isis <- Append(isis,i)
+         accs <- Append(accs,corr)
+     } 
+
+   Print(Mod(trialnum,blocklength))
+    if(Mod(trialnum,blocklength) == 0)
+     {
+       blocknum <- blocknum + 1
+       HideComplex(gFixation)
+       Show(gInstructions)
+	   Draw()
+       WaitForAnyKeyPress()
+       Hide(gInstructions)
+       ShowComplex(gFixation)
+       Draw()
+       Wait(500)
+     }
+    trialnum <- trialnum + 1
+   }
+
+  Draw()
+
+  ####################
+  ##Experiment is finished; print out summary stats
+
+  ## 
+  ##   First, aggregate accuracy:
+  aggdata <- AggregateAcc(isis,accs)
+
+  Print(aggdata)
+  GraphStats(aggdata)
+ 
+   reportfile <- FileOpenWrite("partialreport-report-" + gSubNum + ".txt")
+   FilePrint(reportfile,"------------------------------------------------------")
+   FilePrint(reportfile," Report for PEBL Partial Report Procedure Version 0.1")
+   FilePrint(reportfile, " "+GetPEBLVersion())
+   FilePrint(reportfile, " "+TimeStamp())
+   FilePrint(reportfile," http://pebl.sf.net")
+   FilePrint(reportfile, " Participant Code: " + gSubNum)
+   FilePrint(reportfile,"------------------------------------------------------")
+   FilePrint(reportfile,"Statistic                 Value")
+   FilePrint(reportfile,"------------------------------------------------------")
+
+   FilePrint(reportfile,Format("Number of blocks",28) +blocks)
+   FilePrint(reportfile,Format("Trials per blocks",28) +blocklength)
+
+   FileClose(reportfile)
+   FileClose(gdatafile)
+
+  ##Now, show debriefing info.
+   SetText(gInstructions, "Thank you for participating in the experiment.  You may now leave.  (Press secret key 'X' to finish experiment)")
+   Show(gInstructions)
+   Draw()
+   Print(TimeStamp())
+   WaitForKeyPress("X")
+ 
+
+}
+
+
+##  This is a standard initializer function that sets up typical
+##  objects used in experiments.
+define Initialize()
+{
+
+  gVideoWidth <- 1024
+  gVideoHeight <- 768
+
+  ##Initialize Window, etc.
+  gWin <- MakeWindow("grey")   
+
+  ##Hide the cursor here.            
+  ShowCursor(0)
+
+  ##Initialize Font and colors
+   gFG <- MakeColor("black")
+   bg <- MakeColor("grey")
+   bg2 <- MakeColor("white")
+   
+
+   gInstructionsFont <- MakeFont(gPEBLBaseFont,0,18, gFG,bg2,1)  
+   gStimFont         <- MakeFont(gPEBLBaseFontMono, 0,24,gFG,bg,1)       
+   
+   gFooter <- MakeLabel("Respond using D F J K",gStimFont)
+   AddObject(gFooter,gWin)
+   Move(gFooter, gVideoWidth/2,gVideoHeight-80)
+   
+
+   ## Make and place the instruction box, then hide it  
+   gInstructions <- MakeTextBox("", gInstructionsFont, 600,300)
+   AddObject(gInstructions, gWin)
+   Move(gInstructions, gVideoWidth/2-300, gVideoHeight/2-150)
+   Hide(gInstructions)
+
+ 
+   ##Make a 'screen' object to occlude the stimuli. Add it last
+   gScreen <- Square(gVideoWidth/2,gVideoHeight/2,400,MakeColor("grey"),1)
+
+   ## Make and hide fixation cross 
+   gFixation <- MakePlus(gVideoWidth/2,gVideoHeight/2)
+   HideComplex(gFixation)
+
+}
+
+
+
+#######################################################
+##This should be called with the selected 8 stimpairs.
+define Trial(letters, delay)
+{
+    complex <- []
+    seq <- Transpose([letters,gPosX,gPosY])
+
+    FilePrint_(gDataFile,delay+ " ")
+
+    loop(i,seq)
+    { 
+      stimbase <- First(i)
+      FilePrint_(gDataFile,stimbase + " ")
+      x <- Nth(i,2) + gVideoWidth/2
+      y <- Nth(i,3) + gVideoHeight/2
+      label <- MakeLabel(stimbase,gStimFont)
+      AddObject(label,gWin)
+	  complex <- Append(complex,label)
+      Move(label,x,y)
+
+     }
+
+
+    Draw()
+    
+
+    duration <- 105
+
+    AddObject(gScreen,gWin)
+    Hide(gScreen)
+    AddComplex(gFixation,gWin)
+    ShowComplex(gFixation)
+  
+    cueID <- RandomDiscrete(8)
+    cueX <- Nth(gPosX,cueID)+gVideoWidth/2
+    cueY <- Nth(gPosY,cueID)+gVideoHeight/2
+    cueResp <- Nth(letters,cueID)
+
+    FilePrint_(gDataFile,cueID+ " " + cueResp + " ")
+    cue <- MakeArrow(gVideoWidth/2,gVideoHeight/2,Nth(gPosX,cueID)*.6,Nth(gPosY,cueID)*.6)
+
+    HideComplex(cue)
+    if(delay < 10) 
+     { 
+        ShowComplex(cue)
+     }
+    Draw()
+    Wait(duration)
+
+    Show(gScreen)
+
+
+    #After the appropriate delay, show the arrow cue:
+    Draw()
+	Wait(delay)
+    ShowComplex(cue)
+    Draw()
+
+    ## Collect the response (and measure RT)
+    time1 <- GetTime()
+    resp <- WaitForListKeyPress(["D","F","J","K"])
+    time2 <- GetTime()
+
+    ##See if we were correct.
+    corr <- 0
+    if(Uppercase(resp) == cueresp)
+    {
+      corr <- 1
+    }
+    FilePrint(gDataFile,resp + " " + corr + " " + (time2 - time1))
+    ##Clean up after ourselves.
+    Hide(gScreen)
+    RemoveComplex(complex)
+#    RemoveObject(gScreen,gWin)
+    RemoveComplex(cue)
+    Draw()
+
+    return corr
+}
+
+
+define DrawForMe(delay)	
+{
+    i <- 0
+   while(i < delay)
+   {
+     Draw()
+     i <- i + 1
+   }
+}
+
+
+
+define MakePlus(x,y)
+{
+
+  d <- Line(x - 10,y,20,0,gFG)
+  e <- Line(x ,y-10,0,20,gFG)
+
+  AddObject(d,gWin)
+  AddObject(e,gWin)
+  return [d,e]
+}
+
+
+define MakeArrow(xstart, ystart, xend, yend)
+{
+  ##Draws arrow
+
+  sizeback <- 13 
+
+  theta <- ATan(yend/xend)
+
+   #tangent repeats twice, so we need to determine what the true angle is:
+  if(xend > 0)
+   {
+      theta <- theta + 3.14159
+   }
+
+  t1 <- theta +  .3
+  t2 <- theta -  .3
+
+  dx1 <-  sizeback * Cos(t1)
+  dy1 <-  sizeback * Sin(t1)
+  dx2 <-  sizeback * Cos(t2)
+  dy2 <-  sizeback * Sin(t2)
+
+  a <- Line(xstart,ystart,xend,yend, gFG)
+  b <- Line(xstart+xend,ystart+yend, dx1,dy1, gFG)
+  c <- Line(xstart+xend,ystart+yend, dx2,dy2,gFG)
+
+  AddObject(a,gWin)
+  AddObject(b,gWin)
+  AddObject(c,gWin)
+  return [a,b,c]
+}
+
+define AggregateAcc(isis, accs)
+{
+  accX <- SortBy(accs,isis)
+  isiX <- Sort(isis)
+
+  trials <- Transpose([isiX,accX])
+  stats <- []
+  lastISI <- First(isiX)
+  tmpACC<-[]
+
+  loop(i,trials)
+  {
+
+     ## if the current isi differs from the previous delay,
+	 ## we should analyze what is in tmp right now.
+     if(First(i) != lastISI)
+     {
+       ##Add an error trial to make dprime computable:
+       if(Mean(tmpAcc)==1)
+        {
+          tmpAcc <- Append(tmpAcc,0)
+        }
+       stats <- Append(stats,
+                      [lastISI, Length(tmpAcc), Mean(tmpAcc),DP(Mean(tmpAcc))])
+       tmpAcc <- []
+     }
+
+    if(Mean(tmpAcc)==1)
+        {
+          tmpAcc <- Append(tmpAcc,0)
+        }
+ 
+   tmpAcc <- Append(tmpAcc,Nth(i,2))
+   lastISI <- First(i)
+  }
+
+
+  stats <- Append(stats, [lastISI, Length(tmpAcc), Mean(tmpAcc), DP(Mean(tmpAcc))])
+
+  return stats
+}
+
+
+
+define AddComplex(comp,win)
+{
+  loop(i, comp)
+  {
+    AddObject(i,win) 
+  }
+}
+
+define HideComplex(comp)
+{
+  loop(i, comp)
+  {
+    Hide(i) 
+  }
+}
+define ShowComplex(comp)
+{
+  loop(i, comp)
+  {
+    Show(i) 
+  }
+}
+
+define RemoveComplex(comp)
+{
+  loop(i, comp)
+   {
+     if(IsList(i))
+      {
+        RemoveComplex(i)
+      } else {
+     RemoveObject(i,gWin)
+      }
+    }
+}
+
+
+define GraphStats(stats)
+{
+  ## stats are in the form of a list, in which each 
+  ## element is isi, #, accuracy.
+  young      <-[3.8,3.0,2.65,2.5,1.95,1.6,1.25]
+  oldControl <-[2.6,2.1,1.8,1.6,1.45,1.3,1]
+  oldMCI     <-[2.4,1.06,1.1,.9,.85,.8,.7]
+  scaleX <- .5
+  scaleY <- -80
+  iX <- 100
+  iY <- 500
+
+  data <- Transpose(stats)
+  datX <- First(data)
+  datY <- Nth(data,4)  #Plot d'
+
+  r1 <-  Rectangle(gVideoWidth/2,gVideoHeight/2,gVideoWidth-100, gVideoHeight-100, MakeColor("white"),1)
+  AddObject(r1,gWin)
+
+  ##Add some axes.
+  ax <-  Line(iX,iY,1300*scaleX,0,MakeColor("black"))
+  ay <-  Line(iX,iY,0,5*scaleY,MakeColor("black"))
+  AddObject(ax,gWin)
+  AddObject(ay,gWin)
+
+  Draw()
+   
+  
+  
+  comp <- []
+
+  ##Make comparison lines.
+  comp <- Append(comp,GraphXYLine(datX, young, iX,  iY,scaleX,scaleY,MakeColor("blue"),gWin,1))
+  comp <- Append(comp,GraphXYLine(datX, oldControl, iX,  iY,scaleX,scaleY,MakeColor("orange"),gWin,1))
+  comp <- Append(comp,GraphXYLine(datX, oldMCI, iX,  iY,scaleX,scaleY,MakeColor("red"),gWin,1))
+
+  ##Graph the data 
+  comp <-  Append(comp, GraphXYLine(datX, datY, iX, iY,scaleX,scaleY,MakeColor("darkgreen"),gWin,2))
+   
+  font <- MakeFont(gPEBLBaseFontMono, 0,14,gFG,MakeColor("white"),1)
+
+  ##Add the x labels
+  xlabs <-[0,250,500,750,1000,1250]
+  loop(i,xlabs)
+   {  
+      ll <-MakeLabel(i+"", font)
+      AddObject(ll,gWin)
+      Move(ll,iX+i*scaleX,520)
+      comp <- Append(comp, ll)
+   }
+
+  xlabel <- Makelabel("Delay of probe (ms)",font)
+  AddObject(xlabel,gWin)
+  Move(xlabel, gVideoWidth/2-60,540)
+
+  ##Add the y labels
+  ylabs <- [0,.5,1,1.5,2,2.5,3,3.5,4,4.5]
+  loop(i,ylabs)
+   {  
+      ll <-MakeLabel(i+"",font)
+      AddObject(ll,gWin)
+      Move(ll,iX-20,iY+i*scaleY)
+      comp <- Append(comp, ll)
+   }
+
+  ylabel <- Makelabel("Response sensitivity (d')",font)
+  AddObject(ylabel,gWin)
+  ylabel.rotation <- 90
+  Move(ylabel, ix-40, gVideoHeight/2-60)
+
+  
+  fontblue <- MakeFont("FreeSans.ttf", 0,14,MakeColor("blue"),MakeColor("white"),1)
+  fontorange <- MakeFont("FreeSans.ttf", 0,14,MakeColor("orange"),MakeColor("white"),1)
+  fontred <- MakeFont("FreeSans.ttf", 0,14,MakeColor("red"),MakeColor("white"),1)
+
+  legend1 <- Makelabel("Young subjects",fontblue)
+  legend2 <- Makelabel("Old control subjects",fontorange)
+  legend3 <- MakeLabel("Old subjects with cognitive impairment",fontred)
+
+  AddObject(legend1,gWin)
+  AddObject(legend2,gWin)
+  AddObject(legend3,gWin)
+  MoveCorner(legend1,gVideoWidth/2+200,395)
+  MoveCorner(legend2,gVideoWidth/2+200,415)
+  MoveCorner(legend3,gVideoWidth/2+200,435)
+
+  Draw()
+  WritePNG("partial-"+gSubNum+".png",gWin)
+  WaitForAnyKeyPress()
+  RemoveObject(r1,gWin) 
+  RemoveObject(ax,gWin)
+  RemoveObject(ay,gWin)
+  RemoveObject(ylabel,gWin)
+  RemoveObject(xlabel,gWin)
+  RemoveObject(legend1,gWin)
+  RemoveObject(legend2,gWin)
+  RemoveObject(legend3,gWin)
+
+  RemoveComplex(comp)
+
+  Draw()
+}
+
+define GraphXYLine(x,y,iX,iY,scaleX, scaleY, col,parent, type)
+{
+
+ 
+  ##Type determines whether it is a fat, smooth line (type = 1)
+  ## or a thin line with data points.                (type = 2)
+
+   
+  complex <- [] 
+  lastX <- First(x)
+  lastY <-First(y)
+
+  point <- 0
+  loop(xy, Transpose([x,y]))
+   {
+
+     mX <- First(xy)
+     mY <- Nth(xy,2)
+     posX <- iX + scaleX*mX
+     posY <- iY + scaleY*mY
+  
+     if(type == 2)
+      {
+        c <- Circle(posX, posY,8,col,1)
+        AddObject(c, parent)
+        Show(c)
+        complex <- Append(complex,c)
+      }
+    if(point > 0)
+     {
+
+       c <-  Line(posX,posY,lastx-posX,lasty-posY,col)
+       AddObject(c,parent)
+	   complex <- Append(complex,c)
+
+      if(type ==1)
+       {
+         c1 <-  Line(posX,posY+.5,lastx-posX,lasty-posY+.5,col)
+         c2 <-  Line(posX,posY-.5,lastx-posX,lasty-posY-.5,col)
+
+         AddObject(c1,parent)
+         AddObject(c2,parent)
+
+         complex <- Merge(complex,[c1,c2])
+        }
+
+
+     }
+
+    lastX <- posX
+    lastY <- posY
+    point <- point + 1
+  }
+
+  Draw()
+  return complex
+}
+
+
+define DP(acc)
+{
+
+   return DPrime(acc,(1-acc)/4)
+}
+
+define DPrime(hr,far)
+{
+   return XCumNormInv(hr) -XCumNormInv(far)
+}
+
+
+
+## This is a simple but accurate numerical approximation to 
+## the cumulative normal inverse.  Complete explanation is 
+## found:
+##  http://home.online.no/~pjacklam/notes/invnorm
+##
+## If given input that is out-of-bounds, will return the
+## text string "NA" instead of aborting.
+
+define XCumNormInv(p)
+{
+ if(not IsNumber(p))
+	{
+
+	  SignalFatalError("Argument ["+ p +"]of function [CumNormInv(<number>)] is not a number")
+	}
+
+##   Define break-points for different approximation regions
+##
+   pLo  <- 0.02425
+   pHi <- 1 - pLo
+
+  if(p >= pLo and p <= pHi){
+
+##   Rational approximation for central region.
+      q <- p - 0.5
+      r <- q*q
+      x <- (((((-39.69683028665376*r+ 220.9460984245205)*r - 
+                275.9285104469687)*r + 
+                138.3577518672690)*r - 
+                 30.66479806614716)*r +2.506628277459239)*q /
+           (((((-54.47609879822406*r+ 161.5858368580409)*r-
+                 155.6989798598866)*r+ 66.80131188771972)*r -13.28068155288572)*r+1)
+
+
+   } else {
+
+   ##Approximation for tails is symmetric:
+   if(p > 0 and p < 1)
+    {
+     if(p < pLo)
+    {
+     ##   Rational approximation for lower region.
+      q <- Sqrt(-2*Ln(p))
+      mult <- 1
+
+    } else{        ##( p > pHi)
+    ##  Rational approximation for upper region.
+  
+      q <- Sqrt(-2*Ln(1-p))
+      mult <- -1
+    } 
+
+      x <- mult * ((((( -.007784894002430293*q-.3223964580411365)*q - 
+                  2.400758277161838)*q-2.549732539343734)*q +
+                   4.374664141464968)*q+2.938163982698783) /
+                ((((.007784695709041462*q+.322467129070039)*q+2.445134137142996)*q+3.754408661907416)*q+1)
+
+     }else{
+      ##We are outside (0,1).
+      x <- "NA"
+    }
+   }
+ return x
+}

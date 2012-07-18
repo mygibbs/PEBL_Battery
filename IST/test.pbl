@@ -1,0 +1,34 @@
+define Start(lpar)
+{
+    
+    ## video screen size is being set
+    gVideoWidth<-1024
+    gVideoHeight <-768
+    gWin<-MakeWindow("black")
+    gSubNum<-GetSubNum(gWin)
+    ShowCursor(0)
+    grey <- MakeColor("GREY")
+    red <- MakeColor("RED")
+    black <- MakeColor("BLACK")
+    white <- MakeColor("WHITE")
+    gFont <- MakeFont(gPEBLBaseFont,0,44,white, black,1)
+    fontInst <- MakeFont(gPEBLBaseFont,0,26,white,black,1)
+    gInputFont <- MakeFont(gPEBLBaseFont,0,26,black,white,1)
+    
+    loop(block, Sequence(1,24,1)) {
+        loop(trial, Sequence(1, 24, 1)){
+            Draw()
+            
+            Wait(200)
+
+            start <- GetTime()
+            
+            WaitForKeyPress(" ")
+            
+            stop <- GetTime()
+            time <- stop - start
+            Print(time)
+        }
+    }
+            
+}

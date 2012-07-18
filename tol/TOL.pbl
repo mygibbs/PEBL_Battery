@@ -1,0 +1,1570 @@
+
+#################################################
+##
+##   PEBL's Tower of London Test
+##
+##   Version 0.4
+##   Released May 2010
+##
+##
+##
+## see
+## Shallice T. (1982), Philosophical Transactions of the Royal Society of
+## London, B, 298, 199-209.
+##
+##
+##  Problem sets available from:
+##  Fimbel, E., Lauzon, S., & Rainville, C. (2009). Performance of
+## Humans vs. Exploration Algorithms on the Tower of London Test.
+## (J. Bongard, Ed.)PLoS ONE, 4(9),
+## e7263. doi:10.1371/journal.pone.0007263
+##  Phillips, L. H., Wynn, V., Gilhooly, K. J., Della Sala, S., &
+##    Logie, R. H. (1999). The role of memory in the Tower of London
+##    task. Memory, 7(2), 209-231.
+##
+## Schnirman, G. M., Welsh, M. C., & Retzlaff, P. D. (1998).
+##      Development of the Tower of London-Revised. Assessment,
+##       5(4), 355-360. Retrieved from
+##
+##
+## Special thanks to Adam Thomas of NIH/NIMH for implementing the
+##    TOL-R trials.
+ 
+define Start(p)
+{
+    ## Basic translations strings are assigned in GetStrings (see bottom of file).
+
+    ## gLanguage defaults to 'en', but can be set at command line.  
+    ## using the --language flag.
+    GetStrings(gLanguage)
+    
+    gVideoWidth <- 1024
+    gVideoHeight <- 768
+
+    gShowHand <- 1  #Show the hand graphic?
+    Init()
+    gPutime <- 0
+    gStopTime <- 0
+
+
+    ## comment out the following lines and replace with something like 
+    ## type <- "3"
+    ## to go directly to a test configuration.
+    ## from here VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV
+
+    gInstructions <- MakeTextBox(gSelect,gFont,760,560)
+
+    AddObject(gInstructions,gWin)
+    Move(gInstructions,20,20)
+    Draw()
+    type <- 3 ##WaitForListKeyPress(["1","2","3","4","5","6","7","8","9","0"])
+    ## update stim in line 164 to the  value inside the if statement 
+    ## for the given test type
+
+    ## to here ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^   
+
+
+    ## choose which set of trials to generate based on 'type'.
+     
+    if(type == "1")
+    {
+        stim <- ProgressiveDisks([3,4,5],8)     ## unconstrained pole height,
+                                         	## with number of disks in
+	   				 	## order specified by first argument
+    } elseif(type=="2") {
+        stim <- RandomDisks([3,4,5],8)        	## unconstrained pole height,
+                                         	## like above but in random order
+    } elseif(type=="3") {
+        stim <- Shallice()
+        
+    } elseif(type=="4") { 
+
+        stim <- ShalliceRandom(30)           ## basic Shallice problem with
+	    				     ##	3 disks on 
+					     ## different-sized poles, and
+					     ## random problems
+    } elseif(type=="5") { 
+        stim <- Phillips1999("A")
+    } elseif(type=="6") {
+        stim <- Phillips1999("B")
+    } elseif(type=="7") {
+        stim <- Phillips1999("C")        ## 5-disk problems,
+	   				 ## unconstrained pole heights
+                                         ## argument specifies sets "A", "B", or "C"
+					 ## which consist of different problems
+    } elseif(type=="8") {
+        stim <- FimbelOld()              ##15 Shallice-like problems
+    } elseif(type=="9") {
+        stim <- FimbelYoung()            ##35 Shallice-like problems
+    } elseif(type=="0") {
+        stim <- TOLR()                   ##TOL-R ala Schnirman
+    }
+
+    gUseTimer <- 0  ## this hard-codes use of timer 
+		    ## uncomment to override the defaults
+                    ## built into each particular test function
+
+    gTimeLimit <- 120   ## default time limit, in seconds
+    gUseTurnLimit <- 0  ## this hard-codes turn limits, overiding
+                        ## setting in original definition
+
+    gInstructions.text <- gInstText1
+
+    if(gUseTimer)
+    {
+        gInstructions.text <- gInstructions.text + gInstText2
+    }
+
+    if(gUseTurnLimit)
+    {
+        gInstructions.text <- gInstructions.text + gInstText3
+    }
+
+    ##gWindowSize = GetSize(gWin)
+    ##gWindowSizex = First(gWindowSize)
+    ##gWindowSizey = Second(gWindowSize)
+
+    gInstructions.text <- gInstructions.text + CR(1) + gBegin
+    gInstructions.font <- gFont2
+    Draw()
+
+    WaitForDownClick()
+    Move(gInstructions,200,200)
+    gInstructions.text <- CR(6) + gDemoInstr + CR(1) + gBegin
+    Draw()
+    WaitForDownClick()
+    Hide(gInstructions)
+    Draw()
+    
+    InitPoles()   
+   
+    FilePrint(gFileOut,"trial,move,pegcount,minmove,sourcepeg,destpeg,putime,tottime")
+   
+
+    ## keeps track of when to start printing output to file
+    gTrialCount <- 0 
+    trial  <- 1
+
+    ## if the type of test is changed this stim value may need to be changed
+    stim <- Shallice()
+
+    loop(pair, stim)
+    {
+        config       <- First(pair)
+        config1      <- Second(pair)
+        shortest     <- Third(pair)
+        startlab     <- Fourth(pair)
+        endlab       <- Fifth(pair)
+
+        numdisks     <- Length(Flatten(config))
+
+        origstring   <- MakeStateString(config)
+        gMovesranout <- 0
+        gTimeranout  <- 0
+
+        ## make standard and new configurations
+        c1 <- PlotDisksAnimate(config,0,450,gDisks,10)
+        c2 <- PlotDisksAnimate(config1,0,130,gDisks2,10)
+
+        if(trial == 2) {              ## lets proctor know he/she should let partcipant try the next two
+            HideAll()
+            Draw()
+            gInstructions.width <- 760
+            gInstructions.height <- 560
+            Move(gInstructions,200,200)
+            gInstructions.text <- gPracticeInst
+            gInstructions.text <- CR(6) + gInstructions.text + CR(1) + gBegin
+            Show(gInstructions)            
+            Draw()
+            WaitForDownClick()
+            Hide(gInstructions)
+            Draw()
+        } elseif(trial == 4) {                  ## lets proctor know he/she should tell the participant to start the experiment
+            HideAll()
+            Draw()
+            gInstructions.width <- 760
+            gInstructions.height <- 560
+            Move(gInstructions,200,200)
+            gInstructions.text <- gStartInstr
+            gInstructions.text <- CR(6) + gInstructions.text + CR(1) + gBegin
+            Show(gInstructions)
+            Draw()
+            WaitForDownClick()
+            Hide(gInstructions)
+            Draw()
+	    } 
+
+        gInstructions.width <- 220
+        gInstructions.height <- 520
+        gInstructions.text <- gContinue
+     	Move(gInstructions,555,50) 
+        ShowAll()
+        
+     
+        if(shortest > 0 and gUseTurnLimit)    
+        {
+            cGraph <- MakeGraph(shortest,shortest,650,400,gClickLab,shortest)
+        }
+
+        startTime <- GetTime()
+        lasttime <- GetTime()
+        time <- GetTime()
+        
+   
+        ## allow disk moves until the two have identical configurations.
+        continue <- 1
+        step <- 1
+        gEndTime <- time + gTimeLimit*1000
+    
+        ## this is displaying the timer
+        ## we just hid the timer by making it all black to blend into bg
+        ## in the make graph function
+        if(gUseTimer)
+        {
+        ## timegraph defaults to 120 sec.
+        ## the ticks should be every 10 sec, unless there are less than 4
+        ## ticks. then every 5, then every 1 sec
+            numticks <- gTimeLimit/10
+        
+            if (numticks < 4)
+            {
+                numticks <- gTimeLimit/5
+            }
+           
+            if (numticks < 3)
+            {
+            numticks <- gTimeLimit
+            } 
+
+        gTimeGraph <- MakeGraph(gTimeLimit,gTimeLimit,710,400,gTimeLab,numticks)
+        }
+    
+        Draw()
+    
+        minMoves <- [1,2,2,4,4,5,5,5,6,6,6,7,7]
+        endTime <- 0
+        storeEndTime <- 0 
+    
+        ## runs the current problem until done
+        ## then sends output to file
+        while(continue)
+        {    
+            if(step==1) { 
+                time <- GetTime()
+                gStopTime <- 1
+            
+            }
+            Print("time" + time)
+           
+            config <- MoveDisk(config)
+            
+           
+
+
+
+
+
+            ## records what step the player is done on
+            if(StackEqual(config,config1))
+            {   
+                success <- 1
+                
+                continue <- 0
+                endTime <- GetTime()
+                storeEndTime <- (endTime - time)
+            } 
+        
+            ##only update the graph if we have a good measure of
+            ## shortest path, and if the global flag specifies it.
+            if(shortest > 0 and gUseTurnLimit)
+            {
+                rem <- Max([0,shortest-step])
+                UpdateGraph(cgraph,rem, 650,400,shortest)
+            
+                ## if no moves remain:
+                if(rem == 0)
+                {                
+                    
+                    ## if continue == 0, we have solved the puzzle already. 
+                    if(continue == 0)
+                    {
+                        success <- 1
+                          
+                    } else {
+                        gMovesRanOut <- 1     
+                        continue <- 0
+                        success <- 0
+                    }
+                }
+            }
+    
+            if(gUseTimer)
+            {  
+    
+                if(gTimeRanOut)
+                {
+                    success <- 0
+                    continue <- 0
+                    step <- 20
+                }
+            }
+            
+            FilePrint(gFileOut, trial + "," + step + "," + numdisks + "," + Nth(minMoves, trial) + "," + gFirst + "," + gNext + "," + (gPutime-time) + "," + (storeEndTime) )
+            ##if(success==1) { 
+            ##    endTime <- 0
+            ##}
+            Draw()
+            
+            step <- step + 1 
+        }
+ 
+        Wait(100)
+        
+        total_step <- ToString((step-1))
+        total_time <- ToString((time-starttime))
+        comma <- ","
+        if (trial > 3)
+        {        
+        gTrialCount <- gTrialCount + 1
+
+       
+        }
+    
+        ## this will probably print out some text telling us when we run out of time
+        ## we might need to disable this 
+        ## TODO
+        if(success)
+        {
+            gInstructions.text <- gContinue
+        } else {   
+            gInstructions.text <- gIncomplete
+    
+            if(gMovesRanOut)
+            {
+                ginstructions.text <- gInstructions.text + gMovesOutLab
+            }
+           
+            if(gtimeRanOut)
+            {
+                gInstructions.text <- gInstructions.text + gTimeOutLab
+            }
+    
+            gInstructions.text <- gInstructions.text + CR(2) + gContinue
+        }
+
+        RemoveObject(gInstructions,gWin)
+        AddObject(gInstructions,gWin)
+        Show(gInstructions)
+        Draw()
+        WaitForDownClick()
+        Hide(gInstructions)
+        trial <- trial + 1
+    
+        if(gUseTimer)
+        {
+            RemoveComplex(gTimeGraph)
+        }
+    
+        if(shortest > 0 and gUseTurnLimit)
+        { 
+            RemoveComplex(cGraph)
+        }
+    }
+    
+    
+    gInstructions.text <- gDebriefing
+  
+
+    Show(gInstructions)
+    Draw()
+    WaitForAnyKeyPress()
+}
+
+
+define HideAll()
+{
+   loop(i, Merge(gDisks,gDisks2))
+   {
+     Hide(i)
+   }
+   Hide(gR1)
+   Hide(gR2)
+   Hide(gR3)
+   Hide(gRect1)
+   Hide(gRect2)
+   Hide(gRect3)
+   Hide(gFooter)
+   Hide(gHeader)
+   Hide(gHand)
+}
+
+
+define ShowAll()
+{
+   loop(i, Merge(gDisks,gDisks2))
+   {
+     Show(i)
+   }
+   Show(gR1)
+   Show(gR2)
+   Show(gR3)
+   Show(gRect1)
+   Show(gRect2)
+   Show(gRect3)
+   Show(gFooter)
+   Show(gHeader)
+   Show(gHand)
+}
+
+
+define Init()
+{
+  gSleepEasy <- 1
+
+  
+##  ShowCursor(0)
+  gWin <- MakeWindow("black")
+ 
+  gSubNum <- GetSubNum(gWin)
+  outputString <- ToString(gSubNum)
+  ##  gPEBLBaseFont <- "Vera.ttf"  ##uncomment for version 0.10
+  ##These may need to be changed for a particular language.
+  gFont <- MakeFont(gPEBLBaseFont,0,15,MakeColor("white"),MakeColor("black"),1)
+  gFont2 <- MakeFont(gPEBLBaseFont,0,24,MakeColor("white"),MakeColor("black"),1)
+}
+
+define InitPoles()
+{
+    ##Make hot zones for each stack.
+    gPoleHeights <- [1,2,3]
+   
+    heighthotrect1 <- First(gPoleHeights)*30+15  ##45
+    y1 <- 470 - heighthotrect1 / 2 ##470-22.5
+    gR1 <-  Rectangle(220,y1,110,heighthotrect1,MakeColor("grey20"),1)
+   
+    heighthotrect2 <-Second(gPoleHeights)*30+15 ##75
+    y2 <- 470 - heighthotrect2 / 2 ##470-37.5
+    gR2 <-  Rectangle(340,y2,110,heighthotrect2,MakeColor("grey20"),1)
+
+    heighthotrect3 <- Third(gPoleHeights)*30+15 ##105
+    y3 <- 470 - heighthotrect3 / 2 ##470-52.5
+    gR3 <-  Rectangle(460,y3,110,heighthotrect3,MakeColor("grey20"),1) 
+
+    AddObject(gR1,gWin)
+    AddObject(gR2,gWin)
+    AddObject(gR3,gWin)
+    
+    gZones <- [gR1,gR2,gR3]
+
+
+  gDisks <-  [MakeImage("png/disk1.png"),MakeImage("png/disk2.png"),
+              MakeImage("png/disk3.png"),MakeImage("png/disk4.png"),
+              MakeImage("png/disk5.png"),MakeImage("png/disk6.png")]
+  gDisks2 <-  [MakeImage("png/disk1.png"),MakeImage("png/disk2.png"),
+              MakeImage("png/disk3.png"),MakeImage("png/disk4.png"),
+              MakeImage("png/disk5.png"),MakeImage("png/disk6.png")]
+
+   if(gShowHand)
+    {
+     gHand   <- MakeImage("png/hand.png")
+     AddObject(gHand,gWin)
+     Move(gHand,330,225)
+    }
+
+    ## this has been modified to hardcode Shallice pole heights
+    heightrect1 <- First(gPoleHeights)*30+15
+    y4 <- 150 - heightrect1 / 2
+    gRect1 <- Rectangle(220,y4,110,heightrect1,MakeColor("grey20"),1)
+    
+    heightrect2 <-Second(gPoleHeights)*30+15
+    y5 <- 150 - heightrect2 / 2    
+    gRect2 <- Rectangle(340,y5,110,heightrect2,MakeColor("grey20"),1)
+
+    heightrect3 <-Third(gPoleHeights)*30+15    
+    y6 <- 150 - heightrect3 / 2
+    gRect3 <- Rectangle(460,y6,110,heightrect3,MakeColor("grey20"),1)
+    
+    AddObject(gRect1,gWin)  
+    AddObject(gRect2,gWin)  
+    AddObject(gRect3,gWin)
+
+
+   footerfont <-   MakeFont(gPEBLBaseFont,0,20,MakeColor("grey"),MakeColor("black"),1)
+
+   gFooter <- MakeLabel(gFooterLab,footerfont)
+   AddObject(gFooter,gWin)
+   Move(gFooter,300,490)
+
+   gHeader <- MakeTextBox(gHeaderLab,footerfont,105,95)
+   AddObject(gHeader,gWin)
+   Move(gHeader,30,50)
+   ##Keep track of the image complex:
+   gComplex <- []
+  
+    ##MakeDirectory("Chrystal")
+    gFileOut <- FileOpenWrite("/home/drtprogram/PEBL/battery/tol/Chrystal/" + gSubNum + ".csv")
+ }
+
+
+define PlotDisks(config,inhand,ybase,disks)
+{
+  x <- 100
+  complex <- []
+  
+  loop(column,config)
+  {
+    y <- ybase
+    x <- x + 120
+    loop(i,column)
+    {
+     disk <- Nth(disks,i)
+     AddObject(disk,gWin)
+     Move(disk,x, y) 
+     Show(disk)
+     y <- y - 25 
+     complex <- Append(complex,disk)
+    }
+  }
+ if(inhand >0)
+  {
+     Move(Nth(disks,inhand),320,250)
+     AddObject(Nth(disks,inhand),gWin)
+  }
+ return  complex
+}
+
+
+
+
+define PlotDisksAnimate(config,inhand,ybase,disks,steps)
+{
+
+  if(inhand > 0)
+   {
+    diskIDs <- Flatten(Append(config,inhand))
+   }else{
+    diskIDs <- Flatten(config)
+   } 
+
+
+
+  disks2 <- SubSet(disks,Sort(diskIDs))  #Get the disks objects, in order
+
+  
+
+  startxy <- []
+  loop(i, disks2)
+   {
+     startxy <- Append(startxy, [i.x,i.y])
+   }
+
+  x <- 100
+  complex <- []
+  
+
+  ##Go through each column of the config string
+  endxy <- []
+  i <- 1
+  loop(column,config)
+  {
+    y <- ybase
+    x <- x + 120
+    loop(i,column)
+    {
+     disk <- Nth(disks,i)
+     AddObject(disk,gWin)
+     Show(disk)
+
+     pos <- [x,y]
+     endxy <- Append(endxy,pos)
+     y <- y - 25 
+     complex <- Append(complex,disk)
+    }
+
+    i <- i + 1
+  }
+   if(inhand > 0 )
+     {
+       endXY <- Append(endXY, [320,225])
+       disk <- Nth(disks,inhand)
+       AddObject(disk,gWin)
+       Show(disk)
+     }
+  endXY <- SortBy(endXY,diskIDs)
+  startend <- Transpose([startxy, endxy])
+  stepxy <- []
+
+  loop(i, startend)
+   {
+      start <- First(i)
+
+      end <- Second(i)
+
+      stepxy <- Append(stepxy,[(First(end)-First(start))/steps,
+                               (Second(end)-Second(start))/steps])
+   }
+
+  diskstep <- Transpose([disks2,endxy,stepxy])
+  step <- 1
+  while(step <= steps)
+  {
+    loop(i, diskstep)
+     {
+        disk <- First(i)
+        end <- Second(i)
+        diff <- Third(i)
+
+        disk.x <- First(end) - First(diff)   * (steps-step)
+        disk.y <- Second(end) - Second(diff) * (steps-step)
+    }
+
+   Draw()          
+   step <- step + 1
+  }
+
+ return  complex
+}
+
+
+define MoveDisk(config)
+{
+
+
+   if(gUseTimer)
+   {
+    cont <- 1
+    while(cont)
+     {
+       gFirst <- WaitForClickOnTargetWithTimeout(gZones, [1,2,3],100)
+      if (gStopTime == 1){
+            gPutime <- GetTime()}
+   
+         if(gFirst=="<timeout>")
+           {
+		      timeleft <- (gEndTime-GetTime())/1000
+              if(timeleft < 0)
+               {
+                   gTimeRanOut <- 1
+                   cont <- 0
+               }
+              UpdateGraph(gTimegraph,Max([0,timeleft]), 710,400,gTimeLimit)
+              Draw()
+
+           } else {
+               ##Time is not out; but we need to make sure there is 
+               ##something in the pile
+			   if(Length(Nth(config,gFirst))>0)
+                {
+                 cont <- 0
+                }
+           }
+     }
+
+   } else {
+       ##No timer, so use just standard click.
+       gFirst <- WaitForClickOnTarget(gZones, [1,2,3])
+
+   }
+    x <- RemoveDisk(gFirst,config)
+ 
+    config <- First(x)
+    disk <- Nth(x,2)
+ 
+   if(disk != 0)
+    {
+      ##Remove the disk complex so it can be re-drawn
+      RemoveComplex(gComplex)
+	  gComplex <- PlotDisksAnimate(config,disk,450,gDisks,10)
+      Draw()
+
+
+      cont <- 1
+      while(cont)
+      {
+       #Now, get the target pile 1-3
+
+
+      if(gUseTimer)
+      {
+       timecont <- 1
+       while(timecont)
+       {
+         gNext <- WaitForClickOnTargetWithTimeout(gZones, [1,2,3],100)
+
+         if(gNext=="<timeout>")
+           {
+		      timeleft <- (gEndTime-GetTime())/1000
+              UpdateGraph(gTimegraph,Max([0,timeleft]), 710,400,gTimeLimit)
+              Draw()
+              if(timeleft < 0)
+               {
+                   gTimeRanOut <- 1
+               }
+
+
+           } else {
+               timecont <- 0
+           }
+       }
+
+      } else {
+        ##No timer, so use just standard click.
+        gNext <- WaitForClickOnTarget(gZones, [1,2,3])
+
+      }
+
+   
+	  ##Check to see if the new configuration violates the pole height
+	  ##      limitation.
+       if(Length(Nth(config ,gNext))<Nth(gPoleHeights,gNext))
+          {
+            cont <- 0
+          }
+
+      }
+
+
+      RemoveComplex(gComplex)
+      config <- AddDisk(config,gNext,disk)
+      gComplex <- PlotDisksAnimate(config,0,450,gDisks,5)
+      Draw()
+    }
+   return config
+}
+
+define RemoveComplex(x)
+{ 
+    loop(i,x)
+    {
+       RemoveObject(i,gWin)
+    }
+}
+
+##Returns a string describing a state of the problem
+define MakeStateString(config)
+{
+
+
+
+  string <- "|"
+  loop(i,config)
+  {
+    loop(j,i)
+    {
+      string <- string + j
+    }
+    string <- string + "|"
+  }  
+
+  return string
+}
+
+##This works just on the data structure, not on the display.
+define RemoveDisk(col,ind)
+{
+##Removing:
+
+   removed <- 0
+   a <- 1
+   newcomp <- []
+   loop(i,ind)
+   {
+
+    if(a == col)
+    {
+      l <- Length(i)
+      ## Remove the last element of the list, if it exists
+      if(l == 0)
+      { 
+        newcomp <- Append(newcomp,[])
+      } elseif(l==1){
+
+        newcomp <- Append(newcomp,[])
+        removed <- First(i)
+
+      }else {
+
+        ##
+        newcomp <- Append(newcomp, SubList(i,1,l-1))
+        removed <- Nth(i,l)
+
+      }
+
+    } else {
+     newcomp <- Append(newcomp,i)
+    }
+
+	a <- a +1
+   }
+
+  return [newcomp,removed]
+}
+
+
+define AddDisk(config,nextcol,disk)
+{
+
+   a <- 1
+   newcomp <- []
+   loop(i,config)
+   {
+    if(a == nextcol)
+    {
+      newcomp <- Append(newcomp, Append(i,disk))
+
+    } else {
+     newcomp <- Append(newcomp,i)
+    }
+
+	a <- a +1
+   }
+
+  return newcomp
+}
+
+##Makes a disk configuration, with the restriction that an individual
+##stack must be shorter than its relevant pole height.
+define ShuffleDisks(num)
+{
+  order <- Shuffle(Sequence(1,num,1))
+  config <- [[],[],[]]
+
+  loop(i,order)
+   {
+      cont <- 1
+      while(cont)
+      {
+        stack <- RandomDiscrete(3)  #is there room in the stack?
+        if(Length(Nth(config,stack)) < Nth(gPoleHeights,stack))
+        {
+         cont <- 0
+        }
+      }
+
+      config <- AddDisk(config,stack,i)
+   }
+
+
+   return config
+}
+
+
+define StackEqual(stack1,stack2)
+{
+  equal <- 1
+
+  loop(x,  Transpose([stack1,stack2]))
+  {
+     a <-  First(x)
+     b <-  Nth(x,2)
+
+    if(Length(a) == Length(b) )
+       {
+            loop(j,Transpose([a,b]))
+            {
+                if(First(j) != Nth(j,2))
+                 {
+                     equal <- 0
+                 }
+            }
+ 
+       } else {
+         equal <- 0
+       }
+  }
+ return equal
+}
+
+
+define Phillips1999(set)
+{
+
+   ##Don't use the timer or turn limits here.
+   gUseTimer <- 0  
+   gUseTurnLimit <- 0  
+
+   gPoleHeights <- [5,5,5]
+
+    trialsA <-  [[[[],[4,3,2,1],[5]],   [[2,3],[4],[5,1]] ,-1,0,0],
+	             [[[5,3,2,4,1],[],[]],  [[],[1,4,3],[2,5]],-1,0,0],
+	             [[[4],[3,2],[5,1]],    [[2,4,3,1],[],[5]],-1,0,0],
+	             [[[3],[1,2,5],[4]],    [[],[4,3],[2,5,1]],-1,0,0],#orig. wierd
+            	 [[[],[3,5],[1,4,2]],   [[3,5],[2],[1,4]] ,-1,0,0], #original wierd
+                 [[[4,3],[5],[2,1]],    [[3,5],[2],[1,4]] ,-1,0,0],
+				 [[[2],[5,3],[1,4]],    [[],[],[5,1,4,2,3]],-1,0,0],
+				 [[[1,2,5,3,4],[],[]],  [[2,3],[],[5,4,1]],-1,0,0]]  #orig  goal wierd
+	            
+
+    trialsB <-  [ [[[4],[2,1,5],[3]],    [[4,5,1,3],[2],[]],-1,0,0],
+                  [[[],[2,3,4,5],[1]],    [[5,1,4],[],[3,2]],-1,0,0],
+                  [[[],[2],[4,3,1,5]],    [[2,1,5,3],[],[4]],-1,0,0],
+                  [[[],[1,3],[4,5,2]],    [[3,4,2],[1,5],[]],-1,0,0], #orig goal wierd
+                  [[[5,1],[],[3,4,2]],    [[2,3,4,5],[1],[]],-1,0,0],
+                  [[[],[],[2,1,5,3,4]],   [[1],[],[5,3,4,2]],-1,0,0],
+                  [[[],[3,2,4,1,5],[]],   [[5],[1,2,3],[4]],-1,0,0],
+                  [[[],[2,5,3,4,1],[]],   [[3,2],[1],[5,4]],-1,0,0] ]
+
+    trialsC <-  [ [[[4,3],[],[2,1,5]],    [[4],[5,1,3],[2]],-1,0,0],
+                  [[[4,1],[5,3,2],[]],    [[2,1,4,5],[],[3]],-1,0,0],  #original wierd
+                  [[[1,3],[4,5,2],[]],    [[],[4,3,1,5],[2]],-1,0,0],
+                  [[[2],[],[5,4,3,1]],    [[],[2,1],[5,3,4]],-1,0,0],  #orig goal wierd
+                  [[[4,2,1],[3,5],[]],    [[],[1],[5,2,3,4]],-1,0,0],
+                  [[[5],[1,4,3],[2]],     [[],[2,5,3],[1,4]],-1,0,0],
+                  [[[4,1,2,5],[],[3]],    [[3,1,4],[],[5,2]],-1,0,0],
+                  [[[],[],[5,1,3,2,4]],    [[],[],[2,4,1,5,3]],-1,0,0]]
+
+  if(set == "A")
+  {
+   ret <- trialsA
+  } elseif(set=="B")
+  {
+  ret <- trialsB
+  }  else {
+  ret <- trialsC
+  }
+ return ret
+}
+
+
+define Shallice()
+{
+
+   ## either use Time or TurnLimit, don't use both
+   gUseTimer <- 1  
+   gUseTurnLimit <- 0  
+ 
+  gPoleHeights <- [1,2,3]
+
+# 1-red 2-green 3-blue
+s <- [
+[ [[],[3],[2,1]],[[1],[3],[2]] ,0,0,0 ],## demo
+[ [[],[3],[2,1]],[[3],[1],[2]] ,0,0,0 ],##first practice
+[ [[],[3],[2,1]],[[1],[],[2,3]] ,0,0,0 ],##second practice
+[ [[],[3],[2,1]],[[],[1,2],[3]] ,0,0,0 ],##1
+[ [[],[3],[2,1]],[[2],[1,3],[]] ,0,0,0 ],##2
+[ [[],[3],[2,1]],[[],[1],[3,2]] ,0,0,0 ],##3
+[ [[],[3],[2,1]],[[2],[1],[3]] ,0,0,0 ],##4
+[ [[],[3],[2,1]],[[3],[],[1,2]] ,0,0,0 ],##5
+[ [[],[3],[2,1]],[[],[],[3,2,1]] ,0,0,0 ],##6
+[ [[],[3],[2,1]],[[2],[],[3,1]] ,0,0,0 ],##7
+[ [[],[3],[2,1]],[[1],[],[3,2]] ,0,0,0 ],##8
+[ [[],[3],[2,1]],[[],[],[3,1,2]] ,0,0,0 ],##9
+[ [[],[3],[2,1]],[[],[2],[3,1]] ,0,0,0 ]]##10
+
+  return s
+}
+
+define GetTOLDist(matrix,a,b,c,d)
+{
+    row <- (a-1)* 6 + b
+    col <- (c-1)* 6 + d
+    return ToNumber(M(matrix,row,col))
+}
+
+define AssembleTrial(a1,a2,b1,b2,states,dists)
+{
+  return [M(states,a1,a2),M(states,b1,b2), GetTOLDist(dists,a1,a2,b1,b2), a1+""+a2, b1+""+b2 ]
+}
+
+## Computes the minimum distance between states, courtes of  Fimbel
+## http://sites.google.com/site/tolspace/
+##
+define StateDist()
+{
+   state <- FoldList([
+0,1,1,2,2,3,4,3,3,3,2,3,6,6,5,4,5,4,7,6,7,8,7,8,6,5,6,7,7,8,6,6,5,4,4,3,
+1,0,1,2,2,3,3,3,2,2,1,2,5,5,4,3,4,3,6,5,6,7,6,7,6,5,6,7,7,8,6,6,5,4,4,3,
+1,1,0,1,1,2,3,2,3,3,2,3,6,6,5,4,5,4,7,6,7,8,7,7,5,4,5,6,6,7,5,5,4,3,3,2,
+2,2,1,0,1,2,3,2,3,4,3,4,7,7,6,5,6,5,8,7,8,7,7,6,4,3,4,5,5,6,4,4,3,3,2,1,
+2,2,1,1,0,1,2,1,2,3,3,4,7,7,6,5,5,4,7,6,7,7,8,7,5,4,5,6,5,6,4,4,3,2,3,2,
+3,3,2,2,1,0,3,2,3,4,4,5,8,8,7,6,6,5,8,7,7,6,7,6,4,3,4,5,4,5,3,3,2,1,2,3,
+4,3,3,3,2,3,0,1,1,2,2,3,6,6,5,4,4,3,6,5,6,7,7,8,7,6,7,8,7,8,6,6,5,4,5,4,
+3,3,2,2,1,2,1,0,1,2,2,3,6,6,5,4,4,3,6,5,6,7,7,8,6,5,6,7,6,7,5,5,4,3,4,3,
+3,2,3,3,2,3,1,1,0,1,1,2,5,5,4,3,3,2,5,4,5,6,6,7,7,6,7,8,7,7,6,6,5,4,5,4,
+3,2,3,4,3,4,2,2,1,0,1,2,4,4,3,3,2,1,4,3,4,5,5,6,8,7,8,7,7,6,7,7,6,5,6,5,
+2,1,2,3,3,4,2,2,1,1,0,1,4,4,3,2,3,2,5,4,5,6,5,6,7,6,7,7,8,7,7,7,6,5,5,4,
+3,2,3,4,4,5,3,3,2,2,1,0,3,3,2,1,2,3,4,3,4,5,4,5,8,7,7,6,7,6,8,8,7,6,6,5,
+6,5,6,7,7,8,6,6,5,4,4,3,0,1,1,2,2,3,4,3,3,3,2,3,6,6,5,4,5,4,7,6,7,8,7,8,
+6,5,6,7,7,8,6,6,5,4,4,3,1,0,1,2,2,3,3,3,2,2,1,2,5,5,4,3,4,3,6,5,6,7,6,7,
+5,4,5,6,6,7,5,5,4,3,3,2,1,1,0,1,1,2,3,2,3,3,2,3,6,6,5,4,5,4,7,6,7,8,7,7,
+4,3,4,5,5,6,4,4,3,3,2,1,2,2,1,0,1,2,3,2,3,4,3,4,7,7,6,5,6,5,8,7,8,7,7,6,
+5,4,5,6,5,6,4,4,3,2,3,2,2,2,1,1,0,1,2,1,2,3,3,4,7,7,6,5,5,4,7,6,7,7,8,7,
+4,3,4,5,4,5,3,3,2,1,2,3,3,3,2,2,1,0,3,2,3,4,4,5,8,8,7,6,6,5,8,7,7,6,7,6,
+7,6,7,8,7,8,6,6,5,4,5,4,4,3,3,3,2,3,0,1,1,2,2,3,6,6,5,4,4,3,6,5,6,7,7,8,
+6,5,6,7,6,7,5,5,4,3,4,3,3,3,2,2,1,2,1,0,1,2,2,3,6,6,5,4,4,3,6,5,6,7,7,8,
+7,6,7,8,7,7,6,6,5,4,5,4,3,2,3,3,2,3,1,1,0,1,1,2,5,5,4,3,3,2,5,4,5,6,6,7,
+8,7,8,7,7,6,7,7,6,5,6,5,3,2,3,4,3,4,2,2,1,0,1,2,4,4,3,3,2,1,4,3,4,5,5,6,
+7,6,7,7,8,7,7,7,6,5,5,4,2,1,2,3,3,4,2,2,1,1,0,1,4,4,3,2,3,2,5,4,5,6,5,6,
+8,7,7,6,7,6,8,8,7,6,6,5,3,2,3,4,4,5,3,3,2,2,1,0,3,3,2,1,2,3,4,3,4,5,4,5,
+6,6,5,4,5,4,7,6,7,8,7,8,6,5,6,7,7,8,6,6,5,4,4,3,0,1,1,2,2,3,4,3,3,3,2,3,
+5,5,4,3,4,3,6,5,6,7,6,7,6,5,6,7,7,8,6,6,5,4,4,3,1,0,1,2,2,3,3,3,2,2,1,2,
+6,6,5,4,5,4,7,6,7,8,7,7,5,4,5,6,6,7,5,5,4,3,3,2,1,1,0,1,1,2,3,2,3,3,2,3,
+7,7,6,5,6,5,8,7,8,7,7,6,4,3,4,5,5,6,4,4,3,3,2,1,2,2,1,0,1,2,3,2,3,4,3,4,
+7,7,6,5,5,4,7,6,7,7,8,7,5,4,5,6,5,6,4,4,3,2,3,2,2,2,1,1,0,1,2,1,2,3,3,4,
+8,8,7,6,6,5,8,7,7,6,7,6,4,3,4,5,4,5,3,3,2,1,2,3,3,3,2,2,1,0,3,2,3,4,4,5,
+6,6,5,4,4,3,6,5,6,7,7,8,7,6,7,8,7,8,6,6,5,4,5,4,4,3,3,3,2,3,0,1,1,2,2,3,
+6,6,5,4,4,3,6,5,6,7,7,8,6,5,6,7,6,7,5,5,4,3,4,3,3,3,2,2,1,2,1,0,1,2,2,3,
+5,5,4,3,3,2,5,4,5,6,6,7,7,6,7,8,7,7,6,6,5,4,5,4,3,2,3,3,2,3,1,1,0,1,1,2,
+4,4,3,3,2,1,4,3,4,5,5,6,8,7,8,7,7,6,7,7,6,5,6,5,3,2,3,4,3,4,2,2,1,0,1,2,
+4,4,3,2,3,2,5,4,5,6,5,6,7,6,7,7,8,7,7,7,6,5,5,4,2,1,2,3,3,4,2,2,1,1,0,1,
+3,3,2,1,2,3,4,3,4,5,4,5,8,7,7,6,7,6,8,8,7,6,6,5,3,2,3,4,4,5,3,3,2,2,1,0],36)
+ return state
+}
+
+
+define FimbelOld()
+{
+
+
+  ##Don't use the timer or turn limits here.
+  gUseTimer <- 0  
+  gUseTurnLimit <- 0  
+
+
+  gPoleHeights <- [1,2,3]
+ 
+  ## 1=RED, 2=YELL, 3=BLUE
+  ##
+  ##
+
+
+  ##THIS IS ALL THE STATES
+  s <-[[[[],[],[1,2,3]],[[3],[],[1,2]],[[],[3],[1,2]],[[],[3,2],[1]],[[2],[3],[1]],[[2],[3,1],[]]],
+            [[[],[],[1,3,2]],[[2],[],[1,3]],[[],[2],[1,3]],[[],[2,3],[1]],[[3],[2],[1]],[[3],[2,1],[]]],
+            [[[],[],[3,1,2]],[[2],[],[3,1]],[[],[2],[3,1]],[[],[2,1],[3]],[[1],[2],[3]],[[1],[2,3],[]]],
+            [[[],[],[3,2,1]],[[1],[],[3,2]],[[],[1],[3,2]],[[],[1,2],[3]],[[2],[1],[3]],[[2],[1,3],[]]],
+            [[[],[],[2,3,1]],[[1],[],[2,3]],[[],[1],[2,3]],[[],[1,3],[2]],[[3],[1],[2]],[[3],[1,2],[]]],
+            [[[],[],[2,1,3]],[[3],[],[2,1]],[[],[3],[2,1]],[[],[3,1],[2]],[[1],[3],[2]],[[1],[3,2],[]]]]
+
+  ##This is the minimal distance between states:
+  dists <- StateDist()
+
+  trialsOld <- [AssembleTrial(1,2,1,3,s,dists),
+				AssembleTrial(5,3,5,2,s,dists),
+  			    AssembleTrial(2,3,2,4,s,dists),
+				AssembleTrial(1,2,1,5,s,dists),
+				AssembleTrial(2,3,3,6,s,dists),
+
+				AssembleTrial(5,3,6,5,s,dists),
+				AssembleTrial(2,3,3,5,s,dists),
+				AssembleTrial(5,3,6,4,s,dists),
+				AssembleTrial(1,2,1,6,s,dists),
+				AssembleTrial(5,3,1,6,s,dists),
+
+				AssembleTrial(1,2,6,4,s,dists),
+				AssembleTrial(2,3,3,3,s,dists),
+				AssembleTrial(1,2,6,3,s,dists),
+				AssembleTrial(5,3,1,5,s,dists),
+				AssembleTrial(2,3,3,2,s,dists)]
+
+
+   return trialsOld
+}
+
+
+define FimbelYoung()
+{
+
+   ##Don't use the timer or turn limits here.
+   gUseTimer <- 0  
+   gUseTurnLimit <- 0  
+
+
+  gPoleHeights <- [1,2,3]
+ 
+  ## 1=RED, 2=YELL, 3=BLUE
+  ##
+  ##
+
+
+  ##THIS IS ALL THE STATES
+  s <-[[[[],[],[1,2,3]],[[3],[],[1,2]],[[],[3],[1,2]],[[],[3,2],[1]],[[2],[3],[1]],[[2],[3,1],[]]],
+            [[[],[],[1,3,2]],[[2],[],[1,3]],[[],[2],[1,3]],[[],[2,3],[1]],[[3],[2],[1]],[[3],[2,1],[]]],
+            [[[],[],[3,1,2]],[[2],[],[3,1]],[[],[2],[3,1]],[[],[2,1],[3]],[[1],[2],[3]],[[1],[2,3],[]]],
+            [[[],[],[3,2,1]],[[1],[],[3,2]],[[],[1],[3,2]],[[],[1,2],[3]],[[2],[1],[3]],[[2],[1,3],[]]],
+            [[[],[],[2,3,1]],[[1],[],[2,3]],[[],[1],[2,3]],[[],[1,3],[2]],[[3],[1],[2]],[[3],[1,2],[]]],
+            [[[],[],[2,1,3]],[[3],[],[2,1]],[[],[3],[2,1]],[[],[3,1],[2]],[[1],[3],[2]],[[1],[3,2],[]]]  ]
+  dists <-  StateDist()
+
+  trialsYoung    <- [
+                  AssembleTrial(2,3,1,2,s,dists),
+                  AssembleTrial(2,1,1,5,s,dists),
+                  AssembleTrial(1,4,2,2,s,dists),
+                  AssembleTrial(2,6,1,2,s,dists),
+                  AssembleTrial(5,6,4,3,s,dists),   
+
+                  AssembleTrial(3,3,4,4,s,dists),
+                  AssembleTrial(3,4,4,3,s,dists),
+                  AssembleTrial(5,3,6,3,s,dists),
+                  AssembleTrial(6,3,5,3,s,dists),
+                  AssembleTrial(6,4,1,4,s,dists),   
+
+                  AssembleTrial(4,6,3,4,s,dists),
+                  AssembleTrial(2,2,6,5,s,dists),
+                  AssembleTrial(3,3,2,3,s,dists),
+                  AssembleTrial(2,2,3,4,s,dists),
+                  AssembleTrial(6,5,1,1,s,dists),   
+
+                  AssembleTrial(2,2,6,2,s,dists),
+                  AssembleTrial(3,1,2,3,s,dists),
+                  AssembleTrial(5,2,3,2,s,dists),
+                  AssembleTrial(4,4,2,6,s,dists),
+                  AssembleTrial(3,2,2,3,s,dists),   
+
+                  AssembleTrial(2,1,3,1,s,dists),
+                  AssembleTrial(3,2,1,1,s,dists),
+                  AssembleTrial(2,3,4,5,s,dists),
+                  AssembleTrial(2,2,3,1,s,dists),
+                  AssembleTrial(4,1,1,2,s,dists),   
+
+                  AssembleTrial(1,4,3,1,s,dists),
+                  AssembleTrial(2,5,4,3,s,dists),
+                  AssembleTrial(3,6,6,5,s,dists),
+                  AssembleTrial(4,6,1,5,s,dists),
+                  AssembleTrial(6,3,3,1,s,dists),   
+
+                  AssembleTrial(2,2,4,6,s,dists),
+                  AssembleTrial(2,4,5,1,s,dists),
+                  AssembleTrial(2,6,6,2,s,dists),
+                  AssembleTrial(3,5,6,5,s,dists),
+                  AssembleTrial(5,6,2,1,s,dists)]
+
+
+   return trialsYoung
+ }
+
+
+## ShalliceRandom uses the fimbel space.
+##
+define ShalliceRandom(numtrials)
+{
+
+
+   ##Don't use the timer or turn limits here.
+   gUseTimer <- 0  
+   gUseTurnLimit <- 0  
+
+
+  gPoleHeights <- [1,2,3]
+ 
+  ## 1=RED, 2=YELL, 3=BLUE
+  ##
+  ##
+
+  ##THIS IS ALL THE STATES
+  s <-[[[[],[],[1,2,3]],[[3],[],[1,2]],[[],[3],[1,2]],[[],[3,2],[1]],[[2],[3],[1]],[[2],[3,1],[]]],
+            [[[],[],[1,3,2]],[[2],[],[1,3]],[[],[2],[1,3]],[[],[2,3],[1]],[[3],[2],[1]],[[3],[2,1],[]]],
+            [[[],[],[3,1,2]],[[2],[],[3,1]],[[],[2],[3,1]],[[],[2,1],[3]],[[1],[2],[3]],[[1],[2,3],[]]],
+            [[[],[],[3,2,1]],[[1],[],[3,2]],[[],[1],[3,2]],[[],[1,2],[3]],[[2],[1],[3]],[[2],[1,3],[]]],
+            [[[],[],[2,3,1]],[[1],[],[2,3]],[[],[1],[2,3]],[[],[1,3],[2]],[[3],[1],[2]],[[3],[1,2],[]]],
+            [[[],[],[2,1,3]],[[3],[],[2,1]],[[],[3],[2,1]],[[],[3,1],[2]],[[1],[3],[2]],[[1],[3,2],[]]]  ]
+  dists <-  StateDist()
+
+
+   ##Don't use the timer or turn limits here.
+   gUseTimer <- 0  
+   gUseTurnLimit <- 0  
+
+
+  ##Generates a random set of trials using Shallice's original 123
+  ##stack heights
+
+   id  <- Sequence(1,6,1)
+
+  trials <- []   
+  i <- 1
+  while(i <= numtrials)
+   {
+     a1 <- Pick(id)
+     a2 <- Pick(id)
+     b1 <- Pick(id)
+	 b2 <- Pick(id)
+
+    ##Make sure the two stacks are not identical at outset:
+    while(GetTOLDist(dists,a1,a2,b1,b2)<2)  # Make sure you need at
+                                            # least 2 moves
+     {
+        a1 <- Pick(id)
+        a2 <- Pick(id)
+        b1 <- Pick(id)
+        b2 <- Pick(id)
+     }
+
+    trials <- Append(trials,AssembleTrial(a1,a2,b1,b2,s,dists))
+    i <- i + 1
+  }
+  return trials
+}
+
+define Pick(list)
+{ 
+   return First(Shuffle(list))
+}
+
+
+define ProgressiveDisks(numdisks,numtrials)
+{
+
+   gUseTimer <- 0  
+   gUseTurnLimit <- 0  
+
+  ##Generates a random set of trials using Shallice's original 123
+  ##stack heights
+
+
+  gPoleHeights <- [6,6,6]
+
+  trials <- []   
+
+  loop(size,numdisks)
+   {
+   i <- 1
+   while(i <= numtrials)
+   {
+     config1 <- ShuffleDisks(size)
+     config2  <- ShuffleDisks(size)
+
+    ##Make sure the two stacks are not identical at outset:
+    while(StackEqual(config1,config2))
+    {
+      config1 <- ShuffleDisks(size)
+      config2  <- ShuffleDisks(size)
+    }
+
+    trials <- Append(trials, [config1,config2,-1,0,0])
+    i <- i + 1
+  }
+  } 
+ return trials
+}
+
+
+define RandomDisks(numdisks,numtrials)
+{
+
+  ##Generates a random set of trials using Shallice's original 123
+  ##stack heights
+
+  tmp <- ProgressiveDisks(numdisks,numtrials)
+  return Shuffle(tmp)
+}
+
+
+
+define M(m,i,j)
+{
+  return Nth(Nth(m,i),j)
+}
+
+
+
+
+
+define MakeGraph(remaining,total,x,y,label,numticks)
+{
+
+    ##Sets up some basic parameters for plotting the graph at the bottom of the screen
+    font <- MakeFont(gPEBLBaseFont,0,12,MakeColor("black"),MakeColor("black"),0)
+    height <- 0 #250
+    dataheight <-0 ##remaining/total * height
+    width  <- 0 ##20
+    scale <-0 ##height/total      ##pixels/unit
+
+    ycenter <- y
+    xcenter <- x
+#I am making the timer completely in black so that it is not visible to the subject during the experiment
+    
+    bgcol <- MakeColor("black")
+#    fgcol <- MakeColor("black")
+    fgcol <- MakeColorRGB(0,0,0)
+    black <- MakeColor("black")
+
+	
+    #Create rectangle for background and for data
+    back <- Rectangle(xcenter,ycenter, 70, height+50, bgcol, 1)
+    data <- Rectangle(xcenter,ycenter + height/2 - dataheight/2, width, dataheight, fgcol, 1)
+     lab <- MakeLabel(label,font)
+     Move(lab,xcenter, ycenter+height/2+14)
+     
+
+    AddObject(back,gWin)
+    AddObject(data,gWin)
+    AddObject(lab,gWin)
+    ##Create all the labels, based on yvals. Add each label to the 
+    ##appropriate location, and combine them all into a single
+    ##composite to make removal easier.
+    ##These labels are all re-created each trial--they could be
+    ##static, which would be a little more efficient, but it is really 
+    ##fast as is.
+    composite <-[back,data,lab]
+
+	
+
+    yvals <- Sequence(0, total, total/numticks)
+   
+     loop(i,yvals)
+      { 
+        yy <- MakeLabel(i+"", font)
+        AddObject(yy,gWin)
+        Move(yy,  xcenter-20, ycenter + height/2 - i*scale)
+        Show(yy)
+        composite <- Append(composite,yy)
+		tick <- Line(Floor(xcenter-width/2),ycenter+height/2-i*scale,width,0,black)
+        AddObject(tick,gWin)
+        composite <- Append(composite,tick)
+        
+      }
+    Draw()
+
+
+    return composite
+}
+
+define UpdateGraph(myGraph, remaining, x,y, total)
+{
+
+    ##Sets up some basic parameters for plotting the graph at the bottom of the screen
+
+    height <- 250
+    dataheight <- remaining/total * height
+
+    ycenter <- y
+    xcenter <- x
+
+    #Extract the data from graph.
+    data <- Second(myGraph)
+    data.height <- dataheight
+    data.y <- Floor(ycenter + height/2 -dataheight/2)
+
+}
+
+
+
+##targetlist is a set of graphical objects,
+##keylist is a set of keys whose corresponding 
+##value should be returned when a graphical object is clicked upon.
+
+define WaitForClickOnTargetWithTimeout(targetlist,keylist,time)
+{
+
+  ret <- ""
+  testlist <- Transpose([targetlist,keylist])
+   
+   wait1 <- 1
+   while(wait1)
+     {
+      wait2 <- 1
+      while(wait2)
+       {
+         pos <- WaitForMouseButtonWithTimeout(time)
+
+		 if(Length(pos)==4)
+          {
+         if(Nth(pos,4)=="<pressed>")
+          {
+            wait2 <- 0
+            gClick <- pos
+          }
+         } else {
+            wait2 <- 0
+			wait1 <- 0
+            gClick <- [-1,-1]
+            ret <- "<timeout>"
+           
+         }
+       }
+
+       ##only loop through the test if wait1 is 0; otherwise
+       ##we timed out.
+      if(wait1)
+      {
+       newtargs <- []
+
+       loop(i,testlist)
+          {
+
+             if(Inside(pos,First(i)))
+             {
+			    wait1 <- 0
+                ret <- Nth(i,2)
+                break
+             }
+          }
+     }
+    }
+  return ret
+}
+
+
+##
+##
+##
+
+define TOLR()
+
+{
+
+# Schnirman et al (1998) TOL-R
+
+
+  ## Use the timer and turn limits here.
+  gUseTimer <- 1
+  gUseTurnLimit <- 1
+ 
+
+  gPoleHeights <- [1,2,3]
+
+
+
+  ## 1=RED, 2=YELL, 3=BLUE
+  ##
+  ##
+
+
+
+  ##THIS IS ALL THE STATES
+  s <-[[[[],[],[1,2,3]],[[3],[],[1,2]],[[],[3],[1,2]],[[],[3,2],[1]],[[2],[3],[1]],[[2],[3,1],[]]],
+            [[[],[],[1,3,2]],[[2],[],[1,3]],[[],[2],[1,3]],[[],[2,3],[1]],[[3],[2],[1]],[[3],[2,1],[]]],
+            [[[],[],[3,1,2]],[[2],[],[3,1]],[[],[2],[3,1]],[[],[2,1],[3]],[[1],[2],[3]],[[1],[2,3],[]]],
+            [[[],[],[3,2,1]],[[1],[],[3,2]],[[],[1],[3,2]],[[],[1,2],[3]],[[2],[1],[3]],[[2],[1,3],[]]],
+            [[[],[],[2,3,1]],[[1],[],[2,3]],[[],[1],[2,3]],[[],[1,3],[2]],[[3],[1],[2]],[[3],[1,2],[]]],
+            [[[],[],[2,1,3]],[[3],[],[2,1]],[[],[3],[2,1]],[[],[3,1],[2]],[[1],[3],[2]],[[1],[3,2],[]]]]
+
+
+  ##This is the minimal distance between states:
+  dists <- StateDist()
+ 
+
+  trialsTOLR <- [
+                  AssembleTrial(1,1,6,5,s,dists),
+                  AssembleTrial(1,4,5,1,s,dists),
+                  AssembleTrial(3,5,1,2,s,dists),
+
+                  AssembleTrial(1,4,6,1,s,dists),
+                  AssembleTrial(1,4,5,3,s,dists),
+                  AssembleTrial(1,4,2,6,s,dists),
+
+                  AssembleTrial(6,3,4,4,s,dists),
+                  AssembleTrial(1,4,6,2,s,dists),
+                  AssembleTrial(6,3,4,6,s,dists),
+
+                  AssembleTrial(3,5,5,6,s,dists),
+                  AssembleTrial(3,5,5,4,s,dists),
+                  AssembleTrial(6,3,4,3,s,dists),
+
+                  AssembleTrial(1,1,3,5,s,dists),
+                  AssembleTrial(1,4,3,4,s,dists),
+                  AssembleTrial(6,3,4,5,s,dists),
+
+                  AssembleTrial(6,3,2,1,s,dists),
+                  AssembleTrial(6,3,1,2,s,dists),
+                  AssembleTrial(6,3,2,3,s,dists),
+
+                  AssembleTrial(1,4,5,5,s,dists),
+                  AssembleTrial(1,4,3,6,s,dists),
+                  AssembleTrial(1,1,6,1,s,dists),
+
+                  AssembleTrial(1,1,3,1,s,dists),
+                  AssembleTrial(6,3,2,5,s,dists),
+                  AssembleTrial(1,1,3,2,s,dists),
+
+                  AssembleTrial(6,3,4,1,s,dists),
+                  AssembleTrial(6,3,3,2,s,dists),
+                  AssembleTrial(1,4,4,6,s,dists),
+
+                  AssembleTrial(1,4,5,6,s,dists),
+                  AssembleTrial(2,1,5,1,s,dists),
+                  AssembleTrial(3,5,1,6,s,dists)]
+
+ 
+   return trialsTOLR
+
+}
+
+ 
+
+
+
+## This provides basic translations.  To translate to a new language, copy the text between
+##  elseif(lang== "es") and }else{
+##  and past before the final }else{, ensuring you have a single pair of matching brackets.
+##  Then translate each english string to your language of choice.  Be sure to not include line breaks unless you mean it.
+##  also, make a 2-character
+##  label to specify your language.  Then, change the 'Getstrings("en") at the top of the file to 
+##  be your language of choice.  Finally, copy the function into an email and send to the pebl email list
+##  at pebl-list@lists.sourceforge.net, so others can enjoy your labor.
+
+define GetStrings(language)
+{
+
+   lang <- Uppercase(language)
+  if(lang == "EN") 
+   {
+    gSelect <- "Type number of test to use:"+ CR(2) +
+     "[1] Unconstrained pile heights, {3,4,5} disks, progressive difficulty, 30 trials"+CR(2)+
+     "[2] Unconstrained pile heights, {3,4,5} disks, Random presentation, 30 trials"+CR(2)+
+     "[3] Shallice test ([1,2,3] pile heights, 3 disks, Shallice's 12 problems."+CR(2)+
+     "[4] Shallice pile heights [1,2,3], 3 disks, 30  random trials."+CR(2)+
+     "[5] Phillips (1999) trials A (unconstrained piles, 5 disks, progressive difficulty, 8 trials)"+CR(2)+
+     "[6] Phillips (1999) trials B (unconstrained piles, 5 disks, progressive difficulty, 8 trials)"+CR(2)+
+     "[7] Phillips (1999) trials C (unconstrained piles, 5 disks, progressive difficulty, 8 trials)"+CR(2)+
+     "[8] Fimbel et al (2009) old: [1,2,3] pile heights, 3 disks, progressive difficulty, 15 trials)"+CR(2)+
+     "[9] Fimbel et al (2009) young: [1,2,3] pile heights, 3 disks, progressive difficulty, 35 trials)"+CR(2)+
+     "[0] TOL-R (Schnirman et al, 1998). [1,2,3] pile heights, 3 disks, 30 problems, time and move limit)"+CR(3)+
+     "Edit TOL.pbl directly to specify a test configuration automatically."
+
+    gHeaderLab <- "Target"+CR(1)+"Stacks:"
+    gFooterLab <- "Click on pile to pick up and drop disk"
+
+    gInstText1 <- "You are about to perform a task called the 'Tower of London'.  Your goal is to move a pile of disks from their original configuration to the configuration shown on the top of the screen.  You can only move one disk at a time, and you cannot move a disk onto a pile that has no more room (indicated by the size of the grey rectangle).  To move a disk, click on the pile you want to move a disk off of, and it will move up above the piles.  Then, click on another pile, and the disk will move down to that pile."
+    gInstText2 <- ""# You will have a time limit to finish each problem.  Attempt to finish each problem within the allotted time.
+    gInstText3 <- ""# You will have only a limited number of moves to solve each problem. Before you make your first move, think about the problem to make sure you can solve it within your move limit.  If you do not finish the problem within the limit, the turn will end and you will move on to the next problem.
+    gDemoInstr <- "Demonstration will begin now."
+    gPracticeInst <- "These next two are for practice."
+    gStartInstr <- "See if you can make the patterns in as few moves as possible.  You may find some of the patterns are difficult, but do your best.  Each pattern can be solved.  The experiment will begin now."
+    gBegin <-  "Click the mouse to begin."
+    gContinue <- "Trial Complete. "+CR(2)+ "Click mouse to continue to the next trial."
+    gIncomplete <- ""#used to say trial incomplete
+    gClickLab <- "Clicks"
+    gTimeLab <-  "Time (s)"
+    gMovesOutLab <-  "You failed to complete the problem in the number of moves required."
+    gTimeOutLab <-  "That was a good try.  Let's go on to the next one."  #used to say that you ran out of time
+    gDebriefing <- "Thank you for participating. The experiment is now complete.  Press any key to exit."
+
+   } elseif(lang=="ES"){
+
+     ## Note, this is not a proper Spanish translation.
+     ##
+    gSelect <- "Type number of test to use:"+ CR(2) +
+     "[1] Unconstrained pile heights, {3,4,5} disks, progressive difficulty, 30 trials"+CR(2)+
+     "[2] Unconstrained pile heights, {3,4,5} disks, Random presentation, 30 trials"+CR(2)+
+     "[3] Shallice test ([1,2,3] pile heights, 3 disks, Shallice's 12 problems."+CR(2)+
+     "[4] Shallice pile heights [1,2,3], 3 disks, 30  random trials."+CR(2)+
+     "[5] Phillips (1999) trials A (unconstrained piles, 5 disks, progressive difficulty, 8 trials)"+CR(2)+
+     "[6] Phillips (1999) trials B (unconstrained piles, 5 disks, progressive difficulty, 8 trials)"+CR(2)+
+     "[7] Phillips (1999) trials C (unconstrained piles, 5 disks, progressive difficulty, 8 trials)"+CR(2)+
+     "[8] Fimbel et al (2009) old: [1,2,3] pile heights, 3 disks, progressive difficulty, 15 trials)"+CR(2)+
+     "[9] Fimbel et al (2009) young: [1,2,3] pile heights, 3 disks, progressive difficulty, 35 trials)"+CR(2)+
+     "[0] TOL-R (Schnirman et al, 1998). [1,2,3] pile heights, 3 disks, 30 problems, time and move limit)"+CR(3)+
+     "Edit TOL.pbl directly to specify a test configuration automatically."
+
+    gHeaderLab <- "Objetivo montóns:"
+    gFooterLab <- "Haga clic en pila para recoger y llevar a disco"
+    gInstText1 <- "Estás a punto de realizar una tarea llamada 'Torre de Su Londres'. Objetivo es pasar un montón de discos desde su configuración original a la configuración mostrada en la parte superior de la pantalla. Sólo puedes mover un disco a la vez, y no se puede mover un disco sobre un montón que no tiene más espacio (indicado por el tamaño del rectángulo gris). Para mover un disco, haga clic en el montón que desea mover un disco fuera de, y se moverá hacia arriba por encima de la pila. A continuación, haga clic en otra pila, y el disco se moverá hasta que el montón. "
+    gInstText2 <- " Tendrá un límite de tiempo para terminar cada problema. Intento de terminar cada problema en el tiempo asignado."
+    gInstText3 <- " Usted tendrá solamente un número limitado de movimientos para resolver cada problema. Antes de hacer su primer movimiento, pensar en el problema para asegurarse de que puede resolver dentro de su límite de movimiento. Si no termina el problema en el límite, el a su vez terminará y se trasladará al siguiente problema."
+    gBegin <-  "Haga clic en el ratón para empezar."
+    gContinue <- "Prueba Completa. "+ CR(1) +" Haga clic en el ratón para continuar a la siguiente prueba. "
+    gIncomplete <- "Prueba Incompleta. "
+    gClickLab <- "Clics"
+    gTimeLab <-  "Tiempo (s)"
+    gMovesOutLab <-  "Usted no pudo completar el problema del número de movimientos necesarios."
+    gTimeOutLab <-  "Usted acabó el tiempo."
+    gDebriefing <- "Gracias por participar. El experimento ya está completa. Pulse cualquier tecla para salir."
+
+
+    } else{
+     Print("Language: ["+lang+"] unknown.  Falling back on English translations.")
+     GetStrings("en")
+   }
+}

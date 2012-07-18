@@ -1,0 +1,850 @@
+##
+##   This is a basic version of a 'trail making' task.
+##   The goal is to connect the dots.
+##
+##
+##
+##  Version 0.2, January 2010:  Added crude TSP solver to give
+##   shortened paths, similar to original.
+##
+
+
+define Start(p)
+{
+
+
+#  SeedRng(304)
+
+
+  useReitan  <- 0    ##Whether to use Reitan's points in the mix.
+  useShortPath <- 1  ## Whether to shorten the path so points tend to
+                     ## be adjacent.
+
+  numtrials <- 5    ##total number of trials per condition (A and B)
+  			    	 ##if usereitan == 1, 2 of them will be the Reitan configurations
+
+
+  gTargSize <- 25      ##Size in pixels of targets (radius)
+  gTargclickSize <- 25 ##Size of click zone; may be smaller or larger
+                       ##than target
+  gNumTargs <- 26      #Number of targets
+  gDrawLines <- 1      #Whether to draw lines
+  gSleepEasy <- 1
+  
+  ##Parameters controlling printable area for dots
+  gxmin <- 50
+  gxmax <- 750
+  gymin <- 50
+  gymax <- 550  
+
+  gtol <- gTargSize*2+2     #tolerance, in pixels, between points
+
+
+  gWin <- MakeWindow()
+  gStimColor <- MakeColor("darkblue")
+  gAccentColor <- MakeColor("yellow")
+  gstimFont <-  MakeFont(gPEBLBaseFontMono,0,18,gAccentColor,gStimColor,1)
+  gclickedFont <- MakeFont(gPEBLBaseFontMono,1,18,MakeColor("grey35"),gStimColor,1)
+  gFileOut <- FileOpenWrite("ptrails-"+gSubNum+".txt")
+  gSumFile <- FileOpenWrite("ptrails-summary-"+gSubNum+".txt")
+
+
+    inst <- "In this experiment, your goal is to click on each circle, in sequence, as quickly as you can.  When you click on the correct circle, its number will change to boldface, and a line will be drawn from the previous circle to the new circle.  On some trials, the circles will be numbered from 1 to 25, and you should click on them in numerical order (1-2-3-4, and so on).   On other trials, the circles will have both numbers (1 to 13) and letters (A through L), and you should click on them in an alternating order (1-A-2-B-3-C and so on).  If you click the wrong circle, no line will be drawn.  The trial will continue until you have successfully clicked on all of the circles in the correct order. 
+
+After the display appears, you can examine the circles as long as you want.  Timing will not begin until you click on the first circle, which is labeled '1' on every trial.
+
+ Ask the experimenter if you have any questions."
+
+   tb  <- EasyTextBox(inst,20,20,gWin,20,gVideoWidth-40,500)
+   Draw()
+
+   gFooter <- EasyLabel("",gVideoWidth/2,gVideoHeight-25,gWin,16)
+
+
+   ptA <- []
+   ptB <- []
+   tmp <- ""  
+
+   Draw()
+   while(Length(ptA) < numtrials)
+    {
+      tmp <- tmp + "*"
+      gFooter.text <- "Initializing ["+Format(tmp,numtrials)+"]"
+      Draw()
+
+      ##Use each form twice, in both situations.
+      pts <- MakePoints(gxmin, gxmax, gymin, gymax, gtol, gNumTargs)       
+      if(useShortPath)
+      {
+         mat <- DistMatrix(pts)
+		 tour <- ShortenPathInsert(Sequence(1,gNumTargs,1),pts,mat)
+         pts <- SortBy(pts,(Order(tour)))  #re-sort the original points
+
+      }
+      ptA <- Append(ptA,pts)
+      ptB <- Append(ptB,Flip(pts))  #Points should be reflected here.
+    }
+
+   gFooter.text <- "Initialization complete.  Press mouse button to begin."
+    tb.text <- tb.text + CR(2) +"Press the mouse button to begin."
+   Draw()
+   WaitForDownClick()   
+   Hide(tb)
+   Draw()
+
+   if(useReitan) 
+   {
+     pts <- Merge([ReitanPoints("A"),ReitanPoints("B"),ReitanPoints("B"),ReitanPoints("A")],
+         	      FlattenN(Transpose([Shuffle(ptA),Shuffle(ptB)]),1) )
+
+   } else { 
+     pts <- FlattenN(Transpose([Shuffle(ptA),Shuffle(ptB)]),1)
+   }
+
+
+
+  FilePrint(gSumFile,"sub type distance studytime totaltime mediantime targs clicks acc")
+   type <- 1
+   gTrial <- 1
+   loop(i,pts)
+    {
+      Trial(i,type)
+      type <- 3-type
+      gTrial <- gTrial + 1
+    }
+
+
+   tb.text<- "Congratulations.  Hit any key to finish"
+   Show(tb)
+   Draw() 
+   WaitForAnyKeyPress()    
+}
+
+
+define ReitanPoints(type)
+{
+  if(type=="A")
+   { 
+   pts <- [[503,359],[393,428],[532,460],[530,238],[371,254],
+	       [453,305],[361,359],[286,449],[308,515],[347,443],
+		   [472,530],[235,551],[284,306],[230,380],[219,81],
+		   [290,175],[427,71],[407,191],[551,122],[473,117],
+		   [589,69],[592,234],[596,548],[566,349],[547,530]]
+
+   } else {
+   ##Canonical points for test B
+
+   pts <- [[382,285],[480,434],[297,480],[368,142],[372,221],
+		   [464,344],[416,131],[527,105],[525,305],[536,516],
+		   [365,485],[258,533],[312,276],[263,390],[242,112],
+		   [266,323],[311,110],[463,104],[575,70],[542,438],
+		   [569,555],[221,558],[220,368],[243,497],[217,80]]
+
+   }
+  return pts
+}
+  
+define Trial(pts,type)
+{
+
+  num <- Length(pts)
+  if(type==1)
+  {
+    stim <- Sequence(1,num,1)
+
+  } elseif(type==2) {
+
+    nums <- Sequence(1,26,1)
+    lets <- ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z"]
+    stim <- SubList(Flatten(Transpose([nums, lets])),1,num)
+  }
+
+
+
+   
+   if(type==1 or type==3)
+    {
+     msg <-     "Click on each number consecutively. (1-2-3-4)"
+
+    } else {
+     msg <- "Click alternately on each number and letter in order. (1-A-2-B)."
+    }
+
+   gFooter.text <- "Press mouse to begin. " + msg
+   Draw()
+   WaitForDownClick()
+   gFooter.text <- msg
+   stimObjects <-  PlotTargets(pts,gTargSize,stim)
+   stimLines <- []
+   Draw()
+   starttime <- GetTime()
+
+   hits <- 0
+   clicks <- 0
+   remaining <- pts
+   next <- First(pts)
+   last <- next
+   ##Keep track of last click and last successful click
+   lastsucc <- GetTime()
+   lastclick <- lastsucc
+
+   dist <- 0    #Keep track of the distance
+   times <- []  #keep track of individual times
+
+   studytime <- 0
+
+   while(Length(remaining)>0)
+    {
+      wait <- 1
+
+      ##Repeat this loop until we get a down click
+      while(wait)
+       {
+         pos <- WaitForDownClick()
+         if(Nth(pos,4)=="<pressed>")
+          {
+            wait <- 0
+            clicktime <- GetTime()
+            clicks <- clicks + 1
+          }
+       }
+
+    ##The first click finishes 'study', so reset start time.
+    if(studytime == 0)
+     {
+       studytime <- clicktime - starttime
+       starttime <- clicktime
+     }
+   ##Did we click on a point?
+   id <- ClickedOn(pos,pts)
+   if(id > 0)
+     {
+       if(ClickedOn(pos,[next]))
+         {
+
+   
+          RemoveObjects(stimLines,gWin)
+          RemoveObjects(stimObjects,gWin)
+
+
+           corr <- 1 
+
+           if(gDrawLines)
+           {
+
+                x0 <- First(last)
+                y0 <- Nth(last,2)
+                x1 <- First(next)
+                y1 <- Nth(next,2)
+
+                l <- ThickLine(x0,y0,x1,y1,5,gStimColor)
+                Print(l)
+                Print(last)
+                Print([x0,y0])
+
+
+        #        l <- Line(First(last),Nth(last,2),xdiff,ydiff,gStimColor)
+
+                stimLines <- Append(stimLines,l)
+                AddObjects(stimLines,gWin)
+                AddObjects(stimObjects,gWin)
+                Draw()
+           }
+
+           ## Increment the total distance travelled
+           dist <- dist + Dist(last,next)
+ 
+           ## keep track of the time to make the hit.
+           times <- Append(times,clicktime - lastsucc)
+
+           if(Length(remaining)==1)
+            {
+              remaining <- [] 
+     
+            } else {
+              remaining <- SubList(remaining,2,Length(remaining))
+              last <- next
+              next <- First(remaining)           
+            }
+
+           hits <- hits + 1
+
+          ##Get the label and change its font.
+           x <- Nth(Nth(stimObjects,id),2)
+           x.Font <- gclickedfont
+           Draw()
+         } else {
+           corr <- 0 
+         }
+
+        FilePrint(gFileOut,gSubNum +  " "+ gtrial + " " + clicks + " "  + hits + " " + clicktime + " " + First(pos) + " " +   Nth(pos, 2) + " " +  corr + " " + id + " " + (clicktime - lastclick) + " "+ (clicktime-lastsucc))
+        lastclick <- clicktime
+        if(corr)
+          {
+            lastsucc <- clicktime
+          }
+
+     }
+
+
+  }
+
+   FilePrint(gSumFile,gSubNum + " " + type+ " " + dist + " " + studytime + " " + (clicktime - starttime) + " "  + Median(times) +   " " + hits + " " +clicks + " " + hits/clicks )
+
+#   WritePNG("solution.png",gWin)
+   RemoveObjects(stimObjects,gWin)
+   RemoveObjects(stimLines,gWin)
+ 
+}
+
+define ClickedOn(pos,targets)
+{
+   click <- SubList(pos,1,2)
+   index <- 1
+   id <- 0
+   loop(i,targets)
+   {
+      if(Dist(click,i)<=gTargClickSize)
+      {
+         id <- index
+         break          
+      }
+    index <- index + 1
+   }
+    return id
+}
+ 
+
+define PlotTargets(pts,size,labels)
+{
+
+  tmp <- Transpose([pts,labels])
+
+  comp <- []
+  start <- 1  
+  loop(i,tmp)
+   {
+      pos <- First(i)
+      label <- Nth(i,2)
+  
+      comp <- Append(comp,  AddTarget(pos,label,size,start))
+      start <- 0
+   }
+ return comp
+}
+
+
+define MakePoints(xmin, xmax, ymin, ymax, tol, num)
+{
+
+   ##should you watch the points evolve?
+   watch <- 0
+   
+
+   ##Note that it is possible to arrange the situation 
+   ## so that the distribution will never be satisfied.  So, lets
+   ## set up a 'limit' at which point we give up and return the best
+   ## we have so far.
+
+   limit <- 100
+ 
+
+  ## First, just initialize num points.
+  pts <- []
+  i <- 1
+  while(i <= num)
+   {
+
+     x <- xmin + Random()*(xmax-xmin)
+     y <- ymin + Random()*(ymax-ymin)
+     pts <- Append(pts, [x,y])
+     i <- i + 1
+   }
+
+  #Now, check for the minimum distance between two points.
+   tries <- 1
+   minpair <-  GetMinDist(pts)
+
+
+   ##Move one point at a time
+   while(First(minpair) < tol and tries < limit)
+   {
+     if(watch) 
+     {
+
+      xxxobj <- PlotTargets(pts,tol/2,Sequence(1,num,1))
+      Draw()
+     }
+
+     pt1id <- Nth(minpair,2)
+     pt2id <- Nth(minpair,3)
+
+	
+     pt1 <- Nth(pts,pt1id)
+     pt2 <- Nth(pts,pt2id)
+
+     if(watch)
+      {
+       line <- Line(First(pt1),Second(pt1),  
+                     First(pt2)-First(pt1),
+					 Second(pt2)-Second(pt1), MakeColor("orange"))
+       AddObject(line,gWin)
+ 	   Draw()
+       Wait(100)
+
+
+      }
+
+    #resample the 'bad' points
+
+     ##Half the time, try to move a little bit away from 
+     ##the closest. Otherwise, do it randomly.
+
+     if(0)
+     {
+
+       ##This doesn't seem to work.
+       lastpt <- pt1       
+       pt1 <- [-1,-1]
+       while((First(lastpt) > xmin) and (First(lastpt)<xmax) and 
+              (Second(lastpt) > ymin) and (Second(lastpt)<ymax))
+         {
+           #Resampling
+           dist <- Random() * tol
+           diff <- [First(pt2) - First(pt1),Second(pt2)-Second(pt1)]     
+           pt1 <- VecSum(pt2,VecTimes(diff,[dist,dist]))
+           if(watch)
+           {
+		     Print("watch this")
+           }
+         }
+
+        
+
+
+     } else{
+ 
+     pt1 <-   [ xmin + Random()*(xmax-xmin),
+                  ymin + Random()*(ymax-ymin) ]
+
+    }
+   #   pt2 <-   [ xmin + Random()*(xmax-xmin),
+   #                ymin + Random()*(ymax-ymin) ]
+
+
+     ##Reassemble pts
+     tmp <- RemoveSubset(pts,[pt1id])
+
+     ##See if this configuration is an improvement
+     testpts <- Merge(tmp,[pt1])
+     minpairtest <-  GetMinDist(testpts)
+
+     ##If we've made an improvement, use it, otherwise abandon it.
+     if(First(minpairtest) >= First(minpair))
+     {
+        minpair <- minpairtest
+        pts <- testpts
+     }
+     tries <- tries + 1
+     if(watch)
+     {
+         RemoveObjects(xxxobj,gWin)
+         RemoveObject(line,gWin)
+         xxxobj <- PlotTargets(pts,tol/2,Sequence(1,num,1))
+         Draw()
+         RemoveObjects(xxxobj,gWin)
+
+
+     }
+
+  
+   }
+
+
+  
+  return Shuffle(pts)
+}
+
+
+define GetMinDist(pts)
+{
+   len <- Length(pts)
+   index1 <- 1
+   mindist <- Dist(First(pts),Nth(pts,2))
+   id1 <- 1
+   id2 <- 2
+ 
+   loop(i,pts)
+   {
+     pt1 <- i
+     index2 <- index1 + 1
+ 
+
+     if(index2 <= len)
+      {
+      rest <- SubList(pts,index2, Length(pts))
+      loop(j, rest)
+       { 
+        d <- Dist(i,j)
+
+        if(d < mindist)
+        {
+          mindist <- d
+          id1 <- index1
+          id2 <- index2
+        }
+
+        index2 <- index2 + 1
+      }
+      }
+     index1  <- index1 + 1
+   }
+
+   return [mindist,id1,id2]
+}
+
+
+define AddTarget(pos,letter,size,type)
+{
+
+    ##if type== 1, add an accented circle around the target.
+
+   x <- First(pos)
+   y <- Nth(pos,2)
+   
+ 
+   lab <- MakeLabel(letter+"",gstimFont)
+
+   if(type)
+    {
+       crc1 <- Circle(x,y,size+4,gAccentColor,1)
+       crc2 <- Circle(x,y,size,gStimColor,1)
+       AddObject(crc1,gWin)
+       AddObject(crc2,gWin)
+       AddObject(lab,gWin)       
+       ret <- [[crc1,crc2],lab]
+    } else { 
+
+       crc <- Circle(x,y,size,gStimColor,1)
+       AddObject(crc,gWin)
+       AddObject(lab,gWin)
+       ret <- [crc,lab]
+    }
+
+   Move(lab,x,y)
+   
+   return ret
+}
+
+define RemoveObjects(list,win)
+{
+   loop(i,Flatten(list))
+   { 
+     RemoveObject(i,win)
+   }
+}
+define AddObjects(list,win)
+{
+   loop(i,Flatten(list))
+   { 
+     AddObject(i,win)
+   }
+}
+
+define VecTimes(a,b)
+{
+   tmp <- Transpose([a,b])
+   out <- []
+   loop(i,tmp)
+   {
+     out <- Append(out, First(i) * Nth(i,2))
+   }
+  return out
+}
+
+define VecSum(a,b)
+{
+   tmp <- Transpose([a,b])
+   out <- []
+   loop(i,tmp)
+   {
+     out <- Append(out, First(i) + Nth(i,2))
+   }
+  return out
+}
+
+define Dist(a,b)
+{
+  return Sqrt((First(a)- First(b))^2 + (Nth(a,2) - Nth(b,2))^2)
+}
+
+
+
+
+##  This function takes a list of anything, and a list of indexes
+##  specifying the items to extract from the list.  The indexes can
+##  be in any order, but the extracted list will be in the order 
+##  of the original list.  Items that are not numbers less than or 
+##  equal to the length of the list will be ignored.
+define RemoveSubset(list, items)
+{
+   #Check the arguments to insure they are the proper type
+    if(not IsList(list))
+	{
+	    SignalFatalError("First argument of function [RemoveSubset(<list>,<list>)] is not a list")
+	}
+    if(not IsList(items))
+	{
+	    SignalFatalError("First argument of function [RemoveSubset(<list>,<list>)] is not a list")
+	}
+
+
+    returnList <- []      #Make an initial blank list to return
+    index <- 1            #keep track of the index
+    loop(i, list)
+    {
+	#If the index is in the items list, add it to the return list
+	if(not IsMember(index, items))
+	{
+	    returnList <- Append(returnList, i)
+	}
+	index <- index + 1
+    }
+
+    return returnList
+}
+
+define WaitForDownClick()
+{
+   continue <- 1
+   while(continue) 
+    {
+		x <- WaitForMouseButton()
+        if(Nth(x,4) == "<pressed>")
+        { 
+         continue <- 0
+        }
+    }
+     return x
+}
+ 
+
+
+##  This doesn't work well
+##
+
+define ShortenPathNN(tour,pts,mat)
+{
+
+##nearest-neighbor method.
+  cur <- First(tour)
+  toura <- [cur]
+  rest <- Rest(tour)
+  while(Length(rest)>1)
+   {
+ 
+    distances <- ExtractListItems(Nth(mat,cur),rest)
+    ##find closest neighbor.
+     order <- Sortby(rest, distances)
+     cur <- First(order)
+     rest<- Rest(order)
+     toura <- Append(toura,  cur)
+
+	}
+
+   return Merge(toura,rest)
+}
+
+
+
+define ShortenPathInsert(tour,pts,mat)
+{
+  watch <- 0
+  if(watch)
+   {
+
+      xxxobj <- PlotTargets(pts,gTargSize,tour)
+      Draw()
+
+   }
+  toura <- SubList(tour,1,2)
+  rest <- SubList(tour,3,Length(tour))
+    
+   loop(next, rest)
+      {
+       ##For the next item, look at the cost incurred by adding it to
+       ##each of the parts.
+      if(watch)
+       {
+
+        ptssub <- Subset(pts,toura)
+        xxx2 <-  DrawPath(toura,ptssub)
+
+        Draw()
+     
+        WaitForDownClick()  
+        RemoveObjects(xxx2,gWin)
+       }
+      links <- Transpose([toura, Rotate(toura,1)])
+      dists <- []
+
+  	  loop(i,links)
+      {
+        ## compute the cost to inserting between the two elements of i
+        cost <- M(mat,First(i),next) + M(mat,next,Second(i)) - M(mat,First(i),Second(i))
+
+        dists <- Append(dists, cost)
+
+      }
+
+       ##we went through all the links
+	   d2 <- SortBy(Sequence(1,Length(toura),1),dists)
+      ##The first element of d2 gives the location to insert
+       toura <- Insert(toura, next,First(d2))
+       #toura now is the growing tour
+
+	}
+   if(watch) 
+   {
+
+    xxx2 <-  DrawPath(toura,pts)
+    Draw()
+    RemoveObjects(xxx2,gWin)
+    RemoveObjects(xxxobj,gWin)
+    WaitForDownClick()  
+   
+    }
+  return   toura
+}
+
+
+
+
+define DrawPath(path,pts)
+{
+
+      ##Path is a sequence of targets
+      ##pts is a list of [x,y] points
+
+      pts2 <- SortBy(pts,Order(path))
+      last <- Last(pts2)
+      stimObjects <- [] 
+
+
+      loop(i,pts2)
+       {
+
+        x0 <- First(last)
+        y0 <- Nth(last,2)
+
+        xdiff <- First(i) - x0
+        ydiff <- Nth(i,2) - y0
+#        l <- Line(First(last),Nth(last,2),xdiff,ydiff,gStimColor)
+        l <- ThickLine(First(last),Second(last),x0,y0,4,gStimColor)
+        AddObject(l,gWin)
+        stimObjects <- Append(stimObjects,l)
+        last <- i
+       }
+
+  return stimObjects
+}
+
+
+define Insert(list, item, pos)
+{ 
+   if(pos == 0)
+    { 
+      new <- Merge([item],list)
+    } elseif(pos >= Length(list))
+    {
+      new <- Append(list, item)    
+ 
+    }else {
+
+      new <- FlattenN([SubList(list,1,pos),
+                      [item], 
+                      SubList(list,pos+1,Length(list))],1)
+   }
+
+  return new
+}
+
+
+define Rest(list)
+{
+  return SubList(list,2,Length(list))
+}
+
+
+
+
+##This is like mod, but 1-based instead of 0-based
+define Mod1(num,mod)
+{
+   tmp <- Mod(num, mod)
+   if(tmp==0)
+     {
+       tmp <- mod
+     }
+   return tmp
+}
+
+
+
+define DistMatrix(pts)
+{
+   mat <- []
+   loop(i,pts)
+   {
+
+     line <- []
+     loop(j, pts)
+     {
+       line <- Append(line, Dist(i,j)) 
+
+     }
+
+	 mat <- Append(mat,line)
+   }
+
+  return mat
+}
+
+
+##Finds the distance of a path (not a circuit)
+define PathDist(path,dMat)
+{
+    dist <- 0
+    ptA <- First(path)
+    loop(i, path)
+    {
+       dist <- dist + M(dMat,ptA,i)
+       ptA <- i
+    }
+   return dist
+
+}
+
+define TourDist(tour, dMat)
+{
+  return  PathDist(tour,dMat) + M(dMat,First(tour), Last(tour))
+}
+
+
+## Get pairwise value in a matrix.
+##
+define M(matrix, a,b)
+  {
+   return Nth(Nth(matrix,a),b)
+  }
+
+
+define Flip(pts)
+{
+  newpts <- []
+  loop(i, pts)
+  {
+    newpts <- Append(newpts, [gxmax - (First(i)-gxmin),Second(i)])
+  }
+  return newpts
+}

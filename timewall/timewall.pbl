@@ -1,0 +1,147 @@
+#####################################################
+## PEBL  Time Wall, Version 0.1
+##        
+## As described by  Jerison, Crannell, & Pownall,(1957), and 
+##    Jerison and Arginteanu (1958), as reported by 
+##     Test 18 of the  UTC test battery.
+##
+## Jerison, H. H., C. W. Crannell, and 0. Pownall, 1957, Acoustic Noise and
+## Repeated Time Judgements in a Visual Movement Prroection Task, (WAUC-IR-b7-
+## 54), Wright Air Development Center, Wright-Patterson Air Force Base, Ohio.
+## 
+## Jerison, H. J. and J. Arginteanu, 1958, Time Judgements, Acoustic Noise, and
+## Judqinent Drift, (WADC-TR-57-454) Wright Air Development Center, Wright-
+## Patterson Air Force Base, Ohio (AJ-130963).
+##
+## Perez,  W. A., Masline, P. J., Ramsey, E. G. and Urban, K. E. (1984).
+##  UNIFIED TRI-SERVICES COGNITIVE PERFORMANCE  ASSESSMENT BATTERY: 
+##  REVIEW AND METHODOLOGY, DTIC Document #ADA181697
+##  http://stinet.dtic.mil/oai/oai?verb=getRecord&metadataPrefix=html&identifier=ADA181697
+##
+##
+## Version 0.1 (c) 2008 Shane T. Mueller
+## smueller@obereed.net
+##
+#####################################################
+
+define Start(p)
+{
+
+  numTrials <- 20           #Number of trials
+  feedback <- 1             #Whether or not to give feedback
+  mintime <- 2000           #Minimum transit time
+  maxtime <- 10000          #Maximumu transit time
+
+  gWin <- MakeWindow("lightblue")
+  gFileOut <- FileOpenWrite("timewall-"+gSubNum+".dat")
+  gSleepEasy <- 1
+
+inst <- "This is an experiment to see how well you can estimate the speed of a moving square target.  The target will always start at the top of the screen and descend at a constant rate toward the bottom.  After the target is two-thirds of the way down, it    will pass behind a wall and become invisible.    Your task is to press a button at the exact moment the moving target would pass through the notch marked at the very bottom of the display.  In making this judgement, you are not to count or use any other rhythm method to facilitate your judgement.     Instead, follow the target with your eyes and imagine it continuing straight down behind the wall to the notch. After you have pressed the button, you will receive feedback as to where the target actually was and whether you over or underestimated the time interval.   When you are ready, press a key on the keyboard and the next target shall emerge from the top.   The task continues for "+numtrials + " trials.  
+
+Press any key to begin."
+
+  instruct <- EasyTextBox(inst, 50,50,gWin,18,gVideoWidth-100,400)
+  Draw()
+  WaitForAnyKeyPress()
+  Hide(instruct)
+   
+  bgcol <- gWin.bgcolor
+  wallcol <- MakeColor("darkred")
+  targcol <- MakeColor("darkgreen")
+
+  gWallheight <- gVideoHeight*.333
+  gWallpos    <- gVideoHeight-gWallheight
+
+  gTarg <- Square(gVideoWidth/2,4,8,targcol,1)
+  wall <- Rectangle(gVideoWidth/2,gVideoHeight-gWallheight/2,
+                     gVideoWidth,gWallheight,wallcol,1)
+  notch <-Square(gVideoWidth/2,gVideoHeight-4,8,bgcol,1)
+
+  gFeedback <- EasyLabel("",gVideoWidth/2,50,gWin,28)
+  Hide(gFeedback)
+
+  AddObject(gTarg,gWin)
+  AddObject(wall,gWin)
+  AddObject(notch,gWin)
+
+  Draw()
+
+
+  FilePrint(gFileOut, "Subnum trial targtime resptime acc shortlong")
+  trial <- 1
+  while(trial < numtrials)
+   {
+
+
+    res <-   Trial()
+    targ <- First(res)
+    resp <- Nth(res,2)
+
+
+  msg <- "[Trial " + trial + " of " + numtrials + "] " 
+  ##Give positive feedback if within 5%
+  acc <- Abs(targ - resp)/targ
+
+ if(feedback)
+   {
+    if(acc < .05)
+     {
+       msg <- msg+"Great! "
+
+     } elseif( First(res) < Nth(res,2))
+     {
+        msg <- msg+"Too Long: "    
+     } else{
+       msg <- msg+"Too short: "
+    }
+       msg <-  msg + "  " + RoundTime(resp) + "s for " +  RoundTime(targ) + "s"
+   }
+   gFeedback.text <- msg
+   shortlong <-  Sign(resp-targ)
+
+  Show(gFeedback)
+  Draw()
+
+  FilePrint(gFileOut,gSubNum + " " + trial +" " + targ + " " + resp + " " + acc +
+                      " " + shortlong)
+  WaitForAnyKeyPress()
+  Hide(gFeedback)
+  trial <- trial + 1
+  }  
+
+  FileClose(gFileOut)
+}
+
+
+define RoundTime(num)
+{
+   return  Round( num / 100)/10
+}
+
+define Trial()
+{
+   Show(gTarg)  
+   traveltime <- (Random()*8+2)*1000
+   start <- GetTime()
+   endtime <- start + traveltime
+   disappeartime <- start + traveltime * .66667   
+
+   time <- start
+   
+   while(time < disappeartime)
+   {
+
+     time <- GetTime()
+     ypos <- (time - start)*gVideoHeight/traveltime
+     gTarg.y <- ypos
+     Draw()
+     Wait(10)
+
+   }
+   Hide(gtarg)
+   Draw()
+   x <-  WaitForAnyKeyPress()
+   est <- GetTime()
+   return [traveltime, (est-start)]
+
+}

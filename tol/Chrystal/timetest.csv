@@ -1,0 +1,4 @@
+trial,move,pegcount,minmove,sourcepeg,destpeg,putime,tottime
+1,1,3,1,3,1,10032,11445
+2,1,3,2,2,1,15268,0
+2,2,3,2,3,2,17117,17845

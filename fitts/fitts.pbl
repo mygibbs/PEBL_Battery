@@ -1,0 +1,233 @@
+define Start(p)
+{
+
+
+  targdist <- [50,75,100,200,350,500,700]
+  targsize <- [10,20,40]
+  reps     <- 10       ##Number of times through list
+
+  gFileOut <- FileOpenWrite("fitts-"+gSubNum+".txt")
+  gPointFile <- FileOpenWrite("fittspoints-"+gSubNum+".txt")
+  gWin <- MakeWindow()
+  ShowCursor(0)
+  gTargCol  <- MakeColor("red")
+  gStartx <- 50
+  gHomeX <- Round(gVideoWidth/2)
+  gHomeY <- Round(gVideoHeight/2)
+  gTargHeight <- 50
+  gShowPreview <- 0         ##Can you see the target before you move?
+  gSleepEasy <- 1
+  gMessage <- EasyLabel("",gHomeX,gHomeY-100,gWin,22)
+  gCounter <- EasyLabel("",gHomeX,gHomeY-150,gWin,22)
+
+  l1 <-   Line(gstartx-10,gHomeY,20,0,MakeColor("black"))
+  l2 <-   Line(gstartx,gHomeY-10,0,20,MakeColor("black"))
+  AddObject(l1,gWin)
+  AddObject(l2,gWin)
+  
+  gCursor <- Plus(0,0,10,2,MakeColor("black"))
+  AddObject(gCursor,gWin)
+
+  cond <- DesignFullCounterbalance(targdist,targsize)
+  trials <- Shuffle(RepeatList(cond,reps))
+  l <- Length(trials)
+  i <- 1
+  loop(trial,trials)
+  {
+    gCounter.text <- ("Trial [" + i + "] of "+l)
+    FilePrint_(gFileOut,gSubNum + " " + i + " ")
+    Trial(i, First(trial),Nth(trial,2),3)
+    i <- i + 1
+  }
+  ShowCursor(1)
+  FileClose(gFileOut)
+  FileClose(gPointFile)
+}
+
+define ListEqual(l1,l2)
+{
+  same <- 1
+  loop(i,Transpose([l1,l2]))
+   {
+     if(not (First(i) == Nth(i,2)))
+      {
+        same <- 0
+      }
+
+   }
+   
+  return same
+}
+
+
+define Trial(trial, pos, size,type)
+{
+
+   ##Type == 1:
+   ##Type == 3;  doesn't require clicking; only dwelling.
+
+
+   targ <- Rectangle(gStartx+pos,gHomeY,size,gTargHeight,gTargCol,1)
+   AddObject(targ,gWin)
+   Hide(targ)
+   targ0 <- Rectangle(gStartx+pos,gHomeY,size,gTargHeight,MakeColor("black"),0)
+   AddObject(targ0,gWin)
+   Hide(targ0)
+   if(gShowPreview)
+    {
+      Show(targ0)
+    }
+
+   #Put cursor on top:
+   RemoveObject(gCursor,gWin)
+   AddObject(gCursor,gWin)
+
+   ##Hide the cursor and wait for a click to start trial
+   SetMouseCursorPosition(gStartX,gHomeY)
+   MoveCursor([gStartx, gHomeY])
+
+   gMessage.text <- "Click mouse to set position"
+   Show(gMessage)
+   Draw()
+   
+   WaitForDownClick()
+   Show(gCursor)
+   SetMouseCursorPosition(gStartX,gHomeY)
+   MoveCursor([gStartx, gHomeY])
+   gMessage.text <- "Move to target when ready."
+   Draw()
+   Wait(50)
+   Draw()
+   WaitForMouseMovement()
+
+   Show(targ)
+   Show(targ0)
+   Hide(gMessage)
+   Draw()
+
+   start <- GetTime()
+   clicks <- 0
+
+   if(type == 3)
+   {
+     Draw()
+     lastpos <- GetMouseCursorPosition()
+     continue <- 1
+     while(continue)
+       {
+        time <- GetTime()
+        mousepos <- GetMouseCursorPosition()
+        MoveCursor(mousepos)
+
+        FilePrintList(gPointfile,Merge([trial,size,pos, time],mousepos))
+        #If you stop moving, check to see if you are inside the target
+        if(ListEqual(mousepos,lastpos) )
+          {
+            continue <- (1 - ClickOn(mousepos,[gStartx+pos,gHomeY],size, gTargHeight))
+
+          }
+         lastpos <- mousepos
+         Draw()
+         Wait(10)
+       }
+       endtime <- GetTime()
+        Wait(200)
+
+   } else {
+ 
+    x <- 0
+
+    while(not x)
+      {
+       mousepos<-WaitForDownClick()
+    	x <-  ClickOn(mousepos,[gStartx+pos,gHomeY],size, gTargHeight)
+       endtime <- GetTime()
+       clicks <- clicks + 1
+      }
+     }
+     FilePrint_(gFileOut,type+ " " +pos + " " + size + " " + gShowPreview  + " " +First(mousepos) + " " + Nth(mousepos,2) + " " + clicks + " ")
+     FilePrint(gFileOut,(endtime - start))
+
+   RemoveObject(targ,gWin)
+   RemoveObject(targ0,gWin)
+
+
+   Draw()
+
+
+  
+}
+
+##Use rectangles for targets.
+##Determines whether you clicked in the circle.
+define ClickOn(mousepos, pos,width, height)
+{
+   
+  mouseX <- First(mousepos)  
+  mouseY <- Nth(mousepos,2)
+
+  xcenter <- First(pos)
+  ycenter <- Nth(pos,2)
+
+  minX <-  xcenter-width/2
+  maxX <-  xcenter + width/2
+  minY <-  ycenter - height/2
+  maxY <-  ycenter + height/2
+ 
+  x <- First(mousepos)
+  y <- Nth(mousepos,2)
+
+  if( x <= maxX and x >= minX and y <= maxY and y >= minY)
+   {
+     ret <- 1
+   } else {
+     ret <- 0
+   }
+
+ return ret
+}
+
+
+define WaitForDownClick()
+{
+   continue <- 1
+   while(continue) 
+    {
+		x <- WaitForMouseButton()
+        if(Nth(x,4) == "<pressed>")
+        { 
+         continue <- 0
+        }
+    }
+     return x
+}
+
+
+define WaitForMouseMovement()
+{
+   lastpos <-GetMouseCursorPosition()
+   pos <-GetMouseCursorPosition()
+    
+   continue <- 1
+   while(ListEqual(lastpos,pos)) 
+    {
+        Wait(10)
+    	Draw()
+		lastpos <- pos
+        pos <- GetMouseCursorPosition()
+    }
+}
+
+
+define MoveCursor(pos)
+
+{
+  gCursor.x <- First(pos)
+
+##Use this to lock the y position
+ ## gCursor.y <- gHomeY
+
+## Use this to allow any y position.
+   gCursor.y <- Nth(pos,2)
+  Draw()
+}

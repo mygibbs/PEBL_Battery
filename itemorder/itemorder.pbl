@@ -1,0 +1,145 @@
+define Start(p)
+{
+  Init()
+  gFileOut <- FileOpenAppend("itemorder-"+gSubNum+".txt")
+  
+  giveFeedback <- 1
+
+
+  trials <-Shuffle(Flatten([Repeat(0,20),Repeat(1,10),Repeat(2,10)]))
+
+  trial <- 1
+  loop(cond, trials)
+   {
+    FilePrint_(gFileOut,gSubNum + " " + trial + " "+ cond + " ")
+    Trial(cond)
+    trial <- trial + 1
+   }
+  Hide(gTarget)
+  Show(gInst)
+  gInst.text <- "Thank you for participating.  Press any key to exit."
+   
+  WaitForAnyKeyPress()
+
+}
+
+define Init()
+{
+  gVideoWidth <- 800
+  gVideoHeight <- 600
+  gWin <- MakeWindow("black")
+
+  ShowCursor(0)
+  if(gSubNum != "0")
+  {
+    gSubNum <- GetSubNum(gWin)
+  }
+
+  gLetters <- SubList(FileReadList("Consonants.txt"),1,21)
+
+
+  gTarget <-EasyLabel("+",gVideoWidth/2,gVideoHeight/2,gWin,70)
+
+  gFooter1 <- EasyLabel("   SAME                                       DIFFERENT",   gVideoWidth/2,gVideoHeight-60,gWin,28)
+  gFooter2 <- EasyLabel("<left shift>                                <right shift>", gVideoWidth/2,gVideoHeight-20,gWin,28)
+
+  Hide(gFooter1)
+  Hide(gFooter2)
+  Hide(gTarget)
+  inst <- "On each trial, a string of seven letters will be displayed  for two seconds.  Study the letters quickly so that you will remember what letters  were on the screen and the order in which they appeared.  The screen will go blank for a short time, after which you will see another set of seven letters.  Your task is to decide whether these letters are exactly the same as the set of letters you just studied.  If the two sets of letters are identical and in the identical order, press the left shift button to indicate 'same'.  If the two sets of letters are different (either containing a letter that was not there before, or with letters in a different order),  press the right shift button to indicate 'different'.  Press the button as quickly as possible without making errors.  
+
+Press any key to begin the study."
+
+  gInst <- EasyTextBox(inst,50,50,gWin,22,700,500)
+  Draw()
+  WaitForAnyKeyPress()
+  Hide(gInst)
+  Draw()
+}
+
+
+
+
+define Trial(type) 
+{
+
+  
+  if(type == 0)## same
+   {
+
+     pos <- 0
+     target <- ListToString(SampleN(gLetters,7))
+     compare <- target
+   }elseif(type == 1)  ## item replace
+   {
+
+      letters <- SampleN(gLetters,8)
+      base  <- SubList(letters,2,8)
+      pos <- RandomDiscrete(7)-1  ##rotate between 0 and 6 items
+      target <- Rotate(base,-pos)
+      addA <- First(letters)
+      addB <- Second(letters)
+
+      key <- [[addB,addA]]
+      compare <- ListToString(Replace(target,key))
+      target <- ListToString(target)
+
+
+   } else {  #swap adjacent elements.
+
+
+      target  <- SampleN(gLetters,7)
+      pos <- RandomDiscrete(6)
+
+      swapA <- Nth(target,pos)
+      swapB <- Nth(target,pos+1)
+
+      key <- [[swapA,swapB],[swapB,swapA]]
+      compare <- ListToString(Replace(target,key))
+      target <- ListToString(target)
+   }
+
+  gTarget.text <- target
+  Show(gTarget)
+  Hide(gFooter1)
+  Hide(gFooter2)
+  Draw()
+  Wait(2000)
+  Hide(gTarget)
+
+  Draw()
+  Wait(2500)
+  Show(gTarget)
+  Show(gFooter1)
+  Show(gFooter2)
+
+  gTarget.text <- compare
+  Draw()
+  time0 <- GetTime()
+  resp <- WaitForListKeyPress(["<lshift>","<rshift>"])
+  time1 <- GetTime()
+
+
+  corr <- ((type==0) and ( resp == "<lshift>")) or ((type > 0) and (resp=="<rshift>"))
+
+  FilePrint(gFileOut,   target + " " + compare + " " + pos + " "  + resp + " "  + corr + " " + time0 + " " + (time1-time0))
+
+  if(giveFeedback)
+  {
+  if(corr)
+  {
+    gTarget.text <- "correct"
+  } else {
+    gTarget.text <- "incorrect"
+  }
+  Draw()
+  Wait(500)
+  }
+
+   gTarget.text <- "+"
+   Draw()
+   Wait(800)
+}
+
+
+

@@ -1,0 +1,565 @@
+################################################################
+##Internal Shift Task for University at Buffalo DRT Lab        ##
+##Using PEBL 0.07 or later                                     ##
+##http://pebl.sf.net                                           ##  
+## Custom made test, not part of PEBL standard Library of Tests##
+#################################################################
+
+define Start(lpar)
+{
+
+################################################################################
+##This test is designed to run a version of the Internal Shift Task           ## 
+##where individuals will be presented images out of 48 random faces assigned  ##
+##in one of two conditions. There will be 12 blocks of 12 faces 6 blocks      ##   
+##of each condition. And the participant will have to keep track of the number##
+##of neutral faces and angry faces in one block and the number of male and    ##
+##female faces in the other type of block.                                    ##  
+################################################################################  
+
+##############################################################################            
+##it is crucial to this experiement that the pictures are organized as follows:
+##in if statements 1-12 a Neutral Male face will be displayed. 13-24 a neutral
+##female face. 25-36 an angry female face, and 37-48 an angry Male face.
+##############################################################################
+
+    
+    ## video screen size is being set
+    gVideoWidth<-1024
+    gVideoHeight <-768
+    gWin<-MakeWindow("black")
+    gSubNum<-GetSubNum(gWin)
+    ShowCursor(0)
+    grey <- MakeColor("GREY")
+    red <- MakeColor("RED")
+    black <- MakeColor("BLACK")
+    white <- MakeColor("WHITE")
+    gFont <- MakeFont(gPEBLBaseFont,0,44,white, black,1)
+    fontInst <- MakeFont(gPEBLBaseFont,0,26,white,black,1)
+    gInputFont <- MakeFont(gPEBLBaseFont,0,26,black,white,1)
+    gFileOut<-FileOpenAppend("IST-output.raw.csv")
+    
+    FilePrint(gFileOut, "SubNum," + gSubNum)
+    
+    gSexNum <- 0
+    gEmoNum <- 0
+    gFaceNum <- 0 
+    
+    instructionsGen <- "In this block, you will be shown pictures"+
+                       " of people, and asked to keep count of the number of male "+
+                       "and female faces that you see. " + CR(2) + "At the end"+
+                       " of the block, you will be asked to key in the number "+
+                       "of male and female faces that you saw, so you must keep track of "+
+                       " both these numbers. " + CR(2) + "One face at a time will be" +
+                       " presented to you, and the next one will not be" +
+                       " presented until you hit the space bar on the keyboard." + CR(2) + 
+                       "It is important that you try to get through the"+
+                       " faces as quickly as possible while still maintaining"+
+                       " an accurate count. " + CR(2) + "Please hit the space bar to begin"+
+                       " once you understand these instructions."
+                       
+    instructionsEmo <- "In this block, you will be shown pictures"+
+                       " of people, and asked to keep count of the number of "+
+                       "neutral and angry faces that you see. " + CR(2) + "At then end"+
+                       " of the block, you will be asked to key in the number "+
+                       "of neutral and angry faces that you saw, so you must keep track of "+
+                       " both these numbers." + CR(2) + "One face at a time will be" +
+                       " presented to you, and the next one will not be" +
+                       " presented until you hit the space bar on the keyboard." + CR(2) + 
+                       "It is important that you try to get through the" +
+                       " faces as quickly as possible while still maintaining" +
+                       " an accurate count. " + CR(2) + "Please hit the space bar to begin" +
+                       " once you understand these instructions."
+    randCond <- Random()
+    
+    if (Mod(ToNumber(StripSpace(gSubNum)), 2)) {
+        condition1 <- "male"
+        condition2 <- "female"
+        currInst <- instructionsGen
+    } else {
+        condition1 <- "neutral"
+        condition2 <- "angry"
+        currInst <- instructionsEmo
+    }
+    
+    
+    ##This number (x) determines the condition of the first test. 
+    x<-RandomBernoulli(.5)
+    
+    # show directions
+    instructBox <- MakeTextBox(currInst,fontInst,1000,900)
+    AddObject(instructBox, gWin)
+    Move(instructBox, 12, 40)
+    Draw()
+    WaitForKeyPress(" ")
+    Hide(instructBox)
+    Draw()
+
+    ## variable assignments
+    lastSex <- ""
+    lastEmo <- ""
+    emoList <- []
+    sexList <- []
+    rtList <- []
+    accuracyList <- []
+    trialLenList <- []
+    allSwitchCost <- []
+    sexSwitchCost <- []
+    emotionSwitchCost <- []
+    
+    
+    lastRT <- 0
+    lastEmo <- ""
+    lastGen <- ""
+    
+    ## block loop
+    loop(block, Sequence(1,24,1)) {
+        
+        ## resets the condition count
+        ## condition count keeps track of accuracy figures
+        conCount1 <- 0    
+        conCount2 <- 0    
+    
+        ## randomizes how many trials per block
+        rndTrialLen <- RandomDiscrete(4)
+        trialLen <- 10 + rndTrialLen
+        trialLenList <- Append(trialLenList, trialLen)
+        
+        ## when block 1 is complete, shows instructions for block 2
+        ## and switchs the condition
+        if (block == 13) {
+            if (condition1 == "neutral") {
+                condition1 <- "male"
+                condition2 <- "female"
+                currInst <- instructionsGen
+            } else {
+                condition1 <- "neutral"
+                condition2 <- "angry"
+                currInst <- instructionsEmo
+            }
+            
+            instructBox <- MakeTextBox(currInst,fontInst,1000,900)
+            AddObject(instructBox, gWin)
+            Move(instructBox, 12, 40)
+            Draw()
+            WaitForKeyPress(" ")
+            Hide(instructBox)
+            Draw()
+        }
+        
+        ## trial loop
+        loop(trial, Sequence(1, trialLen, 1)){
+
+            fileName <- GetFileName()
+
+            currSex <- Nth(SplitString(fileName, "/"), 2)
+            currEmo <- Nth(SplitString(fileName, "/"), 3)
+            
+            currPic <-MakeImage(fileName)
+            AddObject(currPic, gWin)
+            Move(currPic, gVideoWidth / 2, gVideoHeight / 2)
+            Draw()
+            
+            Wait(200)
+
+            start <- GetTime()
+            
+            WaitForKeyPress(" ")
+            Hide(currPic)
+            
+            stop <- GetTime()
+            time <- stop - start
+            Print(time)
+            
+            emoList <- Append(emoList, currEmo)
+            sexList <- Append(sexList, currSex)
+            rtList <- Append(rtList, time)
+            
+            ## calculates switch cost 
+            if (condition1 == "male") {
+                if (currSex != lastGen) {
+                    ## then its a switch trial
+                    allSwitchCost <- Append(allSwitchCost, Abs(time - lastRT))
+                    sexSwitchCost <- Append(sexSwitchCost, Abs(time - lastRT))
+                    
+                }
+            } else {
+                if (currEmo != lastEmo) {
+                    ## then its a switch trial
+                    allSwitchCost <- Append(allSwitchCost, Abs(time - lastRT))
+                    emotionSwitchCost <- Append(emotionSwitchCost, Abs(time - lastRT))                                
+                }
+            }
+            
+            ## this allows us to count how many of each face there were
+            ## in order to calculate accuracy            
+            if (currSex == "male" or currEmo == "neutral") {
+                conCount1 <- conCount1 + 1
+            } else {
+                conCount2 <- conCount2 + 1                    
+            }
+            
+            ## updates last stimulus
+            lastRT <- time
+            lastEmo <- currEmo
+            lastGen <- currSex
+        }
+        
+        accTextBox <- MakeTextBox("How many " + condition1 + " faces were there?",fontInst,728,100)
+        AddObject(accTextBox, gWin)
+        Move(accTextBox, 150, 150)
+        
+        answerBox <- MakeTextBox("", gInputFont,200,50)
+        AddObject(answerBox, gWin)
+        Move(answerBox, 412, 450)
+        Draw()
+        acc1 <- StripSpace(GetInput(answerBox,"<return>"))
+        SetText(accTextBox, "How many " + condition2 + " faces were there?")
+        SetText(answerBox, "")
+        Draw()
+        acc2 <- StripSpace(GetInput(answerBox,"<return>"))
+        Hide(accTextBox)
+        Hide(answerBox)
+        Draw()
+        
+        accuracyList <- Append(accuracyList, acc1 + "/" + conCount1 + "," +  acc2 + "/" + conCount2 + ",")
+    }
+    
+    CalculateOutput(emoList, sexList, rtList, allSwitchCost, emotionSwitchCost, sexSwitchCost)
+    AccuracyReport(accuracyList)
+    
+    endInstr <- "Thank you for participating!" + CR(2) +  
+                "Please wait for the lab assistant to return."
+    
+    instructBox <- MakeTextBox(endInstr,fontInst,1000,900)
+    AddObject(instructBox, gWin)
+    Move(instructBox, 12, 40)
+    Draw()
+    WaitForKeyPress(" ")
+    Hide(instructBox)
+    Draw()
+}
+
+           
+define GetFileName() {
+    ##this is based on a pre-determined file name convention
+    ## e.g. "M01AN" = male pic number 1 with an angry expression
+    unique <- 0
+    while (unique == 0) {
+        currPicNum <- RandomDiscrete(12)
+        genderNum <- RandomDiscrete(2)
+        emotionNum <- RandomDiscrete(2)
+        
+        if (gSexNum != genderNum or gEmoNum != emotionNum or gFaceNum != currPicNum) {
+           unique <- 1
+       }
+    }
+
+    gSexNum <- genderNum
+    gEmoNum <- emotionNum 
+    gFaceNum <- currPicNum
+        
+    genderString <- ""
+    emotionString <- ""
+    
+    fileExtension <- ".bmp"
+    rootDir <- "imgs/"
+        
+    if (genderNum == 1) {
+        genderString <- "male/"
+    } else {
+        genderString <- "female/"
+    }
+    
+    if (emotionNum == 1) {
+        emotionString <- "neutral/"
+    } else {
+        emotionString <- "angry/"
+    }
+    
+    ## please stick to this naming convention, or else you'll be sorry
+    filename <- ToString(rootDir+ genderString + emotionString + currPicNum + fileExtension)
+    
+    return filename
+}
+
+define AccuracyReport(accuracyList) {
+    
+    len <- Length(accuracyList)
+    loop(i, Sequence(1, len, 1)) {
+        FilePrint_(gFileOut, Nth(accuracyList, i))
+    }
+
+    return 0
+}
+
+define CalculateOutput(emoList, sexList, rtList, allSwitchCost, emotionSwitchCost, sexSwitchCost) {
+    
+    switchList <- []
+    nonSwitchList <- []
+    
+    aalist <- []
+    anlist <- []
+    nalist <- []
+    nnlist <- []
+    
+    loop(i1, Sequence(1, Length(emoList) - 1, 1)) {
+        if (Nth(emoList, i1) == "angry") {
+            if (Nth(emoList, i1 + 1) == "angry") {
+                aalist <- Append(aalist, Nth(rtList, i1))
+            } else { ## then it's neutral
+                anlist <- Append(anlist, Nth(rtList, i1))
+            }   
+        } else { ## then it's neutral
+            if (Nth(emoList, i1 + 1) == "angry") {
+                nalist <- Append(nalist, Nth(rtList, i1))
+            } else { ## then it's neutral
+                nnlist <- Append(nnlist, Nth(rtList, i1))
+            }
+        }
+    }
+    
+    loop(i2, Sequence(1, Length(sexList) - 1, 1)) {
+        if (Nth(sexList, i2) == Nth (sexList, i2 + 1)) {
+            switchList <- Append(switchList, Nth(rtList, i2))
+        } else {
+            nonSwitchList <- Append(nonSwitchList, Nth(rtList, i2))        
+        }
+    }
+    
+    ##first article output headers
+    ## global
+    FilePrint_(gFileOut, "Mean(rt global),")
+    FilePrint_(gFileOut, "StdDev(rt global),")
+    FilePrint_(gFileOut, "Min(rt global),")
+    FilePrint_(gFileOut, "Max(rt global),")
+    FilePrint_(gFileOut, "Range(rt global),")
+    FilePrint_(gFileOut, "Mean(RT no-switch),")
+    FilePrint_(gFileOut, "StdDev(RT no-switch),")
+    FilePrint_(gFileOut, "Min(RT no-switch),")
+    FilePrint_(gFileOut, "Max(RT no-switch),")
+    FilePrint_(gFileOut, "Range(RT no-switch),")
+    FilePrint_(gFileOut, "Mean(RT switch),")
+    FilePrint_(gFileOut, "StdDev(RT switch),")
+    FilePrint_(gFileOut, "Min(RT switch),")
+    FilePrint_(gFileOut, "Max(RT switch),")
+    FilePrint_(gFileOut, "Range(RT switch),")
+    FilePrint_(gFileOut, "Mean(RT switch cost),")
+    FilePrint_(gFileOut, "StdDev(RT switch cost),")
+    FilePrint_(gFileOut, "Min(RT switch cost),")
+    FilePrint_(gFileOut, "Max(RT switch cost),")
+    FilePrint_(gFileOut, "Range(RT switch cost),")
+    
+    # emotion
+    FilePrint_(gFileOut, "Mean(RT emotion condition),")
+    FilePrint_(gFileOut, "StdDev(RT emotion condition),")
+    FilePrint_(gFileOut, "Min(RT emotion condition),")
+    FilePrint_(gFileOut, "Max(RT emotion condition),")
+    FilePrint_(gFileOut, "Range(RT emotion condition)")
+    FilePrint_(gFileOut, "Mean(RT no-switch),")
+    FilePrint_(gFileOut, "StdDev(RT no-switch),")    
+    FilePrint_(gFileOut, "Min(RT no-switch),")
+    FilePrint_(gFileOut, "Max(RT no-switch),")
+    FilePrint_(gFileOut, "Range(RT no-switch),")
+    FilePrint_(gFileOut, "Mean(RT switch),")
+    FilePrint_(gFileOut, "StdDev(RT switch),")
+    FilePrint_(gFileOut, "Min(RT switch),")
+    FilePrint_(gFileOut, "Max(RT switch),")
+    FilePrint_(gFileOut, "Range(RT switch),")
+    FilePrint_(gFileOut, "Mean(RT switch cost),")
+    FilePrint_(gFileOut, "StdDev(RT switch cost),")
+    FilePrint_(gFileOut, "Min(RT switch cost),")
+    FilePrint_(gFileOut, "Max(RT switch cost),")
+    FilePrint_(gFileOut, "Range(RT switch cost),")
+    # gender
+    FilePrint_(gFileOut, "Mean(RT gender condition),")
+    FilePrint_(gFileOut, "StdDev(RT gender condition),")
+    FilePrint_(gFileOut, "Min(RT gender condition),")
+    FilePrint_(gFileOut, "Max(RT gender condition),")
+    FilePrint_(gFileOut, "Range(RT gender condition),")
+    FilePrint_(gFileOut, "Mean(RT no-switch),")
+    FilePrint_(gFileOut, "StdDev(RT no-switch),")
+    FilePrint_(gFileOut, "Min(RT no-switch),")
+    FilePrint_(gFileOut, "Max(RT no-switch),")
+    FilePrint_(gFileOut, "Range(RT no-switch),")
+    FilePrint_(gFileOut, "Mean(RT switch),")
+    FilePrint_(gFileOut, "StdDev(RT switch),")
+    FilePrint_(gFileOut, "Min(RT switch),")
+    FilePrint_(gFileOut, "Max(RT switch),")
+    FilePrint_(gFileOut, "Range(RT switch),")
+    FilePrint_(gFileOut, "Mean(RT switch cost),")
+    FilePrint_(gFileOut, "StdDev(RT switch cost),")
+    FilePrint_(gFileOut, "Min(RT switch cost),")
+    FilePrint_(gFileOut, "Max(RT switch cost),")
+    FilePrint_(gFileOut, "Range(RT switch cost),")
+    
+    ##second article output headers
+    # emotion
+    FilePrint_(gFileOut, "Mean(aalist),")
+    FilePrint_(gFileOut, "StdDev(aalist),")
+    FilePrint_(gFileOut, "Min(aalist),")
+    FilePrint_(gFileOut, "Max(aalist),")
+    FilePrint_(gFileOut, "Mean(anlist),")
+    FilePrint_(gFileOut, "StdDev(anlist),")
+    FilePrint_(gFileOut, "Min(anlist),")
+    FilePrint_(gFileOut, "Max(anlist),")
+    FilePrint_(gFileOut, "Mean(nalist),")
+    FilePrint_(gFileOut, "StdDev(nalist),")
+    FilePrint_(gFileOut, "Min(nalist),")
+    FilePrint_(gFileOut, "Max(nalist),")
+    FilePrint_(gFileOut, "Mean(nnlist),")
+    FilePrint_(gFileOut, "StdDev(nnlist),")
+    FilePrint_(gFileOut, "Min(nnlist),")
+    FilePrint_(gFileOut, "Max(nnlist),")
+    # gender
+    FilePrint_(gFileOut, "Mean(switchList),")
+    FilePrint_(gFileOut, "StdDev(switchList),")
+    FilePrint_(gFileOut, "Min(switchList),")
+    FilePrint_(gFileOut, "Max(switchList),")
+    FilePrint_(gFileOut, "Mean(nonSwitchList),")
+    FilePrint_(gFileOut, "StdDev(nonSwitchList),")    
+    FilePrint_(gFileOut, "Min(nonSwitchList),")
+    FilePrint_(gFileOut, "Max(nonSwitchList),")
+    
+    loop(block, Sequence(1, 24, 1)) {
+        FilePrint_(gFileOut, "B" + block + "Acc" + ",")
+    }
+    
+    output <- []
+    
+    globalSwitch <- Merge(anlist, nalist)
+    globalSwitch <- Merge(globalSwitch, switchList)
+    globalNonSwitch <- Merge(aalist, nnlist)
+    globalNonSwitch <- Merge(globalNonSwitch, nonSwitchList)
+    
+    ## global RT
+    output <- Append(output, Mean(rtList))
+    output <- Append(output, StdDev(rtList))
+    output <- Append(output, Min(rtList))
+    output <- Append(output, Max(rtList))
+    output <- Append(output, Max(rtList)-Min(rtList))
+    
+    ## global switch RT
+    output <- Append(output, Mean(globalSwitch))
+    output <- Append(output, StdDev(globalSwitch))
+    output <- Append(output, Min(globalSwitch))
+    output <- Append(output, Max(globalSwitch))
+    output <- Append(output, Max(globalSwitch)-Min(globalSwitch))  
+    
+    ## global nonswitch RT
+    output <- Append(output, Mean(globalNonSwitch))
+    output <- Append(output, StdDev(globalNonSwitch))
+    output <- Append(output, Min(globalNonSwitch))
+    output <- Append(output, Max(globalNonSwitch))
+    output <- Append(output, Max(globalNonSwitch)-Min(globalNonSwitch))
+    
+    ## TODO switch cost
+    output <- Append(output, Mean(allSwitchCost))
+    output <- Append(output, StdDev(allSwitchCost))
+    output <- Append(output, Min(allSwitchCost))
+    output <- Append(output, Max(allSwitchCost))
+    output <- Append(output, Max(allSwitchCost)-Min(allSwitchCost))
+                    
+    emotionSwitchRT <- Merge(anlist, nalist)
+    emotionNonSwitchRT <- Merge(aalist, nnlist)
+    
+    masterEmotionRT <- Merge(emotionSwitchRT, emotionNonSwitchRT)
+    
+    ## emotion
+    output <- Append(output, Mean(masterEmotionRT))
+    output <- Append(output, StdDev(masterEmotionRT))
+    output <- Append(output, Min(masterEmotionRT))
+    output <- Append(output, Max(masterEmotionRT))
+    output <- Append(output, Max(masterEmotionRT)-Min(masterEmotionRT))
+    
+    output <- Append(output, Mean(emotionSwitchRT))
+    output <- Append(output, StdDev(emotionSwitchRT))
+    output <- Append(output, Min(emotionSwitchRT))
+    output <- Append(output, Max(emotionSwitchRT))
+    output <- Append(output, Max(emotionSwitchRT)-Min(emotionSwitchRT))
+    
+    output <- Append(output, Mean(emotionNonSwitchRT))
+    output <- Append(output, StdDev(emotionNonSwitchRT))
+    output <- Append(output, Min(emotionNonSwitchRT))
+    output <- Append(output, Max(emotionNonSwitchRT))
+    output <- Append(output, Max(emotionNonSwitchRT)-Min(emotionNonSwitchRT))
+    
+    output <- Append(output, Mean(emotionSwitchCost))
+    output <- Append(output, StdDev(emotionSwitchCost))
+    output <- Append(output, Min(emotionSwitchCost))
+    output <- Append(output, Max(emotionSwitchCost))
+    output <- Append(output, Max(emotionSwitchCost)-Min(emotionSwitchCost))
+    
+    masterGenderRT <- Merge(switchList, nonSwitchList)
+    
+    ## gender
+    output <- Append(output, Mean(masterGenderRT))
+    output <- Append(output, StdDev(masterGenderRT))
+    output <- Append(output, Min(masterGenderRT))
+    output <- Append(output, Max(masterGenderRT))
+    output <- Append(output, Max(masterGenderRT)-Min(masterGenderRT))
+    
+    output <- Append(output, Mean(switchList))
+    output <- Append(output, StdDev(switchList))
+    output <- Append(output, Min(switchList))
+    output <- Append(output, Max(switchList))
+    output <- Append(output, Max(switchList)-Min(switchList))
+    
+    output <- Append(output, Mean(nonSwitchList))
+    output <- Append(output, StdDev(nonSwitchList))    
+    output <- Append(output, Min(nonSwitchList))
+    output <- Append(output, Max(nonSwitchList))
+    output <- Append(output, Max(nonSwitchList)-Min(nonSwitchList))
+    
+    output <- Append(output, Mean(sexSwitchCost))
+    output <- Append(output, StdDev(sexSwitchCost))    
+    output <- Append(output, Min(sexSwitchCost))
+    output <- Append(output, Max(sexSwitchCost))
+    output <- Append(output, Max(sexSwitchCost)-Min(sexSwitchCost))
+    
+    ## second chart's output
+    ## angry-angry
+    output <- Append(output, Mean(aalist))
+    output <- Append(output, StdDev(aalist))
+    output <- Append(output, Min(aalist))
+    output <- Append(output, Max(aalist))
+    
+    ## angry-neutral
+    output <- Append(output, Mean(anlist))
+    output <- Append(output, StdDev(anlist))
+    output <- Append(output, Min(anlist))
+    output <- Append(output, Max(anlist))
+    
+    ## neutral-angry
+    output <- Append(output, Mean(nalist))
+    output <- Append(output, StdDev(nalist))
+    output <- Append(output, Min(nalist))
+    output <- Append(output, Max(nalist))
+    
+    ## neutral-neutral
+    output <- Append(output, Mean(nnlist))
+    output <- Append(output, StdDev(nnlist))
+    output <- Append(output, Min(nnlist))
+    output <- Append(output, Max(nnlist))
+    
+    ##gender
+    ##switch
+    output <- Append(output, Mean(switchList))
+    output <- Append(output, StdDev(switchList))
+    output <- Append(output, Min(switchList))
+    output <- Append(output, Max(switchList))
+    
+    ##non switch
+    output <- Append(output, Mean(nonSwitchList))
+    output <- Append(output, StdDev(nonSwitchList))    
+    output <- Append(output, Min(nonSwitchList))
+    output <- Append(output, Max(nonSwitchList))
+ 		 
+    FilePrint_(gFileOut, CR(1))
+    len <- Length(output)
+    loop(i, Sequence(1, len, 1)) {
+        FilePrint_(gFileOut, Nth(output, i) + ",")
+    }
+    
+    return 0
+} 

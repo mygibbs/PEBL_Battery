@@ -1,0 +1,963 @@
+#!/usr/local/bin/pebl
+#################################################################
+##  PEBL Implicit Association Task (IAT)
+## 
+##  For use with PEBL 0.07 or later
+##  http://pebl.sf.net
+##  Part of  The PEBL Psychological Test Battery
+##  
+##  Shane T. Mueller & Elizabeth S. Veinott
+##  2006-04 Released into Public Domain
+##  Contact: (smueller at obereed dot net)
+##
+##
+##
+##
+##  Version 0.1 Initial release, using dummy good and bad words/pictures
+##  Version 0.2 April 2006.  Use natural kinds/artifacts; and
+##             verbs/adjectives as stimuli.
+##  Version 0.3 Sept 2008.  Minor fixes for display
+##
+##
+##
+#################################################################
+
+
+define Start(lPar)
+{
+##############################################
+##  To customize, edit the text files words-bad.txt and words-good.txt
+##  so that they include the 'good' and 'bad' word categories.  Place
+##  all relevant pictures in the /stim subdirectory.  Edit the files
+##  picnames-good.txt and picnames-bad.txt so that they contain a list
+##  of the words you care about.  Be sure to NOT leave blank lines at the 
+##  end of these files, as they will be read in as blank words/filenames.
+##
+##  The basic category names can be changed below.
+##  To specify a subject number, run with the windows launcher
+##  and an appropriately specified argument -v subnum.  
+##  If no subject number is specified, it uses 0, overwriting previous
+##  versions.
+##
+##  This program is designed to run at 1024x768 resolution 
+##  
+ gVideoWidth <- 1024
+ gVideoHeight <- 960
+ 
+##############################################
+## To change the stimuli, change the following
+## labels.  The changes will be propogated in
+## the instructions and the response labels.
+##############################################
+   
+    # global vars
+    gCorr <- 0
+    numStim <- 10
+    
+    red <- MakeColor("RED")
+    black <- MakeColor("BLACK")
+    white <- MakeColor("WHITE")
+    green <- MakeColor("GREEN")
+    gFont <- MakeFont(gPEBLBaseFont,0,26,white,black,1)
+    gMiniFont <- MakeFont(gPEBLBaseFont,0,26,white,black,1)
+    gSmallFont <- MakeFont(gPEBLBaseFont,0,24,white,black,1)
+    fontInst  <- MakeFont(gPEBLBaseFont,0,26,white,black,1)
+    gRedFont  <- MakeFont(gPEBLBaseFont,0,80,red,black,1)
+    fontInst1 <- MakeFont(gPEBLBaseFont,0,26,green,black,1)
+    fontTextbox <- MakeFont(gPEBLBaseFont,0,26,black,white,1)
+    gCorrection <- MakeLabel("X",gRedFont)
+    
+    gWin <- MakeWindow("black")
+    ShowCursor(0)
+    
+    gSubNum <- GetSubNum(gWin)
+    test <- gSubNum
+    
+    gFileOut <- FileOpenAppend("/home/drtprogram/PEBL/battery/iat/chrystal/iat.csv")
+    FilePrint_(gFileOut, CR(1) + "id,")
+    loop(i, Sequence(1,7,1)) {
+        if((i == 4) or (i == 7)) {
+            loop(j, Sequence(1,40,1)) {
+                FilePrint_(gFileOut, "B" + i + "T" + j + ",")
+           }
+        } else {
+            loop(k, Sequence(1,20,1)) {
+                FilePrint_(gFileOut, "B" + i + "T" + k + ",")
+	    }
+        }
+    }
+    FilePrint_(gFileOut, CR(1) + gSubNum + ",")
+  
+    ## not me questions
+    
+    nmQOrder0 <- "Select a 'not me' name from the following list. " + CR(2) +
+    
+                   "If you are a female, select a female name, and if you " +
+                   "are a male, select a male name. " + CR(2) +
+                   "Female names: Amy, Anh, Anne, Deborah, Jennifer, Khan, " +
+                   "Laura, Mary, Nancy. " + CR(2) +
+                  
+                   "Male names: Bill, Chang, David, Donald, Hoang, Ken, " +
+                   "Mark, Robert, Scott. " + CR(2) +
+                   
+                   "Press the ENTER key when you're done. "
+    
+    nmQOrder1 <- "Select another 'not me' name from the following list. " + CR(2) +
+    
+                   "If you are a female, select a female name, and if you " +
+                   "are a male, select a male name. " + CR(2) +
+                   
+                   "Female names: Amy, Anh, Anne, Deborah, Jennifer, Khan, " +
+                   "Laura, Mary, Nancy. " + CR(2) +
+                   
+                   "Male names: Bill, Chang, David, Donald, Hoang, Ken, " +
+                   "Mark, Robert, Scott. " + CR(2) +
+                   
+                   "Press the ENTER key when you're done. " 
+    
+    nmQOrder2 <- "Select a 'not me' day from the following list. " + CR(2) +
+    
+                 "Not me days: Jan 5, Feb 15, Mar 19, Apr 20, May 8, Jun 23 " +
+                 "Jul 28, Aug 12, Sep 28, Oct 14, Nov 22, Dec 12 " +  CR(2) +
+                 
+                 "Press the ENTER key when you're done. "
+    
+    nmQOrder3 <- "Select a 'not me' city from the following list. " + CR(2) +
+    
+                   "Not me cities: Bangkok, Berlin, Boston, Chicago, " +
+                   "Cincinatti, Hong Kong, London, Miami, Naples, New York " +
+                   "Olympia, Paris, Portland, Seoul, Sydney, Tokyo. " + CR(2) +
+                   
+                   "Press the ENTER key when you're done. "
+    
+    
+    nmQOrder4 <- "Select another 'not me' city from the following list. " + CR(2) +
+    
+                   "Not me cities: Bangkok, Berlin, Boston, Chicago, " +
+                   "Cincinatti, Hong Kong, London, Miami, Naples, New York, " +
+                   "Olympia, Paris, Portland, Seoul, Sydney, Tokyo. " + CR(2) +
+                   
+                   "Press the ENTER key when you're done. "
+    
+    
+    nmQOrder5 <- "Select a 'not me' state from the following list. " + CR(2) +
+    
+                   "Not me states: Alabama, California, Colorado, " +
+                   "Connecticut, Delaware, Florida, Idaho, Illinois, " +
+                   "Kentucky, Maine, Michigan, Montana, Nebraska, Ohio " +
+                   "Oregon, Texas, Virginia, Wyoming. " + CR(2) +
+                   
+                   "Press the ENTER key when you're done. "
+    
+    nmQOrder6 <- "Select a 'not me' country from the following list. " + CR(2) +
+    
+                     "Argentina, Australia, Brazil, China, Denmark, Egypt, " +
+                     "England, Hungary, India, Italy, Laos, Mexico, Norway, " +
+                     "Russia, Spain, Sudan, Thailand, Venezuela. " + CR(2) +
+                     
+                     "Press the ENTER key when you're done. "
+    
+    nmQOrder7 <- "Select a 'not me' ethnicity or ancestry from the " +
+                     "following list. " + CR(2) +
+                     
+                     "Not me ethnicities: African, Cambodian, Caucasian, " +
+                     "Chinese, Filipino, Hispanic, Indian, Japanese, Korean, " +
+                     "Laotian, Thai, Vietnamese, Native American. " + CR(2) +
+                     
+                     "Press the ENTER key when you're done. "
+    
+    nmQOrder8 <- "Select another 'not me' ethnicity or ancestry from the " +
+                     "following list. " + CR(2) +
+                     
+                     "Not me ethnicities: African, Cambodian, Caucasian, " +
+                     "Chinese, Filipino, Hispanic, Indian, Japanese, Korean, " +
+                     "Laotian, Thai, Vietnamese, Native American. " + CR(2) +
+                     
+                     "Press the ENTER key when you're done. "
+    
+    nmQOrder9 <- "Select a 'not me' religion from the following list. " + CR(2) +
+    
+                      "Not me religions: Atheist, Baptist, Buddhist, " +
+                      "Catholic, Christian, Hindu, Jewish, Lutheran, Mormon, " +
+                      "Moslem, Pagan, Taoist, Unitarian " + CR(2) +
+                      
+                      "Press the ENTER key when you're done. "
+
+    nmQOrder <- [nmQorder0, nmQOrder1, nmQOrder2, nmQOrder3, nmQOrder4, nmQOrder5, nmQOrder6, nmQOrder7, nmQOrder8, nmQOrder9]
+    
+    ## me questions
+
+    mQOrder0 <- "Are you male or female?  Please enter 'male' or 'female' " +
+                  "in the text box. " + CR(2) +
+                  
+                  "Press the ENTER key when you're done. "
+    
+    mQOrder1 <- "Write how you identify yourself to your friends in the " + 
+                "space provided.  Your answer could be your name or your " +
+                "nickname." + CR(2) +
+                
+                "Press the ENTER key when you're done. "
+    
+    mQOrder2 <- "Write your middle name in the space provided.  If " +
+                "you do not have a middle name, leave it blank. " + CR(2) +
+                      
+                "Press the ENTER key when you're done. "
+    
+    mQOrder3 <- "Write your last name, or family name, in the space " + 
+                "provided. " + CR(2) +
+                    
+                "Press the ENTER key when you're done. "
+    
+    mQOrder4 <- "Write the month and day of your birthday in the space " + 
+                "provided.  For example, if your birthday is October 19th, " +
+                "write 'Oct 19'. " +  CR(2) +
+                
+                "Abbreviate the months as follows: Jan, " +
+                "Feb, Mar, Apr, May, Jun, Jul, Aug, Sep, Oct, Nov, Dec. " + CR(2) +
+                
+                "Press the ENTER key when you're done. "
+    
+    mQOrder5 <- "Write the city you most identify with in the space " +
+                 "provided.  For example, provide the name of the city you " +
+                 "were born in, or where you live now. " + CR(2) +
+                 
+                 "Press the ENTER key when you're done. "
+    
+    mQOrder6 <- "If there is another city that you identify with, write " +
+                 "its name in the space provided.  Otherwise, leave it " + 
+                 "blank. " + CR(2) +
+                 
+                 "Press the ENTER key when you're done. "
+    
+    mQOrder7 <- "Write the state you most identify with in the space " +
+                 "provided. " + CR(2) +
+                 
+                 "Press the ENTER key when you're done. "
+    
+    mQOrder8 <- "Write the country you most identify with in the space " +
+                "provided. " + CR(2) +
+               
+                "Press the ENTER key when you're done. "
+    
+    mQOrder9 <- "Write the general ethnicity or ancestry you identify " +
+                "with in the space provided." + CR(2) +
+                 
+                "For example, if you " +
+                "think of yourself as black, type 'black'.  If you " +
+                "have no general ethnicity or ancestry with which you " +
+                "identify, leave it blank. " + CR(2) +
+                 
+                "Press the ENTER key when you're done. "
+    
+    mQOrder10 <- "When people ask you about your specific ethnic " +
+                   "background or ancestry, how do you describe yourself? " + CR(2) +
+                   
+                   "For example, if you are Sioux, write 'Sioux'.  If you " +
+                   "are Irish, type 'Irish'.  Do not give the same answer " +
+                   "as for the previous question.  If nothing comes to mind " +
+                   "leave it blank. " + CR(2) +
+                   
+                   "Press the ENTER key when you're done. "
+       
+    mQOrder11 <- "When people ask you about your religious identity, how " +
+                 "do you describe yourself?  Write your answer in the " +
+                 "space provided.  Leave it blank if you have no " +
+                 "religious identity. " + CR(2) +
+                
+                 "Press the ENTER key when you're done. "
+    
+    mQOrder <- [mQOrder0, mQOrder1, mQOrder2, mQOrder3, mQOrder4, mQOrder5, mQOrder6,  mQOrder7, mQOrder8, mQOrder9,mQOrder10, mQOrder11]
+  
+    goodWords <- ["superb", "beautiful", "pleasure", "glorious", "joyful",
+                  "wonderful", "marvelous", "lovely"]
+
+    badWords <- ["nasty", "awful", "humiliate", "painful", "horrible", 
+                 "terrible", "tragic", "agony"]
+
+    # create Word Labels
+
+    goodLabels <-[]
+    
+    loop(i,goodWords)
+    {
+        x <-  MakeLabel(i,fontInst1)
+        goodLabels <- Append(goodLabels,[x,i])
+    }
+
+    #Add type/valence tags.
+    ## associates each 'good' word to corr or incorr
+    goodWordStim <- Transpose(Merge(Transpose(goodLabels),
+                    [Repeat(1,Length(goodLabels)), 
+                    Repeat(1,Length(goodLabels))]))
+
+
+    badLabels <-[]
+    
+    loop(i,badWords)
+    {
+        x <-  MakeLabel(i,fontInst1)
+        badLabels <- Append(badLabels, [x,i])
+    }
+
+    #Add type/valence tags.
+    ## associates each 'bad' word to corr or incorr
+    badWordStim <- Transpose(Merge(Transpose(badLabels), 
+                   [Repeat(1,Length(badLabels)), 
+                   Repeat(2,Length(badLabels))]))
+
+
+
+   ###########################################################################
+   ## Uncomment the following if you want to collect NIMH demographics.
+   ##demoFile <- "iat-demo.dat"
+   ##GetNIHMDemographics(gWin,demoFile)
+   ###########################################################################
+
+   gLeftInst <- MakeTextBox("", fontInst,100,150)
+   gLeftInst1 <- MakeTextBox("", fontInst1,100,150)
+   gRightInst <- MakeTextBox("", fontInst,100,150)
+   gRightInst1 <- MakeTextBox("", fontInst1,100,150)
+   AddObject(gLeftInst, gWin)
+   AddObject(gRightInst, gWin)
+   AddObject(gLeftInst1, gWin)
+   AddObject(gRightInst1, gWin)
+   Move(gLeftInst,20,100)
+   Move(gRightInst,874,100)
+   Move(gLeftInst1,20,230)
+   Move(gRightInst1,874,230)
+
+   trial <- 1
+   round <- 1
+   
+   
+  ################################################
+  ##   BLOCK 0:  Questionnaire
+  ################################################
+
+    instructions <- "We will begin with a questionnaire.  The purpose of " +
+                    "this questionnaire is to develop both: " + CR(2) +
+                    
+                    "1. A series of brief (usually 1 word) items that you " +
+                    "identify with, such as your name, home town, gender, " +
+                    "birth date, and religion" +  CR(2) +
+                    
+                    "2. Another series of items that you do NOT identify " +
+                    "with." + CR(2) + 
+
+	            "By 'identify with' we mean that these are items " +
+                    "that you associate with yourself, or think of as a part " + 
+                    "of you.  For the sake of brevity, we will call these " +
+                    "two types of items 'me' and 'not me'. " + CR(2) +
+                    
+                    "First we will start with the self, or 'Me' questions. " +
+                    "You will be asked to provide approximately eight items " +
+                    "in total.  Some of the items are personal in nature, " + 
+                    "such as your name and religion.  Be assured that all such " +
+                    "personal information will remain confidential, and will " +
+                    "be deleted within two years.  However, if you do not " + 
+                    "feel comfortable providing a response, leave it blank. " + CR(2) +
+                    
+                    "Press the ENTER key to continue."
+                    
+    instructBox <- MakeTextBox(instructions, gSmallFont, 680, 700)
+    AddObject(instructBox, gWin)
+    Move(instructBox, 162, 40)
+    Show(instructBox)
+    Draw()
+    WaitForKeyPress("<return>")
+    
+    ## take users input and store it in two arrays for later use
+    
+    
+    SetFont(instructBox, gFont)
+    userInput <- MakeTextbox("", fontTextbox, 200, 80)
+    AddObject(userInput, gWin)
+    Move(userInput, 412, 500)
+    Show(userInput)
+    Draw()
+    
+    meWords <- []
+
+    ## loops over array of 'me' inputs
+    goodloop<-Length(mQOrder)
+    i<-1
+    while(i<goodloop)
+    {
+		question<-Nth(mQOrder,i)
+        SetText(instructBox, question)
+        SetText(userInput, "")
+        Draw()
+        
+        GetInput(userInput, "<return>")
+		answer <- GetText(userInput)
+		
+		if(answer)
+		{
+			meWords<-Append(meWords, answer)
+		}
+		
+        i<-i+1
+    }
+    
+   otherWords <- []
+    
+    ## loops over array of 'others' inputs 
+    badloop<-Length(nmQOrder)
+    i<-1
+    while(i<badloop) 
+    {
+    question<-Nth(nmQOrder,i)
+        SetText(instructBox, question)
+        SetText(userInput, "")
+        Draw()
+        
+        GetInput(userInput, "<return>")
+        answer <- GetText(userInput)
+		
+		if(answer)
+		{
+			otherWords<-Append(otherWords, answer)
+		}
+        
+        i<-i+1
+    }        
+    
+    meLabels <- []
+    
+    loop(i,meWords)
+    {
+        x <-  MakeLabel(i,gFont)
+        meLabels <- Append(meLabels,[x,i])
+    }
+  
+    #Add type/valence tags.
+    # makes each 'me' word corr or incorr depending on response
+    meWordStim <- Transpose(Merge(Transpose(meLabels),
+                   [Repeat(2,Length(meLabels)),
+                   Repeat(1,Length(meLabels))]))
+                   
+    otherLabels <- []
+    
+    loop(j,otherWords)
+    {
+        x <-  MakeLabel(j,gFont)
+        otherLabels <- Append(otherLabels, [x,j])
+    }
+    
+    #Add type/valence tags.
+    # makes each 'other' word corr or incorr depending on response
+    otherWordStim <- Transpose(Merge(Transpose(otherLabels), 
+                      [Repeat(2,Length(otherLabels)), 
+                      Repeat(2,Length(otherLabels))]))
+    
+    Hide(userInput)
+    Show(gLeftInst)
+    Show(gRightInst)
+    Draw()
+    
+  ################################################
+  ##   BLOCK 1:  OTHERS vs ME Words
+  ################################################
+
+   instructions <- "Put your middle or index fingers on the E and I keys of " +
+                   "your keyboard.  Words representing the categories at the " +
+                   "top will appear one-by-one in the middle of the screen. " +
+                   "When the item belongs to a category on the left, press " +
+                   "the E key; when the item belongs to a category on the " +
+                   "right, press the I key.  Items belong to only one " +
+                   "category.  If you make an error, an X will appear - " +
+                   "fix the error by hitting the other key. " + CR(2) +
+                   
+                   "This is a timed sorting task.  GO AS FAST AS YOU CAN " + 
+                   "while making as few mistakes as possible.  Going too " +
+                   "slow or making too many errors will result in an " +
+                   "uninterpretable score.  This task will take about 5 " +
+                   "minutes to complete. " + CR(2) +
+                   
+                   "Press the ENTER key to begin. "
+    
+    SetText(instructBox, instructions)
+    SetFont(instructBox, gMiniFont)
+    leftTitle <- "Others"
+    rightTitle <- "Me"
+    SetText(gLeftInst, leftTitle)
+    SetText(gRightInst, rightTitle)
+    Show(instructBox)
+    Draw()
+    WaitForKeyPress("<return>")
+    Hide(instructBox)
+    Draw()
+
+    ## this experiment cycles through me and not me words 
+
+    stimAll <- Shuffle(Merge(SampleBalanced(meWordStim,numStim), 
+               SampleBalanced(otherWordStim,numStim)))
+    
+    loop(i,stimAll)
+    { 
+        t1 <- GetTime()
+        rt <-   MisMatchTrial(First(i), Nth(i,2),Nth(i,3),Nth(i,4))   
+        t2 <- GetTime()
+        FilePrint_(gFileOut, (t2-t1) + ",")
+        trial <- trial + 1
+    }
+
+  ################################################
+  ##   BLOCK 2:  GOOD VS BAD Words
+  ################################################
+
+    instructions <- "See above, the categories have changed.  The items for " +
+                    "sorting have changed as well.  The rules, however, are " +
+                    "the same. " + CR(2) +
+                    
+                    "When the item belongs to a category on the left, press " +
+                    "the E key; when the item belongs to a category on the " +
+                    "right, press the I key.  Items belong to only one " +
+                    "category.  An X appears after an error - fix the error " +
+                    "by hitting the other key.  GO AS FAST AS YOU CAN. " + CR(2) +
+                    
+                    "Press the ENTER to begin. "
+
+    SetText(instructBox, instructions)
+    Show(instructBox)
+    leftTitle <- "Good"
+    rightTitle <- "Bad"
+    SetText(gLeftInst1, leftTitle)
+    SetText(gRightInst1, rightTitle)
+    Hide(gRightInst)
+    Hide(gLeftInst)
+    Draw()
+    
+    WaitForKeyPress("<return>")
+    Hide(instructBox)
+    Draw()
+
+    round <- round + 1
+    trial <- 1
+
+    ## this experiment cycles between good and bad words
+
+    stimAll <- Shuffle(Merge(SampleBalanced(goodWordStim,numStim), 
+               SampleBalanced(badWordStim,numStim)))
+              
+    t1 <- 0
+    t2 <- 0
+    loop(i,stimAll)
+    { 
+        t1 <- GetTime()
+        rt<-MatchTrial(First(i), Nth(i,2),Nth(i,3),Nth(i,4))   
+        t2 <- GetTime()
+        FilePrint_(gFileOut, (t2-t1) + ",")
+        trial <- trial + 1
+    }
+
+  ################################################
+  ##   BLOCK 3:  OTHERS or GOOD vs ME or BAD Words
+  ################################################
+
+    instructions <- "See above, the four categories you saw separately now " +
+                    "appear together.  Remember, each item belongs to only " +
+                    "one group." + CR(2) +
+                    
+                    "For example, if the categories flower and " +
+                    "good appeared on the separate sides above - words " +
+                    "meaning flower would go in the flower category, not " +
+                    "the good category. " + CR(2) +
+                    
+                    "The green and white labels and items may help to " +
+                    "identify the appropriate category.  Use the E and I " +
+                    "keys to categorize items into four groups left and " +
+                    "right, and correct errors by hitting the other key. " + CR(2) +
+                    
+                    "Press the ENTER key to continue. "
+    
+    SetText(instructBox, instructions)
+    Show(instructBox)
+    
+    leftTitle <- "Others" + CR(2) + "Or"
+    leftTitle1 <- "Good"
+    rightTitle <- "Me" + CR(2) + "Or"
+    rightTitle1 <- "Bad"
+    SetText(gLeftInst, leftTitle)
+    SetText(gRightInst, rightTitle)
+    SetText(gLeftInst1, leftTitle1)
+    SetText(gRightInst1, rightTitle1)
+    Show(gRightInst)
+    Show(gLeftInst)
+    Draw()
+    WaitForKeyPress("<return>")
+    Hide(instructBox)
+    Draw()
+
+   round <- round + 1
+ 
+    # this experiment cycles through both the good and bad words and me and not
+    # me words 
+ 
+    stimAll <- Shuffle(FlattenN([SampleBalanced(goodWordStim,Round(numStim/2)), 
+			   SampleBalanced(badWordStim,Round(numStim/2)), 
+               SampleBalanced(meWordStim,Round(numStim/2)),
+		       SampleBalanced(otherWordStim,Round(numStim/2))],1))
+		       
+    t1 <- 0
+    t2 <- 0
+	loop(i,stimAll)
+    { 
+        t1 <- GetTime()
+        rt <- MisMatchTrial(First(i), Nth(i,2),Nth(i,3),Nth(i,4))   
+        t2 <- GetTime()
+        FilePrint_(gFileOut, (t2-t1) + ",")
+        
+        trial <- trial + 1
+    }
+
+
+  ################################################
+  ##   BLOCK 4:  OTHERS or GOOD vs ME or BAD words, part 2
+  ################################################
+
+    numStim <- 20
+
+    instructions <- "Sort the same four categories again.  Remember to go " +
+                    "as fast as you can while making as few mistakes as " +
+                    "possible. " + CR(2) +
+                    
+                    "The green and white labels and items may help to " +
+                    "identify the appropriate category.  Use the E and I " +
+                    "keys to categorize items into four groups left and " +
+                    "right, and correct errors by hitting the other key. " + CR(2) +
+                    
+                    "Press the ENTER key to continue. "
+                    
+    SetText(instructBox, instructions)
+    Show(instructBox)
+    leftTitle <- "Others"+ CR(2) + "Or"
+    leftTitle1 <- "Good"
+    rightTitle <- "Me"+ CR(2) + "Or"
+    rightTitle1 <- "Bad"
+    SetText(gLeftInst, leftTitle)
+    SetText(gRightInst, rightTitle)
+    SetText(gLeftInst1, leftTitle1)
+    SetText(gRightInst1, rightTitle1)
+    Draw()
+    WaitForKeyPress("<return>")
+    Hide(instructBox)
+    Draw()
+
+    round <- round + 1
+
+    ## this experiment cycles through the same as block 4
+
+    stimAll <- Shuffle(FlattenN([SampleBalanced(goodWordStim,Round(numStim/2)), 
+			   SampleBalanced(badWordStim,Round(numStim/2)), 
+               SampleBalanced(meWordStim,Round(numStim/2)),
+			   SampleBalanced(otherWordStim,Round(numStim/2))],1))
+
+    t1 <- 0
+    t2 <- 0
+    loop(i,stimAll)
+    { 
+        t1 <- GetTime()
+        rt <- MisMatchTrial(First(i), Nth(i,2),Nth(i,3),Nth(i,4))   
+        t2 <- GetTime()
+        FilePrint_(gFileOut, (t2-t1) + ",")
+        trial <- trial + 1
+    }
+
+
+
+  ################################################
+  ##   BLOCK 5:  ME vs OTHERS word, reversed
+  ################################################
+   
+    numStim <- 10   
+   
+    Hide(gRightInst1)
+    Hide(gLeftInst1)
+    Draw()
+    
+    instructions <- "Notice above, there are only two categories and they " +
+                    "have switched positions.  The concept that was " +
+                    "previously on the left is now on the right, and the " +
+                    "concept that was on the right is now on the left. " +
+                    "Practice this new configuration. " + CR(2) +
+                    
+                    "Use the E and I keys to categorize items into four " +
+                    "groups left and right, and correct errors by hitting " +
+                    "the other key." + CR(2) +
+                    
+                    "Press the ENTER key to continue. " 
+
+    SetText(instructBox, instructions)
+    Show(instructBox)
+    leftTitle <- "Me"
+    rightTitle <- "Others"
+    SetText(gLeftInst, leftTitle)
+    SetText(gRightInst, rightTitle)
+    Draw()
+    WaitForKeyPress("<return>")
+    Hide(instructBox)
+    Draw()
+
+    round <- round + 1
+
+    # this experiment cycles through me and others words again
+
+    stimAll <- Shuffle(Merge(SampleBalanced(meWordStim,numStim), 
+               SampleBalanced(otherWordStim,numStim)))
+
+    t1 <- 0
+    t2 <- 0
+    loop(i,stimAll)
+    { 
+        t1 <- GetTime()
+        rt <-  MatchTrial(First(i), Nth(i,2),Nth(i,3),Nth(i,4))   
+        t2 <- GetTime()
+        FilePrint_(gFileOut, (t2-t1) + ",")
+        trial <- trial + 1
+    }
+
+
+  ################################################
+  ##   BLOCK 6:  ME or GOOD vs OTHERS or BAD Words, reversed
+  ################################################
+
+    ## CRITICAL BLOCK
+    
+    instructions <- "See above, the four categories now appear together in " +
+                "a new configuration.  Remember, each item belongs to only " +
+                "one group. " + CR(2) +
+                
+                "The green and white labels and items may help to " +
+                "identify the appropriate category.  Use the E and I " +
+                "keys to categorize items into four groups left and " +
+                "right, and correct errors by hitting the other key. " + CR(2) +
+                
+                "Press the Enter key to continue. "
+    
+    SetText(instructBox, instructions)
+    Show(instructBox)
+    
+
+    leftTitle <- "Me"+ CR(2) + "Or"
+    leftTitle1 <- "Good"
+    rightTitle <- "Others"+ CR(2) + "Or"
+    rightTitle1 <- "Bad"
+    SetText(gLeftInst, leftTitle)
+    SetText(gRightInst, rightTitle)
+    SetText(gLeftInst1, leftTitle1)
+    SetText(gRightInst1, rightTitle1)
+    Show(gRightInst1)
+    Show(gLeftInst1)
+    Draw()
+    
+    WaitForKeyPress("<return>")
+    Hide(instructBox)
+    Draw()
+
+    round <- round + 1
+
+    # this experiment cycles through both me vs other and good vs bad words
+    stimAll <- Shuffle(FlattenN([SampleBalanced(goodWordStim,Round(numStim/2)), 
+			   SampleBalanced(badWordStim,Round(numStim/2)), 
+               SampleBalanced(meWordStim,Round(numStim/2)),
+	   		   SampleBalanced(otherWordStim,Round(numStim/2))],1))
+	   		   
+    t1 <- 0
+    t2 <- 0
+    loop(i,stimAll)
+    { 
+        t1 <- GetTime()
+        rt <- MatchTrial(First(i), Nth(i,2),Nth(i,3),Nth(i,4))   
+        t2 <- GetTime()
+        FilePrint_(gFileOut, (t2-t1) + ",")
+        trial <- trial + 1
+    }
+   
+  ################################################
+  ##   BLOCK 7:  ME or GOOD vs OTHERS or BAD Words, part two
+  ################################################
+  
+    ## CRITICAL BLOCK
+    numstim <- 20
+
+    instructions <- "Sort the same four categories again.  Remember to go " +
+                    "as fast as you can while making as few mistakes as " +
+                    "possible. " + CR(2) +
+                    
+                    "The green and white labels and items may help to " +
+                    "identify the appropriate category.  Use the E and I " +
+                    "keys to categorize items into four groups left and " +
+                    "right, and correct errors by hitting the other key. " + CR(2) +
+                    
+                    "Press the ENTER key to continue. "
+    
+    SetText(instructBox, instructions)
+    Show(instructBox)
+
+    leftTitle <- "Me" + CR(2) + "Or"
+    leftTitle1 <- "Good"
+    rightTitle <- "Others" + CR(2) + "Or"
+    rightTitle1 <- "Bad"
+    SetText(gLeftInst, leftTitle)
+    SetText(gRightInst, rightTitle)
+    SetText(gLeftInst1, leftTitle1)
+    SetText(gRightInst1, rightTitle1)
+    Draw()
+    
+    WaitForKeyPress("<return>")
+    Hide(instructBox)
+    Draw()
+
+    round <- round + 1
+
+    # this experiment cycles through both me vs other and good vs bad words
+
+    stimAll <- Shuffle(FlattenN([SampleBalanced(goodWordStim,Round(numStim/2)), 
+			   SampleBalanced(badWordStim,Round(numStim/2)), 
+               SampleBalanced(meWordStim,Round(numStim/2)),
+	           SampleBalanced(otherWordStim,Round(numStim/2))],1))
+	           
+    t1 <- 0
+    t2 <- 0
+    loop(i,stimAll)
+    { 
+        t1 <- GetTime()
+        rt <- MatchTrial(First(i), Nth(i,2),Nth(i,3),Nth(i,4))   
+        t2 <- GetTime()
+        FilePrint_(gFileOut, (t2-t1) + ",")
+        trial <- trial + 1
+    }
+
+  ################################################
+  ##   Debriefing
+  ################################################
+    
+    SetText(instructBox,  CR(4) + TAB(1) + "Press the 'space bar' key to finish")
+    Show(instructBox)
+    Draw()
+    WaitForKeyPress(" ")
+    Hide(instructBox)
+    Draw()
+	
+    FileClose(gFileOut)
+
+    ShowCursor(1)
+}
+
+
+define MatchTrial(stim, text, type, lgoodness)
+{
+    ## since the types match, we only need to match lgoodness
+    AddObject(stim,gWin)
+    Move(stim, 500,400)
+    Show(stim)
+    Draw(gWin)
+
+	response <-  WaitForListKeyPress(["e","i"])
+    
+    # sets up correct answer
+    if(lgoodness == 1)
+    {
+        corrResp <- "e"
+    } else {
+        corrResp <- "i"
+    }
+
+    # checks if response is correct
+    # the response should match the goodness
+    if(response == corrResp)
+    {
+        corr <- 1       #right
+    } else {    
+        corr <- 0        #wrong
+        AddObject(gCorrection, gWin)
+        Move(gCorrection, 500,100)
+        Show(gCorrection)
+        Draw()
+        WaitForKeyPress(corrResp)
+        Hide(gCorrection)
+        RemoveObject(gCorrection,gWin)
+    }
+    gCorr <- corr
+
+    Hide(stim)
+    Draw(gWin)
+    RemoveObject(stim,gWin)
+    Wait(150)
+    return 0
+}
+
+
+
+define MisMatchTrial(stim, text, type, lgoodness)
+{
+## sometimes the types don't match, so we need to match type to lgoodness
+	AddObject(stim,gWin)
+    Move(stim, 500,400)
+    Show(stim)
+    Draw(gWin)
+    
+	response <-  WaitForListKeyPress(["e","i"])
+   
+    Print(response)
+    # sets up correct answer
+    if(type == 1)
+    {
+        if(lgoodness == 1)
+        {
+            corrResp <- "e"
+        } else {
+            corrResp <- "i"
+        }
+    }
+    if(type == 2)
+    {
+        if(lgoodness == 1)
+        {
+            corrResp <- "i"
+        } else {
+            corrResp <- "e"
+        }
+    }
+    Print(corrResp)
+    
+    # checks if response is correct
+    # the response should match the goodness
+    if(response == corrResp)
+    {
+        corr <- 1       #right
+    } else {    
+        corr <- 0        #wrong
+        AddObject(gCorrection, gWin)
+        Move(gCorrection, 500,100)
+        Show(gCorrection)
+        Draw()
+        WaitForKeyPress(corrResp)
+        Hide(gCorrection)
+        RemoveObject(gCorrection,gWin)
+    }
+
+    gCorr <- corr
+    Hide(stim)
+    Draw(gWin)
+    RemoveObject(stim,gWin)
+    Wait(150)
+    return 0
+}
+
+## This is like SampleWithReplacement, but it makes sure that each item 
+## is sampled roughly equally. First, the list is shuffled, then repeated
+## so that it is longer than the number you need.  Then, it is truncated
+## to be the right number.  Finally, it is shuffled again.  This ensures 
+## that each item will be sampled a roughly equal number of times. (+/-1)
+define SampleBalanced(list, number)
+{
+    randlist <- Shuffle(list)
+    listlength <- Length(randlist)
+    multiply <- Ceiling(number / listlength)
+    newList <- RepeatList(randlist, multiply)
+    newStim <- SubList(newList,1,number)
+
+    return Shuffle(newStim)    
+}

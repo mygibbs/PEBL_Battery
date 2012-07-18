@@ -1,0 +1,728 @@
+#!/usr/local/bin/pebl
+###########################################################
+##  Berg's Card Sorting Task, Version 0.6
+##  (better known as the Wisconsin Card Sorting Test (tm)).
+##  For use with PEBL 0.10 or later
+##  http://pebl.sf.net
+##  Part of  The PEBL Psychological Testing Battery
+##  2006-03 Released into Public Domain
+##  by Shane T. Mueller, Ph.D. (smueller at obereed dot net)
+##
+##  as found in:
+##  E. A. Berg. (1948). A simple objective technique for measuring
+##     flexibility in thinking. J. Gen. Psychol. 39: 15-22.
+## 
+## 
+## Polish translation contributed by Artur Pilacinski
+## Korean translation contributed by Hyunsoo ra ma 
+## Chinese translation contributed by Yu-Hsiang Wu 
+## Portuguese translation contributed by Arthur Kummer
+###########################################################
+##  Raw data file outputs:
+##  subnum, trialnum, category count, color, shape, number, response, accuracy
+##  perseveration count, absolute time, response time.
+define Start(lPar)
+{
+
+  ## repeats is the number of times you go through the deck (deck size 
+  ## depends on whether useReduced is 0 or 1).
+  repeats <- 2
+
+  ## This is how long of a run is required before switching categories.
+  ## Note: Versions 0.1 -0.2 of BCST used runlength 5 by default.
+  ## This is now changed to be 10, which according to the Neuropsych
+  ## Assessment Handbook is the typical version.
+
+  runlength <- 10
+
+  ## useCanonical determines whether the 'stimulus' cards are the same
+  ## as in Berg, or whether they are chosen randomly.
+  useCanonical <- 1
+
+  ## Reduced uses a 24-card deck, removing cards sharing  2+
+  ## attributes with stimulus cards
+  ## See Nelson HE: A modified card sorting test sensitive to 
+  ##        frontal lobe defects. Cortex 1976;12:313-324.
+  ## Note: modified card sort also may use shorter runlength.
+  useReduced <- 0
+
+  gUseMouse <- 1   #0 for keyboard 1-4, 1 for mouse entry.
+
+  if(gUseMouse)
+   {
+    tag <- "-mouse"
+   }else {
+
+    tag <- "-keyboard"
+   }
+ 
+  ## The labels/instructions live in the file labels-en.txt.  Change
+  ## that file to translate to a new language.
+
+  textlist <- FileReadList(Lowercase("translations/labels-"+gLanguage+ tag +".txt"))
+  gPromptText <- Nth(textlist,5)
+  gCorrectText <-Nth(textlist,6)
+  gIncorrectText <- Nth(textlist,7)
+  ## results are stored in this file
+
+
+  gFileOut <-FileOpenWrite("bcst-" + gSubNum +".txt")
+
+  gSleepEasy <- 1
+  persevs <- []
+  totCorr <- 0
+  totPers <- 0
+  totPersErr <- 0
+  totUnique <- 0   ##Counts number of 'unique' errors; errors that are not correct by another rule.
+
+  persrun <- []  ##computes length of 'perseverative runs'
+  persrunflag <- 1
+
+  ## Initialize global objects for use later. Defined at end of file
+  Initialize()
+
+#  Print(gPEBLBaseFont)
+#  Print(gPEBLBaseFontMono)
+
+  if(gUseMouse==0)
+   {
+     ShowCursor(0)  #hide the cursor
+   }
+
+   gColors <-  ["Red", "Green","Yellow","Blue"]
+   gShapes <-  ["Triangle","Star","Cross","Circle"]
+   gNumbers <- ["1","2","3","4"]
+   ##Does this really work?
+   rules <- ShuffleWithoutAdjacents([[1,1,1],[2,2,2],[3,3,3]])
+
+  ##Mix up the order if we aren't using canonical stimulus cards.
+  if(not useCanonical)
+   {
+     gColors <- Shuffle(gColors)
+     gShapes <- Shuffle(gShapes)
+   }
+  
+  csn <- DesignFullCounterbalance(DesignFullCounterbalance(gColors,gShapes),gNumbers)
+
+
+ if(useReduced)
+   {
+    #compute the reduced deck, dependent on the current pile stacks
+
+    ccsn <- []
+     #Go through each possible card
+
+     loop(i, csn)
+     {
+       col <- First(First(i))
+       shape <- Nth(First(i),2)
+       num   <- Nth(i,2)
+
+       #compare the card to each pile-card; counting matching features       
+
+       maxmatch <- 0
+       cards <- Transpose([gColors,gShapes,gNumbers])
+      loop(card,cards) 
+        {
+          matches <- (col==First(card)) + (shape ==Nth(card,2)) + (num==Nth(card,3))
+          maxmatch <- Max([matches,maxmatch])
+
+        }
+
+       ##only add to the used deck if it matches on fewer than two features.
+       if(maxmatch <2)
+        {
+            ccsn <- Append(ccsn,[[col,shape],num])
+        }
+     }
+
+    csn <- ccsn
+   }
+
+  decksize <- Length(csn)
+
+  stimcat <- FoldList(Flatten(Repeat(csn,repeats)),3)
+
+  images<-[]
+ 
+  loop(i,stimcat)
+  {
+    filename <- "png/" + ListToString(i) + ".png"
+    x <- MakeImage(filename)
+    images <- Append(images,x)
+
+  }
+  Draw()
+  stim <-	Shuffle(Transpose(Append( Transpose(stimcat),images)))
+
+   ## Give instructions; wait for them to hit a key, 
+   SetText(gInstructions,Nth(textlist,1))
+   Show(gInstructions)
+   Draw()  
+   WaitForIt()
+
+   ## load canonical comparison cards.  This is perhaps supposed to
+   ## be randomized.
+
+   comps <- Transpose([gColors,gShapes,gNumbers])
+   comp1 <- MakeImage("png/"+ListToString(First(comps))+".png")
+   comp2 <- MakeImage("png/"+ListToString(Nth(comps,2))+".png")
+   comp3 <- MakeImage("png/"+ListToString(Nth(comps,3))+".png")
+   comp4 <- MakeImage("png/"+ListToString(Nth(comps,4))+".png")
+
+
+   AddObject(comp1,gWin)
+   AddObject(comp2,gWin)
+   AddObject(comp3,gWin)
+   AddObject(comp4,gWin)
+   Move(comp1, 28 + 125/2, 105)
+   Move(comp2, 28*2 + 125 + 125/2,105)
+   Move(comp3, 28*3 + 125*2 + 125/2,105)
+   Move(comp4, 28*4 + 125*3 + 125/2,105)
+
+   if(gUseMouse == 0)
+   {
+     gHeader.text <- "1           2            3            4"
+   }
+   Move(gHeader,320,220)
+   Show(gHeader)
+
+	gInstructions.text <- Nth(textlist,2)
+   Draw()
+   WaitForIt()
+
+   gInstructions.text <- Nth(textlist,3)
+   Draw()
+   WaitForIt()
+
+   Hide(gInstructions)
+   Show(gPrompt)
+   Draw()
+                 
+
+
+  ####################################################
+  ## Begin presenting and collecting data
+  ####################################################
+ 
+  FilePrint(gFileOut, "Subnum trial run rule lastrule color shape number resp corr last_corr corr_col corr_shape corr_num persev persev_err abstime rt")
+####################################################
+##  Start the experimental trials.
+## 
+
+  rule <- First(rules)
+  rules <- Rotate(rules,1)
+  lastrule <- -1
+   
+  failuretomaintain <- 0  ##failure to maintain set
+
+  trialsoncat        <- 0  ##how long have you been working on this trial?
+  trialspercat      <- [] ##Keep a list of the trials taken per category.
+                          ##This is used to measure learning-to-learn
+  erroroncat        <- 0  ##how many errors on this category
+  errorspercat      <- [] ##Keep a list of the errors made on the category
+                          ##This is used to measure learning-to-learn
+ 
+  conceptual        <- 0  ##Record conceptual responses: 3-runs or greater
+  firstCat <- 0
+  run <- 0
+  persev <- 0
+  trialnum <- 1
+  numCats <- 0
+  numCatsExp <- 1
+
+  ##Loop through each stimulus card
+   loop(s,stim)
+   {
+      trialsoncat <- trialsoncat+1
+
+      #Display the card
+      card <- Nth(s,4)
+      AddObject(card,gWin)
+      Move(card,500,380)
+ 	  Draw()
+      time0 <- GetTime()
+
+	  ## Get the response
+      if(gUseMouse)
+      {  
+         resp <- WaitForClickOnTarget([comp1,comp2,comp3,comp4],["1","2","3","4"])
+      }else{
+         resp <- WaitForListKeyPress(["1","2","3","4"])
+      }
+      time1 <- GetTime()
+      rt <- time1 - time0
+
+      ## Score the trial returns a pair.  [cur-rule, last-rule]
+      ##
+      corrBoth <- ScoreTrial(s,resp,rule,lastrule)
+
+      
+	  corrLast <- First(corrBoth)
+      corr <- Nth(corrBoth,2)
+
+
+     ##Also compute whether the choice was correct for each given rule
+      corrCol   <- Nth(gColors,ToNumber(resp)) == Nth(s,1)
+      corrShape <- Nth(gShapes,ToNumber(resp)) == Nth(s,2)
+      corrNum   <- Nth(gNumbers,ToNumber(resp))== Nth(s,3)
+      
+      ##animate the card location.
+
+      #Get end location
+      x <- 125/2 + 28*ToNumber(resp) + 125*(ToNumber(resp)-1)
+      y <- 105
+     ##compute distance to travel to scale frames to distance.
+      dist <- Sqrt((y-card.y)^2 + (x-card.x)^2)
+      #Increase stepsize to animate faster
+      stepsize <- 100
+      frames <- Ceiling(dist/stepsize)+1  
+
+	  ydiff <- (y - card.y)/(frames)
+      xdiff <- (x - card.x)/(frames)
+      steps <- Sequence(frames,0,-1)
+      #move toward end location
+      loop(i,steps)
+      {
+        card.x <- x - xdiff*i
+        card.y <- y - ydiff*i
+        Draw()
+      }
+
+      RemoveObject(card,gWin)
+
+      #If it is correct, update run counters
+      if(corr == 1)
+      {
+        run <- run + 1
+        totCorr <- totCorr + 1
+        feedback <- gCorrect
+      } else {
+        ##It is incorrect.
+        feedback <- gIncorrect    
+        ##Increment failuretomaintain if run>=5
+        if(run>=5)
+         {
+		    failuretomaintain<- failuretomaintain+1
+         }
+
+        erroroncat <- erroroncat + 1  ##  increment category-specific
+                                      ##  error 
+
+        ##Increment conceptual responses here, when the run ends on an error
+        if(run>=3)  
+         {
+           conceptual <- conceptual + run
+         }
+        run <- 0
+     
+      }
+
+
+ 
+     ##If it was correct according to the last rule, increment counters.
+      if(corrLast == 1) {
+
+           totPers <- totPers + 1
+           persev <- persev + 1
+           trialpersev <- 1	
+           trialPersevErr <- 0
+
+
+
+
+          ##If it was also an error, this is a perseverative error.
+          if(corr==0)
+              {
+                  totPersErr <- totPersErr +1 
+                  trialPersevErr <- 1
+              }
+
+          } else {
+
+         #####################
+         ##  This trial was not a perseveration (it could be either correct or incorrect)
+    
+         ##Make sure these are defined
+           trialPersev   <- 0
+           trialPersevErr <- 0
+           ##If the runflag is still 1, that means this is the first non-perseverative response
+           ## in the category.  Unset the flag and record the length of the run.
+           if(persrunflag)
+                {
+                   persrunflag <- 0
+                   ##Add the current perseverative run count; 
+                   ## only do so after the first category
+				   if(numCats >0)
+                   {
+					persRun <- Append(persRun, persev)
+                   }
+                }
+
+           }
+
+
+      ##This determines if the response is a 'unique' response; i.e.,
+	  ## not correct according to any rule
+
+      
+      rulesum <- (corrCol + corrShape + corrNum)
+
+        ##It was incorrect, and not correct according to the previous rule, and not 
+        ##a match to another property of the card, increment the unique counter
+         if(corr==0 and corrLast == 0  and rulesum == 0)
+         {
+		   totUnique <- totUnique + 1
+         }
+
+      
+	  FilePrint_(gFileOut, gSubNum + " " + trialnum + " " + numCatsExp +  " " + rule + " " + lastrule + " ")
+      index <- 1
+      ##Print out the trial data.
+      loop(i,s)
+      {
+        if(index !=4)
+        {
+         FilePrint_(gFileOut,i+" ")
+        }
+       index <- index + 1
+      }
+
+	  FilePrint_(gFileOut, resp + " " + corr + " " + corrLast + " " +  corrCol + " " + corrShape + " " + corrNum + " ")
+      FilePrint( gFileOut, trialpersev + " " + trialperseverr + " " +  time0 + " " + rt )
+      Show(feedback)
+      Draw()
+      Wait(500)
+      Hide(feedback)
+#      Hide(gHeader)
+#      Hide(gPrompt)
+      Draw()
+
+      ##if you have a run of runlength correct, change rules.
+      if(run >= runlength)
+      {
+        lastrule <- rule
+        rule <- First(rules)
+        rules <- Rotate(rules,1)
+
+        #Update conceptual responses when a category is complete
+        conceptual <- conceptual + run
+
+
+        run <- 0
+        numCats <- numCats + 1
+        numCatsExp <- numCatsExp + 1
+        
+        lastswitch <- trialnum
+        ##Keep track of the number of perseverations in this category.
+        persevs <- Append(persevs, persev)
+        persev <- 0
+      
+        persrunflag <- 1       ##Reset the perseverative run flag.
+        ##Record the number of trials needed to attain first category.  
+        if(numCats == 1)
+        {
+          firstcat <- trialnum
+        }
+		##update the trialsoncat/trialspercat counters
+		trialspercat <-Append(trialspercat,trialsoncat)
+        errorspercat <-Append(errorspercat, erroroncat)
+        erroroncat <- 0
+		trialsoncat <- 0
+
+      }
+
+      trialnum <- trialnum + 1
+      if(numCats >= 9 )
+      {
+        numCatsExp <- 9
+        break
+      }
+    }
+
+    #The last card may have ended before the end.
+    #If it were complete, run would have been reset to 0.  
+    #Add partial run to conceptual responses
+	if(run>=3)
+     {
+        conceptual <- conceptual + run
+     }
+
+
+	##Do the final output and computations.
+
+  ##compute hand things up-front
+   num <- trialnum - 1
+   err <- num - totCorr
+   nonp <-  (err-totPersErr)
+
+   #################################################
+   ##compute learning-to-learn.
+    if(Length(trialspercat)>2)
+   {
+    if((Length(trialspercat)>3) or 
+        (Length(trialspercat)==3 and  Third(trialspercat)>=10))
+ 		{
+        #Compute the number of extra trials, and the 
+
+        diffs  <- []
+        lastpc <- "XXX"
+          
+        tt <- 1  ##trial counter
+        loop(i,Transpose([trialspercat,errorspercat]))
+         {
+           ##Only use this if there were 10 or more trials
+           if(i>=10)
+              {
+                  pc <- Second(i)/First(i)*100
+              }
+
+           if(tt > 1)
+            {
+                diffs <- Append(diffs,pc-lastpc)
+                
+            }
+           tt <- tt + 1
+           lastpc <- pc
+         }
+         learningtolearn <- Mean(diffS)
+
+      } else {
+       ##Invalid to compute learning-to-learn
+        learningtolearn <- "Not enough data"
+      }} else{
+       ##Invalid to compute learning-to-learn
+        learningtolearn <- "Not enough data"
+      }
+
+
+   FileClose(gFileOut)
+   report <-FileOpenWrite("bcst-report-" + gSubNum +".txt")
+   FilePrint(report,"---------------------------------------------------")
+   FilePrint(report," Report for PEBL's _Berg's Card Sorting Task_,")
+   FilePrint(report," a free version of the Wisconsin Card Sorting Task (tm)*")
+   FilePrint(report," (c) 2008-2010 Shane T. Mueller")
+   
+   FilePrint(report," Version 0.8")
+   FilePrint(report," "+GetPEBLVersion())
+   FilePrint(report," "+TimeStamp())
+   FilePrint(report," Participant Code: " + gSubNum)
+   FilePrint(report," http://pebl.sf.net")
+   FilePrint(report,"---------------------------------------------------")
+   FilePrint(report,"Parameters:")
+   FilePrint(report,"Run length to move to next category: "+runlength)
+   FilePrint(report,"Number of times through deck: "+repeats)
+   FilePrint(report,"Deck Size: "+ decksize)
+  
+   FilePrint_(report,"Order of Cards: Rule 1  (color): ")
+      loop(i,gColors)
+      {
+         FilePrint_(report,i+" ")
+      }
+   FilePrint(report,"")
+
+   FilePrint_(report,"                Rule 2  (shape):  " )
+      loop(i,gShapes)
+      {
+         FilePrint_(report,i+" ")
+      }
+   FilePrint(report,"")
+
+   FilePrint_(report,"                Rule 3 (number):  ")
+      loop(i,gNumbers)
+      {
+         FilePrint_(report,i+" ")
+      }
+   FilePrint(report,"")
+
+
+   FilePrint(report,"---------------------------------------------------")
+   FilePrint(report,"Statistic                    Value")
+   FilePrint(report,"---------------------------------------------------")
+   FilePrint(report,"1. Categories Completed/Experienced: "+ numCats + " / " +numCatsExp)
+   FilePrint(report,"2. Number of Trials:             " + num)
+
+   FilePrint(report,"                        ---------------------------")
+   FilePrint(report,"                            Total Percent Mean/Cat")
+   FilePrint(report,"3. Correct Responses:         " + totCorr + Tab(1) + Roundoff(totCorr/num,4)*100 + Tab(1) + Roundoff(totCorr/numcatsExp,3))
+   FilePrint(report,"4. Total Errors:              " + err + Tab(1) + Roundoff(err/num,4)*100 + Tab(1) + Roundoff(err/numCatsExp,3))
+   FilePrint(report,"5. Perseverative Responses    " + totPers + Tab(1) + Roundoff(totPers/num,4)*100 + Tab(1) + Roundoff(totPers/(numCatsExp-1),3))
+   FilePrint(report,"6. Perseverative Errors       " + totPersErr + Tab(1) + Roundoff(totPersErr/num,4)*100 + Tab(1) + Roundoff(totPersErr/(numCatsExp-1),3))
+   FilePrint(report,"7. Non-Perseverative Errors   " + nonp + Tab(1) + Roundoff(nonp/num,4)*100 + Tab(1) + Roundoff(nonp/(numCatsExp),3))
+   FilePrint(report,"8. Unique Errors              " + totUnique + Tab(1) + Roundoff(totUnique/num,4)*100 + Tab(1) + Roundoff(totUnique/(numCatsExp),3))
+
+
+   FilePrint(report,"                        ---------------------------")
+
+
+   FilePrint(report,"8. Trials to complete 1st cat:   "+ firstcat) 
+   FilePrint(report,"9. Failure to maintain set:      "+failuretomaintain)
+   FilePrint(report,"10. Learning to Learn:           "+learningtolearn)
+   FilePrint(report,"11. Conceptual Level Responses:  "+conceptual)
+   FilePrint(report,"    Percent CLR:                  "+Roundoff(100*(conceptual/num),1))
+   
+   FilePrint(report,"12. Perseverative Runs: Min    Max   Mean   Total")
+   if(Length(persrun)>0)
+  {
+   FilePrint(report,"                         "+Min(persrun)+ "  "+ Max(persrun) + "     "  + Roundoff(Mean(persrun),3) + "   " +
+   Sum(persrun))
+  } else{
+   FilePrint(report,"no perseverative runs")
+  }
+   FilePrint(report,"---------------------------------------------------")	
+
+   FilePrint(report,"Notes:") 
+   
+
+   FilePrint(report,"Stats 1-11 are standard statistics commonly
+   reported.  #1 contains both categories completed (standard stat)
+   and categories experienced, whether or not the last one was
+   actually completed.  Means are computed based on categories
+   experienced (not categories completed), and perseverative means
+   based on categories experienced AFTER the first category usually a
+   maximum of 8.  Total and percent for 1-11 are computed like the
+   commonly-reported stats, to the best of our knowledge. #12,
+   Perseverative runs, computes the number of error perseverations in
+   a row at the beginning of each new category.")
+
+   FilePrint(report,"*PEBL, the PEBL test battery, and this test are unaffiliated with the Wells Printing Company or PAR Inc, the producers of the 'Wisconsin Card Sorting Test' (tm)")
+   FileClose(report)
+   ##Now, show debriefing info.
+
+   feedback <-  Nth(textlist,4)
+
+   SetText(gInstructions, feedback)
+   Hide(gPrompt)
+   Hide(gHeader)
+   Show(gInstructions)
+   Draw()
+   Print("Finished with the Card Sort Task")
+   WaitForIt()
+   ShowCursor(1) 
+ }
+
+
+##  This is a standard initializer function that sets up typical
+##  objects used in experiments.
+define Initialize()
+{
+  ##Initialize Window, etc.
+  gWin <- MakeWindow("black")   
+            
+  ##Initialize Font and colors
+  gSleepEasy <- 1
+   bg <- MakeColor("black")
+   fg <- MakeColor("white")
+   bg2 <- MakeColor("black")
+   
+   colGreen <- MakeColor("green")
+   colRed   <- MakeColor("red")
+ 
+ 
+   gStimFont         <- MakeFont(gPEBLBaseFontMono, 0, 24,fg,bg,0)       
+   gCorrFont         <- MakeFont(gPEBLBaseFontMono, 0, 30,colGreen, bg,0)
+   gIncorrFont       <- MakeFont(gPEBLBaseFontMono, 0, 30,colRed,   bg,0)
+
+
+   gInstructionsFont <- MakeFont(gPEBLBaseFont,0,18, fg,bg2,1)  
+   gHeaderFont       <- MakeFont(gPEBLBaseFont, 0,36,fg,bg,1)       
+ 
+   ## Make and place the instruction box, then hide it  
+   gInstructions <- MakeTextBox("", gInstructionsFont, 600,200)
+   AddObject(gInstructions, gWin)
+   Move(gInstructions, gVideoWidth/2-300, gVideoHeight/2+5)
+   Hide(gInstructions)
+
+   ## Make and hide a header label
+   gHeader <- MakeLabel("",gHeaderFont)
+   AddObject(gHeader,gWin)
+   Move(gHeader, gVideoWidth/2, 100)
+   Hide(gHeader)
+
+   #Create the insturctions cue
+   gPrompt <- MakeLabel(gPromptText,gStimFont)
+   AddObject(gPrompt,gWin)
+   Move(gPrompt,350,340)
+   Hide(gPrompt)
+
+
+   gCorrect <- MakeLabel(gCorrectText,gCorrFont)
+   AddObject(gCorrect,gWin)
+   Move(gCorrect,500,350)
+   Hide(gCorrect)
+  
+   gIncorrect <- MakeLabel(gIncorrectText,gIncorrFont)
+   AddObject(gIncorrect,gWin)
+   Move(gIncorrect,500,350)
+   Hide(gIncorrect)
+
+ }
+
+
+## This returns two 1-0 correctness stats: [last-rule, cur-rule]
+define ScoreTrial(triallist, resp, rule,lastrule)
+{
+  ##The piles are defined by:
+  ## Rule 1: COLOR:  red green blue yellow
+  ## Rule 2: SHAPE:  circle star triangle cross
+  ## Rule 3: NUMBER: 1 2 3 4
+  ## Depending upon the rule (triallist[5]),
+  ## the correct response depends upon column 1,2,3
+
+  dimensions <- [gColors, gShapes, gNumbers]
+  dimension <- Nth(triallist, rule)
+
+  dimlist <- Nth(dimensions,rule)
+   if(lastrule == -1)
+   {
+      lastdim <- 0 
+      lastdimlist <- [-1,-1,-1,-1]
+   } else {
+  
+     lastdim   <- Nth(triallist, lastrule)
+     lastdimlist <- Nth(dimensions,lastrule)
+   }
+  ##So, the trial is correct if, along the chosen dimension,
+  ## the response is the same as the pile.
+
+   corr <-     (Nth(dimlist,ToNumber(resp)) == dimension)
+   lastcorr <- (Nth(lastdimlist,ToNumber(resp)) == lastdim)
+
+
+   if(corr)
+   {
+     ##It was correct
+     corCur <- 1
+   } else {
+     corCur <- 0
+   }
+
+   if (lastcorr) 
+   { 
+         corLast <- 1
+   } else  {
+         corLast <- 0
+   }
+
+  return [corLast, corCur]
+}
+
+
+define Roundoff(x,dec)
+{
+  power <- 10^dec
+  return   Round( x * power)/power
+}
+
+
+define WaitForIt()
+{
+  if(gUseMouse)
+   {
+     WaitForDownClick()
+   } else {
+     WaitforAnyKeyPress()
+   }
+}
+
+

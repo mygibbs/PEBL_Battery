@@ -1,0 +1,296 @@
+#!/usr/local/bin/pebl
+###########################################################
+##  Symbol Counting Task,  Version 0.2
+##  For use with PEBL 0.07 or later
+##  http://pebl.sf.net
+##  Part of  The PEBL Psychological Testing Battery
+##  2006-02 Released into Public Domain
+##  by Shane T. Mueller, Ph.D. (smueller at obereed dot net)
+##
+##
+##  Modeled after task in:
+## WILLIAM J. GEHRING,a RICHARD L. BRYCK,b JOHN JONIDES,
+## ROGER L. ALBIN,c a n d
+## DAVID BADRE The mind's eye, looking inward? In search of executive
+## control in internal attention shifting. Psychophysiology,
+##  40 (2003), 572 - 585. 
+##
+## 
+##  Garavan, H. (1998). Serial attention within working
+##      memory. Memory & Cognition, 26, 263-276.
+##
+##
+###########################################################
+
+define Start(lPar)
+{
+  ##
+   numblocks <- 3          ## blocks after practice round.
+   numtrials <- 20         ## Trials per block
+   runthresh <- 10         ## Number of correct trial run needed to get
+   			 			   ## through practice.
+
+  gGiveFeedback <-  1      ##Whether you should give feedback in
+                           ##  non-practice blocks
+  ##Symbols for A and B
+  symA <- ["#","@"]
+  symB <- ["&","%"]
+
+  ## These are threshold for rts considered too fast and too slow,
+  ## and are not used in the RT stats computations
+  toofastThresh <- 150
+  tooslowThresh <- 3000
+  
+  ##Counters that keep track of the number of these responses
+  toofast <- 0
+  tooslow <- 0
+  
+  ## Lists storing the actual RT values, along with the presentation time.
+
+
+  ####################################
+  ##
+  ## Begin Initialization Procedures.
+  ##
+
+  Initialize()
+
+  datafile   <- FileOpenWrite("symbolcount-"+ gSubNum + ".txt")
+  reportfile <- FileOpenWrite("symbolcount-report-" + gSubNum + ".txt")
+
+ 
+  gInstructions.text <- "You are about to take part in a simple task.  "+
+    "In this task, you will see a series of symbols and you will need to keep track of " +
+	"how many you see.  You will keep two counts, the first for the symbols " +
+	"'@' and '#', and a second for the symbols '&' and '%'. We will start with a practice task." +
+	" In the practice task, you will see the symbols and press either
+    the left or right shift keys.  Press the "+
+    " left shift key whenever you see '#' or '@'; press the right
+    shift key whenever you see '&' or '%'.  Press any key to begin the practice."
+
+  #####################################
+  ## Begin Experiment with Instructions
+
+  Show(gInstructions)
+  Draw()	  
+  WaitForAnyKeyPress()
+  Hide(gInstructions)
+  Draw()
+  gInstructions.text <- "You may now take a short break.  Press Any Key to Continue."
+
+
+  #####################################
+  ## Practice task 1: stimuli with label
+
+   foottext <- "Left shift: # or @                    Right shift: & or %"
+
+   Show(gFooter)
+ 
+    mapping <- [["#","<lshift>"],["@","<lshift>"],["&","<rshift>"],["%","<rshift>"]]
+    stimuli <- Merge(RepeatList(symA,4), RepeatList(symB,4))
+    thresh <- 0
+    corrun <- 0
+    block <- "P"
+    trial <- 1
+  ##Repeat until we get a run of 20 trials correct.
+   while(thresh == 0)
+   {
+     stim <- First(SampleN(stimuli,1))
+	 gStim.text <- stim
+     SetFont(gFooter,gSmallFont)
+     gFooter.text <- foottext
+     Show(gFooter)
+     Show(gStim)
+     Draw()
+     time0 <- GetTime()
+     resp <- WaitForListKeyPress(["<lshift>","<rshift>"])
+     time1 <- GetTime()
+
+     corr <- ScoreResponse(stim,resp,mapping)
+     corrun <- corrun + corr
+     while(not corr)
+     {
+	    Hide(gFooter)
+        Draw()
+        Wait(300)
+
+        gFooter.text <- "Incorrect.  Please make the correct response"
+        SetFont(gFooter,gIncFont)
+
+        Show(gFooter)
+        Draw()
+        resp <- WaitForListKeyPress(["<lshift>","<rshift>"])
+	    corr <- ScoreResponse(stim,resp,mapping)
+        corrun <- 0
+     }
+
+      rt <- time1-time0
+ 
+      ##If they go too slow, start the counter over.
+      if(rt > tooslowThresh or rt < toofastThresh)
+      {
+         corrun <- 0
+      }
+
+      Hide(gFooter)
+      Hide(gStim)
+      Draw()   
+ 
+      Wait(200)
+   
+     FilePrint(datafile,gSubNum + " " + block + " " + trial + " " + stim + " " +
+          resp + " " + corr +  " " +  corrun + " "+  time1 + " " + rt)
+
+     if(corrun >= runthresh) 
+     {
+        thresh <- 1
+     }
+    trial <- trial + 1
+   }
+
+  ######################################
+  ##Now, do the blocks.
+
+  loop(block, Sequence(1,numblocks,1))
+  {
+  Show(gInstructions)
+  Draw()
+  WaitForAnyKeyPress() 
+  Hide(gInstructions)
+  Draw()
+
+  ##Repeat until we get a run of 20 trials correct.
+   trial <- 1
+   while(trial <= numtrials)
+   {
+     stim <- First(SampleN(stimuli,1))
+	 gStim.text <- stim
+     SetFont(gFooter,gSmallFont)
+     gFooter.text <- foottext
+     Show(gFooter)
+     Show(gStim)
+     Draw()
+     time0 <- GetTime()
+     resp <- WaitForListKeyPress(["<lshift>","<rshift>"])
+     time1 <- GetTime()
+
+     corr <- ScoreResponse(stim,resp,mapping)
+     corrun <- corrun + corr
+
+     if(not corr)
+     {
+	 if(gGiveFeedback)
+	      {
+	 	     Hide(gFooter)
+        	 Draw()
+ 
+			 gFooter.text <- "Incorrect."
+			 SetFont(gFooter,gIncFont)
+             Show(gFooter)
+             Draw()
+         	 Wait(500) 
+         
+          }
+     }
+      rt <- (time1-time0) 
+      ##If they go too slow, start the counter over.
+
+      Hide(gFooter)
+      Hide(gStim)
+      Draw()   
+ 
+      Wait(200)
+   
+
+     FilePrint(datafile,gSubNum + " " + block + " " + trial + " "  + stim + " " +
+          resp + " " + corr +  " " +  corrun + " "+  time1 + " " + rt)
+
+    trial <- trial + 1
+    }
+     
+  } 
+
+
+  ####################
+  ##Experiment is finished; print out summary stats
+
+
+   FilePrint(reportfile,"------------------------------------------------------")
+   FilePrint(reportfile," Report for PEBL Symbol-counter task Task Version 0.1")
+   FilePrint(reportfile, " "+GetPEBLVersion())
+   FilePrint(reportfile, " "+TimeStamp())
+   FilePrint(reportfile," http://pebl.sf.net")
+   FilePrint(reportfile, " Participant Code: " + gSubNum)
+   FilePrint(reportfile,"------------------------------------------------------")
+   FilePrint(reportfile,"------------------------------------------------------")
+   FilePrint(reportfile,"No data computed at this time.")
+   FilePrint(reportfile,"------------------------------------------------------")
+
+
+   FileClose(reportfile)
+   FileClose(datafile)
+
+  ##Now, show debriefing info.
+   SetText(gInstructions, "Thank you for participating in the experiment.  You may now leave.  (Press secret key 'X' to finish experiment)")
+   Show(gInstructions)
+   Draw()
+   WaitForKeyPress("X")
+ 
+
+}
+
+
+##  This is a standard initializer function that sets up typical
+##  objects used in experiments.
+define Initialize()
+{
+  ##Initialize Window, etc.
+  gWin <- MakeWindow("grey")   
+   ShowCursor(0)
+          
+  ##Initialize Font and colors
+   fg <- MakeColor("black")
+   bg <- MakeColor("grey")
+   bg2 <- MakeColor("white")
+   
+
+   gInstructionsFont <- MakeFont(gPEBLBaseFont,0,18, fg,bg2,1)  
+   gStimFont         <- MakeFont(gPEBLBaseFontMono, 0,48,fg,bg,1)       
+   gSmallFont        <- MakeFont(gPEBLBaseFont,0,24,fg,bg,1)
+   gIncFont          <- MakeFont(gPEBLBaseFont,0,24,MakeColor("red"),bg,1)
+   ## Make and place the instruction box, then hide it  
+   gInstructions <- MakeTextBox("", gInstructionsFont, 600,300)
+   AddObject(gInstructions, gWin)
+   Move(gInstructions, gVideoWidth/2-300, gVideoHeight/2-150)
+   Hide(gInstructions)
+
+   ## Make and hide stimulus 
+   gStim <- MakeLabel("",gStimFont)
+   AddObject(gStim,gWin)
+   Move(gStim, gVideoWidth/2, gVideoHeight/2)
+   Hide(gStim)
+
+   ## Make and hide instruction line.
+   gFooter <- MakeLabel("+",gSmallFont)
+   AddObject(gFooter,gWin)
+   Move(gFooter, gVideoWidth/2, gVideoHeight/2+ 100)
+   Hide(gFooter)
+
+ }
+
+
+
+
+define ScoreResponse(stim, resp, mapping)
+{
+   corr <- 0
+   loop(i, mapping)
+   {
+      if( stim == First(i) and resp == Nth(i, 2))
+      {
+        corr <- 1
+        break
+      }
+  }
+  return corr
+}

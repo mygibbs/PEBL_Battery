@@ -1,0 +1,132 @@
+define Start(p)
+{
+  #############################################################
+  ## This is a simple keyboard tapping task. It has been
+  ## used to test low-level motor timing ability, and may be impacted
+  ## by things like fatigue and sleep deprivation.
+  ## 
+  ##  The participant is supposed to tap at a self-paced even
+  ##  rate for three minutes.
+  ##
+  ##  See UTC-PAB test 19
+  ##
+  ## (c) 2008 Shane T. Mueller (smueller obereed net)
+  #############################################################
+
+  ## The time of each trial
+  trialtime <- 1*60*1000   #number of seconds * 1000 = ms
+  numtrials <- 3
+
+
+  gWin <- MakeWindow()
+  gFileOut <- FileOpenWrite("timetap-"+gsubnum+".dat")
+  tb <- EasyTextBox("In this task, you are asked to tap the keyboard
+  at the specified rate for "+ numtrials +" trials of " +
+  trialtime/1000 + " seconds each.  You will see the fixation cross
+  blink at the rate we intend you to tap at.  Begin tapping at that
+  rate to prepare.  When the cross disappears, you should continue to
+  tap at that rate until the trial has finished.  Use  the 'A' key to tap.  Begin tapping when you see a 'GO'.  Press 'A' to begin.",20,20,gWin,16,600,300)
+
+  Draw()
+
+
+  lab <- EasyLabel("",gVideoWidth/2,gVideoHeight/2,gWin,24)
+  Hide(lab)
+
+  data <- []
+  trial <- 1
+
+
+  WaitForKeyPress("A")
+
+    
+
+
+  while (trial <= numtrials) 
+  {
+
+     ##On the trial, gate the beginning with the "A" press
+     lab.text <- "Press 'A' to begin"
+     Show(lab)
+     Hide(tb)   
+     Draw()      
+     WaitForKeyPress("A")
+     Hide(lab)
+     Draw()
+     Wait(2000)    #Give 2 seconds before trial begins
+     targtime <-   Random()*750+250
+     Train(targtime,10)
+     lab.text <- "GO:" 
+     Show(lab)
+     Draw()
+
+    ##Give a 1 second lead time
+    Wait(1000)
+    Draw()
+
+     ##Compute the end-time of the trial
+    finaltime <- GetTime() + trialtime
+    hits <- 0  
+    prevtime <- GetTime()
+    time <- prevtime
+    while(time < finaltime)
+     {
+     
+       WaitForKeyPress("A")
+
+      
+       time <- GetTime()
+       remaining <- Ceiling((finaltime - time)/60000)
+  	   lab.text <- "Responses are being recorded: [" + remaining + " min]"
+       FilePrint(gFileOut,gSubNum + " " + trial + " 1 " + targtime + " "  + hits + " " +  time + " " + (time-prevtime))
+       Draw()   
+       hits <- hits + 1
+       prevtime <-time
+     }
+  
+   data <- Append(data,hits-1)
+  
+
+   ## Give feedback for each trial.
+   Hide(lab)
+   Show(tb)
+   tb.text <- "You made " + (hits-1) + " keypresses. Press X to continue."
+   Draw()
+   trial <- trial + 1
+   WaitForKeyPress("X")
+  }
+
+  x <- PrintList(data)
+  tb.text <- "Resulting keypresses on each trial:" + CR(3)+ x+ CR(2)+". Press X to exit"
+  Show(tb)
+  Draw()
+  WaitForKeyPress("X")
+
+}
+
+
+define Train(cycle, count)
+{
+   targ <- EasyLabel("+",gVideoWidth/2,gVideoHeight/2+50,gWin,100)
+
+   start <- GetTime()    
+   lasttime <- start
+   i <- 1
+   while(i <= count)
+   { 
+       time <- GetTime()
+       endcycle <- start + i * cycle
+       Show(targ)
+       Draw()
+       Wait(100)
+       Hide(targ)
+       FilePrint(gFIleOut,gSubNum + " X -1 " + cycle + " " + i + " " +
+   time + " " + (time-lasttime))
+       Draw()
+       i <- i + 1
+	   lasttime <- time
+       Wait(endcycle - GetTime())
+   }
+
+  RemoveObject(targ,gWin)
+}

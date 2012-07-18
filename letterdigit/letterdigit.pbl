@@ -1,0 +1,229 @@
+##
+##   This is a letter-digit substitution task, akin to one found in
+##   the PAB UTC, and the paper-and-pencil Wechsler test.
+##
+##
+##
+##
+##
+##
+##
+
+define Start(p)
+{
+  
+   numtrials <- 30
+   gFeedback <- 0
+
+  gSleepEasy <- 1
+  gWin <- MakeWindow()
+  gstimFont <- MakeFont(gPEBLBaseFontMono,0,24,MakeColor("black"),MakeColor("grey"),1)
+  gProbeFont <-MakeFont(gPEBLBaseFontMono,0,80,MakeColor("black"),MakeColor("grey"),1)
+
+  gfileout <- FileOpenWrite("letterdigit-"+gSubNum+".txt")
+
+  gDatCorr <- []
+  gDatRT  <- []
+
+
+   inst <- "You will be presented with a row of letters across the screen. Directly below this is a row of numbers.  The rows will be arranged so that the number directly below a letter is called the 'code' for that letter. Your task is to learn the codes for each letter. A series of test letters will be presented, one at a time, at the bottom of the screen. These test letters are all taken from the letter row. Your job is to enter the digit on the keypad that is the 'code' for that letter. For eximple, if the letter 'J' was right above the digit '7', then that is the code for 'J'. When the letter 'J' appears At the bottom of the screen, you should press '7' on the keypad. Try to respond as quickly upon the presentation of  the test letter as possible without making any errors.
+
+    Press any key to begin."
+    tb  <- EasyTextBox(inst,20,20,gWin,18,gVideoWidth-40,300)
+    Draw()
+    WaitForAnyKeyPress()   
+
+    tb.text <- "First, you will start with a series of ten practice trials.  During practice, you will receive feedback on each trial.  After practice, you will not be told whether you were correct or incorrect.  Press any key to begin."
+    Draw()
+    WaitForAnykeyPress()
+
+    Hide(tb)
+    Draw()
+
+  gDigits <- ["1","2","3","4","5","6","7","8","9"]
+
+  alpha <- Sublist(Shuffle(FileReadList("Uppercase.txt")),1,9)
+  map <- Transpose([alpha,gDigits])
+  ##make 9 letter, 9 number stimuli.
+
+  stimObjects <- MakeStim(map)
+  Draw()
+
+
+  ##Add the taurget characters:
+  FilePrint(gFileOut,"subnum block trial letter cresp resp corr rt")
+
+
+
+   stimuli <- DesignBalancedSampling(map,10)
+
+   type <- 0   
+   trialnum <- 1
+   loop(stim,stimuli)
+   {
+
+    FilePrint_(gFileOut,gsubnum + " " + type + " " + trialnum + " " + First(stim) +  " " + Nth(stim,2)+ " ")
+    Trial(stim,type)
+    trialnum <- trialnum +1
+  }
+
+
+  RemoveObjects(stimObjects,gWin)
+  tb.text <- "Practice is finished.  Press any key to begin the experiment."
+  Show(tb)
+  Draw()
+  WaitForAnyKeyPress()
+  Hide(tb)
+  Draw()
+
+  alpha <- Sublist(Shuffle(FileReadList("Uppercase.txt")),1,9)
+  map <- Transpose([alpha,gDigits])
+  ##make 9 letter, 9 number stimuli.
+
+  stimObjects <- MakeStim(map)
+
+  Draw()
+
+
+   stimuli <- DesignBalancedSampling(map,numtrials)
+   type <- 1   
+   trialnum <- 1
+
+   loop(stim,stimuli)
+   {
+
+    FilePrint_(gFileOut,gsubnum + " " +type+ " " + trialnum + " " + First(stim) +  " " + Nth(stim,2)+ " ")
+    Trial(stim,type)
+    trialnum <- trialnum +1
+  }
+
+
+
+
+  numcorr <- Sum(gDatCorr)
+  propcorr <- numcorr/numtrials
+  rtmed <- Median(gDatRT)
+  rtmean <- Mean(gDatRT)
+  min <- Min(gDatRT)
+  max <- Max(gDatRT)
+  range <- max - min
+  sd <- StdDev(gDatRT)
+  var <- sd^2
+
+  sumfile <- FileOpenWrite("letterdigit-summary-"+gSubNum+".txt")
+  FilePrint(sumfile,"----------------------------------------------")
+  FilePrint(sumfile,"Summary for the PEBL letter-digit Task, Version 0.1")
+  FilePrint(sumfile,"Released into public domain 2008 by Shane T. Mueller, Ph.D. (smueller at obereed dot net)")
+  FilePrint(sumfile,TimeStamp())
+  FilePrint(sumfile,GetPEBLVersion())
+  FilePrint(sumfile,"----------------------------------------------")
+  FilePrint(sumfile,"participant code: " + gSubNum)
+  FilePrintList(sumfile,gDigits)
+  FilePrintList(sumfile,alpha)
+  FilePrint(sumfile,"----------------------------------------------")
+  FilePrint(sumfile,"Number of trials:    " + numtrials)
+  FilePrint(sumfile,"Number correct:      " + numcorr)
+  FilePrint(sumfile,"Proportion correct:  " + propcorr)
+  FilePrint(sumfile,"Mean RT:             "+rtmean)  
+  FilePrint(sumfile,"Median RT:           "+rtmed)
+  FilePrint(sumfile,"Min RT:              "+min)
+  FilePrint(sumfile,"Max RT:              "+max)
+  FilePrint(sumfile,"RT Range:            "+range)
+  FilePrint(sumfile,"RT Std. Dev:         "+sd)
+  FilePrint(sumfile,"RT Variance:         "+var)
+  FilePrint(sumfile,"----------------------------------------------")
+
+
+  RemoveObjects(stimObjects,gWin)
+  tb.text <- "Thank you for participating!"
+  Show(tb)
+  Draw()
+  Wait(500)
+  WaitForAnyKeyPress()
+}
+
+
+define MakeStim(map)
+{
+
+  stimobjects <- []
+  left <- 50
+  right <- gVideoWidth-50
+  jump <- (right-left)/8
+  loop(i,map)
+   {
+ 
+     letter <-First(i)
+     digit <- Nth(i,2)
+
+
+     l <- MakeLabel(letter,gstimFont)
+     AddObject(l,gWin)
+     Move(l,left,80)
+     d <- MakeLabel(digit,gstimFont)
+     AddObject(d,gWin)
+     Move(d,left,130)
+ 
+     left <- left + jump
+
+     stimobjects <- Append(stimobjects,l)    
+     stimobjects <- Append(stimobjects,d)    
+   }
+ return stimobjects
+}
+
+
+##type==0 is practice; type==1 is real
+define Trial(map,type)
+{
+   stim <- First(map)
+   corresp <- Nth(map,2)
+
+   probe <- MakeLabel(stim,gProbeFont)
+   AddObject(probe,gWin)
+   Move(probe,gVideoWidth/2,300)    
+   Draw()
+   time0 <- GetTime()
+   resp <- WaitForListKeyPress(gDigits)
+   time1 <- GetTime()
+   if(resp == corresp)
+   {
+     if(gfeedback or type==0) 
+     {
+       probe.text <- "Correct" 
+       Draw()
+       Wait(500)
+     }
+     corr <- 1
+   } else {
+     if(gfeedback or type==0) 
+     {
+       probe.text <- "Incorrect" 
+       Draw()
+       Wait(500)
+    }
+
+     corr <- 0
+   }
+   
+   ##Add data if we are on real trials
+   if(type== 1)
+   {
+     gDatCorr <- Append(gDatCorr,corr)
+     gDatRT <- Append(gDatRT,(time1-time0))
+   }
+
+   FilePrint(gFileOut,resp + " " + corr + " "+ (time1-time0))
+   RemoveObject(probe,gWin)
+   Draw()
+   Wait(500)
+   Draw()
+}
+
+define RemoveObjects(list,win)
+{
+   loop(i,list) 
+   { 
+     RemoveObject(i,win)
+   }
+}

@@ -1,0 +1,211 @@
+###########################################################
+##  PEBL Pursuit Rotor Task, Version 0.1
+##  
+##  A visual-manual dexterity tracking task. 
+##  This is a computer implementation of the physical one popular in the mid
+##  20th century.
+##
+##
+##  Typically, physical task operated at a rate of 60 RPM (1/sec). 
+##  This is exceedingly fast on computer with mouse control.  Control
+##  rate with gSpeed below (.1 or .2 seems reasonable)
+##
+##  Traditionally, results were given in 'time on target'.  For a 
+##  trial of, say, 30 seconds, one determines how much of that time
+##  was a stylus touching the target.  We report this, as well as 
+##  distance from target, for each sample. Sampling rate is at least 
+##  1/10 ms.  Detailed data are saved in pursuitrotor-X.txt, and 
+##  a summarized report appears in pursuitrotor-report-X.txt (as well
+##  as at the end of the study)
+##
+##  For use with PEBL 0.10 or later
+##  http://pebl.sf.net
+##  Part of  The PEBL Psychological Testing Battery
+##  2009-03 Released into Public Domain
+##  by Shane T. Mueller, Ph.D. (smueller at obereed dot net)
+##
+##
+##
+###########################################################
+##  Raw data file outputs:
+##  in pursuit-rotor-X.txt
+##  subnum trial sample abstime relative_time targx targy cursx cursy
+##  hit time_diff total_time miss_in_pixels total_misses
+##
+##
+##Assume 800x600 resolution with 17" screen to map onto above specs
+
+
+define Start(p)
+{
+
+
+   trialtime <- 15
+   trials <- 4
+   gSpeed   <- 1/7.5   #Rotations/second
+
+   gTargSize <- 25     #Radius of target
+
+   Init()
+   Draw()
+   gFileOut <- FileOpenAppend("pursuitrotor-"+gSubNum+".txt")   
+   gReportOut <- FileOpenAppend("pursuitrotor-report-"+gSubNum+".txt")
+
+   inst <- EasyTextBox("In this task, you will track a red circle moving steadily around a circular path.  Try to keep your mouse button on the path at all times.  There will be a total of " +
+     trials +" trials, each lasting "+trialtime+" seconds.  Press mouse button to initialize first trial.",200,200,gWin,15,400,200)
+   Draw()
+   times<- []
+   trial <- 1
+
+   inst.text <- "Press Mouse button to initialize next trial"
+   Hide(inst)
+
+   while(trial <= trials)
+    {
+     WaitForDownClick()
+     Hide(inst)
+     t <- Trial(trialtime, gSubnum + " " + trial)
+     times <- Append(times,t)
+     trial <- trial + 1
+     Show(inst)
+     Draw()
+    }
+
+   out  <-    Print("=====================================")
+   out <- out +  CR(1)+ Print("PEBL Pursuit Rotor task, Version 0.1")
+   out <- out +  CR(1)+ Print(TimeStamp())
+   out <- out +  CR(1)+ Print(GetPEBLVersion())
+   out <- out +  CR(1)+ Print("Participant code: " + gsubnum)
+   out <- out +  CR(1)+ Print("System type: " + GetSystemType())
+   out <- out +  CR(1)+ Print("=====================================")
+   out <- out +  CR(1)+ Print("Video Width:              " + gVideoWidth)
+   out <- out +  CR(1)+ Print("Video Height:             " + gVideoHeight)
+   out <- out +  CR(1)+ Print("Path radius:              " + gRadius)
+   out <- out +  CR(1)+ Print("Target radius:            " + gTargSize)
+   out <- out +  CR(1)+ Print("Speed (rotations/sec):    " + gSpeed)
+   out <- out +  CR(1)+ Print("Total time per trial:     " + trialtime)
+   out <- out +  CR(1)+ Print("Number of trials:         " + trials)
+
+   out <- out +  CR(1)+ Print("=====================================")
+   out <- out +  CR(1)+ Print("Time on target:")
+   out <- out +  CR(1)+ Print("   Round       Time on target      Mean deviation (pixels)")
+    x <- 1
+
+   loop(i,times)
+    {
+   out <- out +   CR(1)+   Print("   Trial ["+ x+"]   " + Format(First(i),5) + "             " + Second(i))
+      x <- x + 1 
+    }
+   out <- out + CR(1)+  Print("=====================================")
+
+   out <- out + CR(2) + "Press any key to exit"
+   inst.text <- out
+   inst.width <- 700
+   inst.x <- 50
+   inst.height <- 500
+   inst.y <- 50
+   Draw()
+   
+   FilePrint(gReportOut,out)
+   FileClose(gFileOut)
+   FileClose(gReportOut)
+   WaitForAnyKeyPress()
+}
+
+
+
+define Trial(timeinsecs,head)
+{
+  col1 <- MakeColor("red")
+  col2 <- MakeColor("darkred")
+  gTarg <- Circle(gHomeX+gRadius,gHomeY,gTargSize,col2,1)
+  AddObject( gTarg,gWin)
+  SetMouseCursorPosition(Round(gHomeX+gRadius),gHomeY)
+  cont <- 1
+  steps <- 0
+  totaltime <- 0
+  totaldev <- 0
+
+  inst <- EasyLabel("Click mouse to begin",gHomeX,gHomeY,gWin,22)
+  Draw()
+  WaitForDownClick()  
+  Hide(inst)
+  SetMouseCursorPosition(Round(gHomeX+gRadius),gHomeY)
+  tNow <- GetTime()
+  t0 <- GetTime()
+  while(cont)
+  {
+
+    tLast <- tNow
+    tNow <- GetTime()
+    tDiff <- tNow -tLast
+    tElapsed <- tNow - t0 
+    gTarg.x <- gHomeX+gRadius * Cos(tElapsed/1000*2*gPi*gSpeed)
+    gTarg.y <- gHomeY+gRadius * Sin(tElapsed/1000*2*gPi*gSpeed)
+
+
+    cont <- (tElapsed < timeinsecs*1000)
+    ##Just a check:
+    ## SetMouseCursorPosition(Round(gTarg.x), Round(gTarg.y))
+    mouse <- GetMouseCursorPosition()
+    inside <- Inside(mouse,gTarg)
+    if(inside) 
+     {
+        gTarg.color <- col1
+     }else{
+       gTarg.color <- col2
+     }
+
+    Draw()
+    ##compute deviation on trial.
+    diff <- Dist(mouse,[gTarg.x,gTarg.y])
+    totaldev <- totaldev + diff
+
+    totaltime <- totaltime + tDiff*inside  #increment the elapsed time
+ 
+    FilePrint(gFileOut,head+ " " + steps + " " + tNow + " " + tElapsed  + " " +  gTarg.x + " " + gTarg.y + " " + First(mouse) +  " " +
+    Second(mouse) + " " +inside + " " + tdiff + " " + totaltime + " " + diff + " " + totaldev)
+    Wait(10)  ##Needed to allow mouse to sync.
+    steps <- steps + 1
+  }
+
+  RemoveObject(gTarg,gWin)
+  RemoveObject(inst,gWin)
+  Draw()
+  return [totaltime, totaldev/steps]
+}
+
+define Init()
+{
+  gPi <- 3.141596
+  gVideoWidth <- 800
+  gVideoHeight <- 600
+  gHomeX <-  400
+  gHomeY <- 300
+
+  gWin <- MakeWindow()
+
+  gSleepEasy <- 1  
+  
+  ##if (a3)^2+(a4)^2 = 17^2, then 
+  ##    9a^2 + 16a^2 = 17^2
+  ##    25 a^2 = 17^2
+  ##    a^2 = (17/5)^2, a = 17/5
+  ## this assumes 17" screen with 3x4 aspect ratio
+  screenWidth <- (17/5) * 4
+  screenHeight <- (17/5) *3 
+  gScale <- gVideoWidth/screenWidth
+  ##These dimensions were taken from description of physical PR task:
+  radiusInches <- (10.04-1.44)/2  #radius in inches
+  gRadius <- radiusInches * gScale
+
+  gback1 <- Circle(gHomeX,gHomeY,gRadius+10,MakeColor("grey40"),1)
+  AddObject(gback1,gWin)  
+  gback2 <- Circle(gHomeX,gHomeY,gRadius-10,MakeColor("grey"),1)
+  AddObject(gback2,gWin)  
+  # gTargSize <- .75 * gScale/2
+
+  ##How many revolutions per second
+
+}
+

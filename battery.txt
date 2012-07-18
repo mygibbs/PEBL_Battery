@@ -1,0 +1,944 @@
+PEBL PSYCHOLOGICAL TEST BATTERY Version 0.5
+
+Released Feb 2010
+Part of the PEBL Project
+http://pebl.sourceforge.net/battery.html
+
+
+About:
+The PEBL Psychological Test Battery is a set of psychological
+tests available for the PEBL Experiment Building Language
+(http://pebl.sourceforge.net).  The consist of freely usable and
+modifiable versions of commonly-used psychological tests. They will
+run on Microsoft Windows, OSX, or Linux operating systems.  They are
+all intended to run using only visual stimuli, although the digit span
+has the option to use auditory presentation as well.
+
+For all experiments, specifying the subject number in the PEBL
+launcher (or using the -s IDENTIFIER command line) will select what
+the saved file should be called.  If nothing is given, the default of
+0 will be used.
+
+Tasks:
+
+The following tests are currently available:
+
+-------------------------------------------------------------------------------
+*                      Berg's "Wisconsin Card Sort" Test Version 0.2
+-------------------------------------------------------------------------------
+
+Location: bcst/cardsort.pbl
+
+Description:
+		Our version of the Wisconsin Card Sorting Test (tm).
+		Participants sort presented cards according to an unknown and
+		changing rule.
+
+Options:
+		* repeats affects how many times through the deck
+		* runlength (default is 5) determines how many correct sorts are
+		  needed before the rule changes.
+		* useCanonical determines whether the 4 stimulus cards are the
+		  same as in Berg's original, or whether they are generated randomly.
+
+Results:
+   	        Data are stored in bcst-<gsubnum>.txt.  Detailed report stored
+	        in bcst-report-<gsubnum>.txt.  Report calculates trials,
+	        accuracy, number incorrect, perseverations on prior rule, and
+	        number of achieved categories.
+
+Data in bcst-<gsubnum>.txt are in the following columns:
+Subnum trial run rule lastrule color shape number resp corr persev abstime rt
+
+Changelog:      
+Version 0.3 outputs the rule and lastrule used for computing perseverations.
+Version 0.2 correctly computes perseverations and fixes some other
+bugs over version 0.1
+
+-------------------------------------------------------------------------------
+*                                  Digit Span Version 0.1
+-------------------------------------------------------------------------------
+Location: dspan/digitspan.pbl
+
+Description:
+This is a standard digit span task. It has visual/auditory
+presentation of number strings, keyboard input.  Can be used directly
+be the subject, or the keyboard entry can be done by a trained
+experimenter using vocal recall.
+
+Options: 
+* The script will run three different versions of the task:
+  starting low and go up until too many errors; starting high and
+  go lower until too many corrects; and an adaptive staircase
+  procedure.  These are selected by changing the gVersion variable in
+  the script.
+
+* The gUseAudio variable controls whether auditory stimuli and
+  feedback should be given.
+
+* The starting lengths, number per length, upper and lower bounds, and
+  accuracy criteria are controlled by variables at the beginning of the
+  file.
+* The endearly variable determines whether the complete
+  set of trials at each length are tested, or if the testing at each
+  length continues only until the criterion has been met. 
+
+Results:
+ Basic results are output to dspan-<subnum>.txt
+
+-------------------------------------------------------------------------------
+*                         Implicit Association Task  Version 0.2
+-------------------------------------------------------------------------------
+Location: iat/IAT.pbl
+
+Description: Version of the Implicit Association Task/Implicit
+Attitude Test.  This version uses non-controversial stimuli of natural
+kinds versus artifacts, and nouns versus verbs.  
+
+Options:
+
+The task can be customized by changing the header text at the
+beginning of the experiment and changing the words and picture names
+in picnames-good.txt, picnames-bad.txt, words-good.txt and
+words-bad.txt.
+
+
+
+Results:
+Data saved to iat-<gsubnum>.txt.  A summary report is also produced,
+which is saved to iat-report-<gsubnum>.txt.  This gives mean response
+times and error rates for different block conditions.
+
+-------------------------------------------------------------------------------
+*                         Bechara's "Iowa Gambling Task", Version 0.3
+-------------------------------------------------------------------------------
+Location: iowa/iowa.pbl
+          iowa/iowa-mouse.pbl
+
+Description: Our implementation of the gambling task described by
+Bechara, commonly 
+referred to by the registered trademarked "Iowa Gambling Task."  4 decks are
+given, participant must draw cards from whatever deck they choose. Two
+decks are net positive, two are net negative.
+
+Options:  By default, the penalty cards are shuffled within 10-card
+blocks.  setting shuffleDecks <- 0 will use the original order for all
+participants.  Baseline rewards for each deck can be changed as well.
+
+the file iowa-mouse.pbl is an identical experiment, but controlled by
+the mouse rather than the keyboard.
+
+ 
+Results:
+Data are written to igt-<gsubnum>.txt  Columns are:
+subject_id trial deck reward penalty net total absolute_time latency
+
+Changelog:
+  Version 0.3 contains a continuously-updated status bargraph, as well
+  as some fixes to bugs in the earlier versions.
+
+-------------------------------------------------------------------------------
+*                             The Hungry Donkey Task, Version 0.1
+-------------------------------------------------------------------------------
+New for Version 0.2
+
+Location: donkey/donkey.pbl
+
+Description: A version of the "Iowa Gambling task", targeted to
+non-verbal children.
+You choose doors, which provide a donkey with gains or losses of
+apples. 4 doors are provided, and the participant must choose doors. Two
+doors are net positive, two are net negative.
+
+Options: None
+
+Results:
+Data are stored in donkey-<gsubnum>.txt.  
+Columns are: subnum, trial, response, reward, penalty, net, total, time, rt
+
+
+
+-------------------------------------------------------------------------------
+*                         Continuous Performance Task, Version 0.1
+-------------------------------------------------------------------------------
+Location: pcpt/pcpt.pbl
+Description:  A continuous performance task akin to Conners' Continuous
+              Performance task.  A constant series of letter stimuli
+              appear on the screen; participant must respond to all
+              stimuli EXCEPT the X.
+Options:
+              The default parameters reflect the Connors task
+              faithfully.  
+              * One can control things like block size, number of
+                cycles through the ISIs, etc.
+              * ISI values should not be adjusted freely--they need to
+                be changed in several places to work properly.
+              * By default, the task provides feedback in the form of
+                a green + or a red -.  To eliminate feedback, set
+                giveFeedback to 0.
+Results:
+              Detailed data is stored in pcpt-<gsubnum>.txt.  Detailed
+              summary report is in pcpc-report-<gsubnum>.txt.  This
+              contains a number of summary statistics broken down
+              across ISI.
+
+
+
+-------------------------------------------------------------------------------
+*                       Probabilistic Reversal Learning Test, Version 0.2
+-------------------------------------------------------------------------------
+Location: probrev/probrev.pbl
+
+Description: Task involves learning a 'rule' which determine which of
+two abstract stimuli are selected.  The rule changes in the middle of
+the block, and the goal is to see how quickly the participant can
+adapt to the rule change.  Feedback is probabilistic
+
+Options:
+One can control the blocksize, stage size, distribution of
+probabilistic errors, and substitute new images for the stimuli.
+
+Results:
+Data is saved to probrev-<gsubnum>.txt. Columns are: 
+subnum block stage overall_trial block_trial pres_order valid_feedback
+correct_count corr rt
+ Basic report is printed to probrev-report-<gsubnum>.txt
+
+
+
+-------------------------------------------------------------------------------
+*                               Simple Response Time, Version 0.1
+-------------------------------------------------------------------------------
+Location: srt/SimpleRT.pbl
+
+Description: Simple reaction time task--an X stimulus appears at
+delays between 250 and 2500 ms, and the participant must depress the
+"X" key as quickly as possible.  
+
+Options: Defaults to 50 trials in 4 blocks, with 10 different delay
+durations. These can be changed freely.
+ 
+
+Results:
+Data is saved to file srt-<gsubnum>.txt.  Columns are:
+subject_id block trial_in_block absolute_time delay  measured_delay rt too_fast_resp resp
+
+A summary of the results, with means and standard deviations across
+delays, is output to srt-report-<gsubnum>.txt.
+
+
+-------------------------------------------------------------------------------
+*                        Test of Attentional Vigilance (TOAV), Version 0.1
+-------------------------------------------------------------------------------
+Location: toav/toav.pbl
+
+Description:
+		Our implementation of the T.O.V.A. (Test of variables of
+		attention).  Similar in intent to the pcpt task.  A white square
+		appears briefly on the screen, with a black square within it.
+		Participant must respond only to targets--the black square on
+		top.  Useful index of ADHD-type conditions.
+
+Options: No easily controlled options are available.
+
+Results:
+		Data stored in toav-<gsubnum>.txt.  Detailed report in
+		toav-report-<gsubnum>.txt
+
+-------------------------------------------------------------------------------
+*                   Psychomotor Vigilance Task Version 0.1
+-------------------------------------------------------------------------------
+New in PEBL Battery 0.2
+
+Location: ppvt/ppvt.pbl
+
+Description: Simple reaction time task--an circle stimulus appears at
+delays between 2 and 12 seconds, and the participant must depress the
+spacebar as quickly as possible. This is basically the simple RT task,
+but a version commonly used to measure sleepiness and arousal.
+
+Options:
+By editing script, one can specify aspects of the task: Number of
+trials, total test duration, isis
+
+ 
+
+Results:
+Data is saved to file ppvt-<gsubnum>.txt.  Columns are:
+
+SubjectNum, Block, Trial, ISI, absolute_Time, RT, trial_type
+for trial type, 1=too fast, 2= OK, 3 = lapse (> 500 ms) 4 = sleep (>30 s)
+
+
+A summary of the results, with means and standard deviations across
+delays, is output to ppvt-report-<gsubnum>.txt.
+
+
+-------------------------------------------------------------------------------
+*                   Partial Report Procedure Version 0.1
+-------------------------------------------------------------------------------
+New in PEBL Battery Version 0.2
+
+Location: partial-report/PartialReport.pbl
+
+Description: Classic partial report procedure used to assess decay time of
+iconic memory. In recent years, has been suggested provide early warning sign 
+for alzheimer's disease.  At the end, it draws a graph depicting
+accuracy by delay time.
+
+
+Options:
+By default, runs 9 blocks of 50 trials.  These can be changed easily
+be editing the script.
+
+ 
+
+Results:
+Data is saved to file part-report-<gsubnum>.txt.  Columns are:
+
+SubjectNum, Block, Trial, delay, radial_position, cueLetter, response,
+correct, RT
+
+
+
+A summary of the results, with means and standard deviations across
+delays, is output to part-report-report-<gsubnum>.txt.
+
+
+
+-------------------------------------------------------------------------------
+*                   Symbol Counter Task, Version 0.1
+-------------------------------------------------------------------------------
+
+Location: symbolcounter/SymbolCounter.pbl
+
+Description: Two-symbol counter updating task, used by Gehring et al. & Garavan.
+
+
+-------------------------------------------------------------------------------
+*                   Tower of London, Version 0.1
+-------------------------------------------------------------------------------
+New for PEBL Battery 0.2
+
+Location: tol/TOL.pbl
+
+Description:  Pick up disks and move them to the configuration shown.  Not a
+complete experiment at this time.  A simple version of the "Tower of Hanoi".
+
+Options:  Number of disks, number of trials. Disks should not exceed 6.
+
+
+
+
+-------------------------------------------------------------------------------
+*                   Stroop Test, Version 0.1
+-------------------------------------------------------------------------------
+New for PEBL Battery 0.3
+
+Location: stroop/stroop.pbl
+
+Description:  
+
+ Keyboard version of the classic reading-version-color vision
+  interference task.
+
+  This test includes three main Response conditions: 
+	 1. response labels with color and word
+     2. response labels with black words
+     3. response labels with color patches.
+
+
+  For each response conditions, there are two decision blocks:
+     1. Name reading
+     2. Color identification
+
+  Finally, within each block, there are three trial types:
+     1. consistent color and name
+     2. inconsistent color/name
+     3. single feature stimuli (black words or colored "xxxxx")
+     
+
+
+Typical results shown below.  Here, the so-called stroop effect
+is shown in each table because conflict has a different impact
+for naming versus color ID.  When response labels are colored, color
+ID is much easier in the conflict condition; when response labels are
+not colored, label reading is easier. 
+
+Colored Names:
+-----------------------------------
+     Condition   Name   Color  (N-C)
+-----------------------------------
+    Consistent  591     563    27
+      Conflict  1019     640    379
+Single Feature  656     563    92
+-----------------------------------
+Black Names:
+-----------------------------------
+     Condition   Name   Color  (N-C)
+-----------------------------------
+Condition   Name   Color  Difference (N-C)
+    Consistent  646     609    36
+      Conflict  751     849    -98
+Single Feature  721     694    26
+-----------------------------------
+Colored Patches:
+-----------------------------------
+     Condition   Name   Color  (N-C)
+-----------------------------------
+    Consistent  604     532    72
+      Conflict  1132     578    554
+Single Feature  684     555    129
+-----------------------------------
+
+ A simple measure of interference can be formed by finding the
+difference between values in the N-C column for conflict and
+consistent conditions.  For the data shown here, this would be:
+
+colored names: 379-27 =  352
+black names:   -98-36 = -134
+color patches: 554-72 =  482
+
+For these data, when there are color shades available on the response
+label line (the first and third condition), name reading is most
+harmed for conflicting stimuli in comparison to consistent stimuli.
+In contrast, when there are no shades on the response line (condition
+2), color identification is most harmed for conflicting stimuli.  This
+is the typical stroop effect.
+
+
+Options:  
+Number of trials per block.
+
+
+
+
+-------------------------------------------------------------------------------
+*                   Lexical Decision Task, Version 0.1
+-------------------------------------------------------------------------------
+New for PEBL Battery 0.3
+
+Location: lexicaldecision/lexicaldecision.pbl
+
+Description:  
+
+Subject classifies stimuli as words or nonwords.  Stimuli should be
+placed, one-per-line, in words.txt and nonwords.txt.
+
+
+
+-------------------------------------------------------------------------------
+*                   Spatial Cueing Task, Version 0.1
+-------------------------------------------------------------------------------
+New for PEBL Battery 0.3
+
+Location: spatialcueing/spatialcueing.pbl
+
+Description:  
+
+Subject gets a directional cue that tells them where a stimulus is
+likely to appear.  It is usually valid, but not always. Valid cues
+tend to produce faster RTs than invalid cues.. First
+described by Posner (1980). 
+ 
+
+
+-------------------------------------------------------------------------------
+*                   PEBL Dexterity task, Version 0.1
+-------------------------------------------------------------------------------
+New for PEBL Battery 0.3
+
+Location: dexterity/dexterity.pbl
+
+Description:  
+Subject must move cursor to a visual target, under differing levels of
+noise.
+
+
+
+
+-------------------------------------------------------------------------------
+*                        Two-column addition, Version 0.1
+-------------------------------------------------------------------------------
+New for PEBL Battery 0.3
+
+Location: twocoladd/twocol.pbl
+
+Description:  Two-column addition task: add three two-digit numbers.  
+
+
+Options:
+Instrumentation variables at the top available to control:
+ The number of practice trials (10) 
+ total trials (45)
+ isi (5 ms)
+ time limit per trial (15 sec)
+
+Results:
+Data is saved to file twocol-<gsubnum>.txt.  Columns are:
+sub cond trial num1 num2 num3 sum resp corr toolong clicks starttime firstclick 
+completetime
+
+
+-------------------------------------------------------------------------------
+*            Four-choice reaction time task Version 0.1
+-------------------------------------------------------------------------------
+New for PEBL Battery 0.3
+Location: fourchoice/fourchoice.pbl
+
+Description: Simple 4-choice reaction task--respond using keyboard to
+which quadrant a plus sign appears in.  Common task, as described by
+Wilkinson & Houghton (1975).
+
+
+Options:
+Instrumentation variables at the top available to control:
+ whether to use sound  (gUseSound)
+ total trials (50)
+ isi (200 ms)
+ time limit per trial (2500 ms)
+
+Warning tone can be changed by replacing tone.wav with another .wav file.
+ In addition, after the script is started, one selects whether to use
+ the keypad or specific keys on the keyboard.  This can be hardcoded
+
+Results:
+Data is saved to file fourchoice-<gsubnum>.txt.  Columns are:
+
+subnum      set by launcher
+resptype    which keys are used
+isi         time between trials
+trial       trial number
+sound       whether sound beeps kicked in after 2500 ms
+resp        key response
+quad        quadrant of target
+leftright   target was left/right side
+updown      target was up/down 
+respquad    response quadrant
+corr        whether it was correct
+lapse       if sound is used, whether time was > 2500 ms
+rt          response time
+
+
+In addition, a summary of the performance is displayed at the end of
+the task and saved in fourchoice-<gsubnum>-report.txt
+
+
+-------------------------------------------------------------------------------
+*           PTracker, a compensatory tracker Version 0.1
+-------------------------------------------------------------------------------
+New for PEBL Battery 0.3
+Location: ptracker/ptracker.pbl
+
+Description: 
+ A work-alike for 'CompTrack' by Makeig & Jolley (1995),
+ a compensatory tracking task.
+
+
+See http://sccn.ucsd.edu/~scott
+    http://sccn.ucsd.edu/~scott/pdf/COMPTRACK.pdf
+   http://oai.dtic.mil/oai/oai?&verb=getRecord&metadataPrefix=html&identifier=ADA311977
+
+The goal of the task is to use a mouse/trackball to keep a
+randomly-drifting ball 'on target' for some time period.
+Originally used to investigate vigilance, as the cursor must be
+continuously adjusted to keep it 'in the bullseye'.
+Originally used with a trackball.  A mouse works fine, but the
+little 'pencil eraser' device on most laptops is great for it too.
+
+Works basically like the task described in the above documents, although
+some of the constants have been changed for better performance (or
+because they were described incorrectly in the pdf.
+
+The current position of the ball, as well as the input force vector,
+is written to a file on each cycle: ptracker-<gsubnum>.dat
+
+
+-------------------------------------------------------------------------------
+*            Matrix Rotation Version 0.1
+-------------------------------------------------------------------------------
+New for PEBL Battery 0.3
+Location: matrixrotation/matrixrotation.pbl
+
+Description: View a 5x5 matrix with filled-in cells.  When ready, view
+another one and determine whether it is the same as the previous (but
+rotated 90 degrees) or different.  Featured in the UTC test battery.
+
+
+
+-------------------------------------------------------------------------------
+*            Time Wall Version 0.1
+-------------------------------------------------------------------------------
+New for PEBL Battery 0.3
+Location: timewall/timewall.pbl
+
+Description: A square moves down the screen, and disappears behind a
+wall.  Subject must estimate when it will appear in a notch at the
+bottom of the wall. 
+
+
+-------------------------------------------------------------------------------
+            Letter Digit Substitution Task Version 0.1
+-------------------------------------------------------------------------------
+New for PEBL Battery 0.4
+Location: letterdigit/letterdigit.pbl
+
+Description: Given a set of 9 mappings between letters and digits,
+choose the correct digit for a series of presented stimuli letters.
+Sometimes called the "Code Substitution" or "Letter digit
+code substition" task.  
+As found in the UTC Test batteryand in paper-and-pencil form in the
+Wechsler IQ test.
+
+Options:
+
+Output:
+Output file is letterdigit-<subnum>.txt, and contains:
+subnum trial 
+
+Detailed summary report is in letterdigit-summary-<subnum>.txt,
+including stimuli letters, mapping, trials, and accuracy/RT
+statistics.
+
+
+
+-------------------------------------------------------------------------------
+            Pattern Comparison Task (3 versions) Version 0.1
+-------------------------------------------------------------------------------
+New for PEBL Battery 0.4
+Location: patterncomparison/patterncomparison.pbl
+		  patterncomparison/pattern-sequential.pbl
+		  patterncomparison/pattern-samediff.pbl
+
+Description: 
+Compare two 4x4 grids of circles to determine whether they are the
+same or different.  Two of the versions map onto two tasks in the UTC
+Test battery (Pattern comparison--sequential and simultaneous).  A
+third requires single responses--either for same or different (with no
+response indicating the opposite)
+
+Options: 
+
+Output:
+Output files are:
+      patcomp-<subnum>.txt,
+      patcompsd-<subnum>.txt
+      patcompseq-<subnum>.txt
+
+Dat columns are:
+subnum trial samediff mat1 mat2 abstime rt resp corr
+
+where mat1 and mat2 are binary-coded flattened matrices.
+
+
+
+
+
+-------------------------------------------------------------------------------
+            Change Detection Task Version 0.1
+-------------------------------------------------------------------------------
+New for PEBL Battery 0.4
+Location: changedetection/changedetection.pbl
+
+
+Description: 
+
+
+
+Options: 
+
+Output:
+
+Dat columns are:
+
+
+-------------------------------------------------------------------------------
+            Visual Memory Span, Version 0.1
+-------------------------------------------------------------------------------
+New for PEBL Battery 0.4
+Location: mspan/staircase.pbl
+          mspan/buildup.pbl
+
+
+Description: 
+Two parallel versions of a generic memory span task.  It uses words
+with associated pictures, and requires responding by clicking on a 9x9
+grid of responses (rather than verbal respnonses).
+
+ The staircase task starts out at a length 4, then continues, going up
+ or down by one list length depending on whether the subject got the
+ trial correct or incorrect.
+  
+ The buildup task works like 'simon' adding a new word to the current
+ list until an error is made (or the list is nine long).
+
+Options: 
+
+  upperbound <- 9             ## The longest list length
+  lowerbound <- 3             ## The shortest list length
+  staircasestart  <- 4        ## starting point for staircasestart.
+
+  gISI <- 1000                ## Inter-stimulus interval in ms
+  gITI <- 1000                ## inter-trial interval.
+  gWait <- 500                ## How long to spend at each word
+  gDoWait <- 0                ## Whether there should be a 'blow-up' of the scre
+en
+
+
+Output:
+data/buildup-X.txt
+data/staircase-X.txt
+
+
+
+Dat columns are:
+subnum trial inputcode responsecode correct rt1 rt2 rt3 rt4 rt5 rt6 rt7 rt8 rt9
+
+
+-------------------------------------------------------------------------------
+            Survey Generator Version 0.1
+-------------------------------------------------------------------------------
+New for PEBL Battery 0.4
+Location: survey/survey.pbl
+
+Description: Use PEBL to generate your own survey. Includes several
+different question types (instructions, short-answer, long-answer,
+multiple choice, multiple-selection, n-level likert agreement).
+Questions are controlled by a .csv file, and data are output to a
+unique file for each subject.
+
+
+
+-------------------------------------------------------------------------------
+            Time tapping test, Version 0.1
+-------------------------------------------------------------------------------
+New for PEBL Battery 0.4
+Location: timetap/timetap.pbl
+
+
+Description:  Tap a button at a predetermined rate for 1 minute
+
+
+Options: 
+
+Output:
+
+Dat columns are:
+
+
+-------------------------------------------------------------------------------
+            Time tapping test, Version 0.1
+-------------------------------------------------------------------------------
+New for PEBL Battery 0.4
+Location: timetap/timetap.pbl
+
+
+Description: Tap keyboard button as fast as you can for ten seconds.
+A standard neuropsych test battery test.
+
+Options: 
+
+Output:
+
+Dat columns are:
+
+
+-------------------------------------------------------------------------------
+            Probability Monitor, Version 0.1
+-------------------------------------------------------------------------------
+New for PEBL Battery 0.4
+Location: probmonitor/probmonitor.pbl
+
+Description: 
+  Workalike of UTC battery test.  Subject monitors one or more noisy
+  dials, and must respond when one has a signal: the dial starts
+  having a bias toward one side or another.
+
+
+Options: 
+
+  gDelay <- 50                   ## ms for each update
+  gSignals <- 10                 ## number of updates per trial
+  gTriallength <- 300 * 1000     ## max length of trial (longer than in UTC)
+
+
+Output:
+probmonitor-X.txt
+
+Dat columns are:
+
+subnum dials signum abstime signal resp corr type time rt
+
+
+
+-------------------------------------------------------------------------------
+            Match to sample, Version 0.1
+-------------------------------------------------------------------------------
+New for PEBL Battery 0.4
+Location: matchtosample/matchtosample.pbl
+
+Description: 
+  Workalike of UTC battery test.  Subjects see a colored matrix and
+  study it for however long they choose.  THen they are shown a pair
+  of matrices; one identical, and one different.  They are to choose
+  which one is the one they studied.
+
+
+Options: 
+
+  gSize <- 4  #Number of rows/columns in the matrix
+  giveFeedback <- 1  
+  numtrials <- 30
+  delay <- 3500        ## Time between study and test
+
+
+
+Output:
+matchtosample-X.txt
+
+Dat columns are:
+
+subnum trial targ foil studytime rt order resp corr
+0 1 0001001010110111 0001011010110101 1689 1600 1 <lshift> 1
+
+
+-------------------------------------------------------------------------------
+            Situation Awareness test, Version 0.1
+-------------------------------------------------------------------------------
+New for PEBL Battery 0.4
+Location: satest/satest.pbl
+
+
+Description: 
+
+
+Options: 
+
+Output:
+
+Dat columns are:
+
+
+-------------------------------------------------------------------------------
+            Test of Fitts's Law, Version 0.1
+-------------------------------------------------------------------------------
+New for PEBL Battery 0.4
+Location: fitts/fitts.pbl
+
+
+Description: 
+
+
+Options: 
+
+Output:
+
+Dat columns are:
+
+
+
+-------------------------------------------------------------------------------
+            Mental rotation task
+-------------------------------------------------------------------------------
+New for PEBL Battery 0.4
+Location: rotation/Rotation.pbl
+
+
+Description: 
+
+ Basic version of Shepard's classic 'mental rotation' experiment.
+ This uses just two polygons, but these can be specified by hand.    
+
+ This test is not well instrumented for laboratory study.  It may be
+ sufficient for simple classroom demonstrations.
+
+
+Options: 
+
+Output:
+
+Dat columns are:
+
+
+
+-------------------------------------------------------------------------------
+            Pursuit Rotor Task
+-------------------------------------------------------------------------------
+New for PEBL Battery 0.4
+Location: pursuitrotor/pursuitrotor.pbl
+
+
+Description: 
+
+Computer implementation of a simple pursuit rotor task.  Subjects must
+follow a target with their mouse.  They get credit for the proporition
+of time the mouse cursor is on the target, and how far the deviate
+from it by.
+
+
+Options: 
+
+The following variables are set near the top of the file
+
+Duration in seconds of each trial:
+ trialtime <- 15  
+
+Number of trials:
+ trials <- 4
+
+Rotations per second.  With computer mouse, 1 rotation/7.5 seconds
+seems a reasonable speed:
+gSpeed <- 1/7.5    
+
+
+
+Output:
+pursuitrotor-X.txt
+pursuitrotor-report-X.txt
+
+
+Dat columns are:
+
+
+
+-------------------------------------------------------------------------------
+            PEBL Trails Task
+-------------------------------------------------------------------------------
+New for PEBL Battery 0.4
+Location: ptrails/ptrials.pbl
+
+
+Description: 
+
+A new implementation of the classic connect-the-dots paradigm.  It can
+either be used with the classic Reitan points, or randomly generated
+new points.  For the classic points, the paths are set up so that they
+do not cross.  For randomly-generated points, the paths are likely to
+cross.
+
+Options: 
+
+The following variables are set near the top of the file
+
+#change from 0 to 1 in order to use the classic Reitan points
+useReitan <- 0  
+
+Number of trials. If useReitan == 1, then random trials will be
+ appended after the reitan trials. 
+ trials <- 3
+
+
+  gTargSize <- 20 ##Size in pixels of targets
+  gTargclickSize <- 20 ##Size of click zone; may be smaller or larger
+                      ##than target
+  gNumTargs <- 25    #Number of targets
+  gDrawLines <- 1    #Whether to draw lines
+
+
+Output:
+ptrails-X.txt
+
+
+Dat columns are:
+
+subnum block clicknum true_target abstime x y correct clickedobject rt rt

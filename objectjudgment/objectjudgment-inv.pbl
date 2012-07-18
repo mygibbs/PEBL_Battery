@@ -1,0 +1,335 @@
+##
+##   
+##  
+##
+##
+##
+
+
+define Start(p)
+{
+
+  gVideoWidth <- 1440
+  gVideoHeight <- 900
+
+#  SeedRNG(300)
+  gshowTime <- 750
+  gwaitTime <- 750
+
+  gTargRadius <- 150 ##Size in pixels of targets
+  gMinAngle <- 5     ##smallest angle
+  gMaxAngle <- 175   ##largest ange
+  gMinLength <- 10   ##Shortest edge
+
+  gNumTrials <- 25   #Number of trials
+  gSleepEasy <- 1
+  
+  ##Parameters controlling printable area for dots
+
+  gWin <- MakeWindow("black")
+  ShowCursor(0)
+
+  gHomeX <- gVideoWidth/2
+  gHomeY <- gVideoHeight/2
+  gHeader <- EasyLabel("",gHomeX, 10,gWin,12)
+  gStimColor <- MakeColor("blue")
+
+  ##This is jpust a little polygon rotation tester.
+  while(0)
+   {
+
+  angle <- Random()*2*3.14159
+
+  shape <- Transpose(MakeAttneave(200,10,5,175,10))
+  shape2 <- RotatePoints(ZoomPoints(shape,1.1,1.1),angle)
+  rot1 <-  RotatePoints(shape,angle)
+
+  
+  
+  poly3 <- Polygon(gHomeX,gHomeY-150,First(shape2),Second(shape2),gStimColor,1)
+  poly1 <- Polygon(gHomeX,gHomeY-150,First(rot1),Second(rot1),MakeColor("white"),1)
+  poly2 <- Polygon(gHomeX,gHomeY+150,First(shape),Second(shape),gStimColor,0)
+
+  AddObject(poly3,gWin)
+  AddObject(poly1,gWin)
+  AddObject(poly2,gWin)
+
+  Draw()
+  WaitForAnyKeyPress()
+  RemoveObject(poly1,gWin)
+  RemoveObject(poly2,gWin)
+  RemoveObject(poly3,gWin)
+  }
+  gSubNum <- GetSubNum(gWin)
+  gFileOut <- FileOpenAppend("objjudgeinv-"+gSubNum+".txt")
+
+  gstimFont <-  MakeFont("VeraMono.ttf",0,18,MakeColor("yellow"),gStimColor,1)
+  gclickedFont <- MakeFont("VeraMono.ttf",1,18,MakeColor("yellow"),gStimColor,1)
+
+
+
+
+  inst <-  EasyTextBox("",50,50,gWin,24,gVideoWidth-100,gVideoHeight-100)
+
+ 
+  inst.text <- "Invariant Recognition
+In this task, you will attempt to determine whether a probe is
+identical to the learned object, regardless of orientation or size. 
+Press any key to begin"
+ 
+  Draw()
+  WaitForAnyKeyPress()
+  Hide(inst)
+  Draw()
+  gFooter <- EasyLabel("",gVideoWidth/2,gVideoHeight-25,gWin,25)
+  gFeedback <- EasyLabel("",gHomeX, gHomeY,gWin,50)
+  deg <- 2*3.14159/360  #one degree in radians
+
+  ##Experimental conditions
+
+
+  mincorners <- 8
+  maxcorners <- 8
+
+  shape    <- [0,0,0,2,4,8]         ##How many edges to perturb?
+  shapepert <- 20
+
+  design2 <- Shuffle(RepeatList(shape, 10))
+  numtrials <- Length(design2)
+  trial <- 1
+  loop(cond,design2)
+   {
+     gHeader.text <- "Trial ["+trial+"] out of ["+numtrials+"]"
+     #choose random angle
+     angle <- (Random()*360-180)*deg
+     size <- Random() +.5  #.50 to 1.5
+
+     #First, create the shape
+     shape <- MakeAttneave(gTargRadius,minCorners,5,175,10)
+     pts <- Transpose(shape) ##This actually makes a copy of it.
+
+     if(cond == 0)   #same
+     {
+
+       shape2 <- RotatePoints(pts,angle)
+       shape2 <- ZoomPoints(shape2,size,size)
+
+	   
+     } else{
+
+
+       shape2 <- (DistortPoints(pts,cond,shapepert,gMinangle,gMaxangle,gMinLength))
+       shape2 <- RotatePoints(Transpose(shape2),angle)
+       shape2 <- ZoomPoints(shape2,size,size)
+
+     }
+
+     out <-  TrialSD(pts,shape2,cond)
+
+     FilePrint(gFileout, gSubNum + " inv "  + trial + " " + cond + " "  + angle + " " + size + " " + shapepert + " " + First(out) + " " +   Second(out) + " " + Third(out) + " " + Fourth(out))
+
+    trial <- trial + 1
+
+   }
+
+   Show(inst)
+   inst.text <- "Thank you.  Press any key to exit."
+   Draw()
+   WaitForAnyKeyPress()
+
+}
+
+
+
+
+define TrialSD(shape1,shape2,same)
+{     
+
+     poly1 <- Polygon(0,0,First(shape1),Second(shape1),gStimColor,1)
+     poly2 <- Polygon(0,0,First(shape2),Second(shape2),gStimColor,1)
+
+     AddObject(poly1,gWin)
+     Move(poly1,gHomeX,gHomeY)
+     Draw()
+     Wait(gshowTime)
+     Hide(poly1)
+     Draw()
+     AddObject(poly2,gWin)        
+
+
+     Move(poly2,gHomeX,gHomeY)
+     Show(poly2)
+
+     gFooter.text <-  "SAME <lshift>                         <rshift> DIFFERENT"
+
+     Wait(gwaitTime)
+     Draw()
+     time0 <- GetTime()
+     resp <-   WaitForListKeyPress(["<lshift>","<rshift>"])
+     time1 <- GetTime()
+     
+     if(same==0)
+       {
+         corr <- (resp == "<lshift>")
+       }else{
+         corr <- (resp == "<rshift>")
+       }
+
+     RemoveObject(poly1,gWin)  
+     RemoveObject(poly2,gWin)
+   
+     if(corr)
+      {
+        gFeedback.text <-  "Correct"
+
+      }else{
+
+        gFeedback.text <-  "Incorrect"
+      }
+    Draw()
+    Wait(500)
+    gFeedback.text <- ""
+    Draw()
+
+  return [-1, resp, corr, (time1-time0)]
+}
+
+
+
+
+
+## 
+##
+define DistortPoints(points,num,perturb,minangle,maxangle,minlength)
+{
+
+	
+
+    l <- Length(First(points))
+    good <- 0
+	while(not good)
+    {
+     doMe <- Shuffle(Merge(Repeat(1,num), Repeat(0,l-num)))
+
+    newpts <- []
+    items <- Transpose([First(points),Second(points), doMe])
+
+    loop(i,items)
+    {
+       if (Third(i))
+        {
+          x <- Round(First(i) + (RandomDiscrete(2)*2-3)  *(perturb + Random()*perturb)/2)
+          y <- Round(Second(i) + (RandomDiscrete(2)*2-3)  *(perturb + Random()*perturb)/2)
+
+          newpts <- Append(newpts,[x,y])
+        }else{
+          newpts <- Append(newpts,SubList(i,1,2))
+        }
+    }
+
+      good <- ValidateShape(newpts,minAngle,maxAngle,minlength)
+    }  
+  return newpts
+}
+
+
+
+##
+define MakeHull(radius,numpoints)
+{
+
+  ##First, sample numpoints xy points
+  pts <- []
+  num <- 0
+  
+
+ while( num < numpoints)
+   {
+
+    #Use sampling-and-reject to get points within a circle
+    tryX <- Round((Random()-.5)*radius)
+    tryY <- Round((Random()-.5)*radius)
+
+    while(Sqrt(tryX^2 + tryY^2) > radius)
+    {
+      tryX <- Round((Random()-.5)*radius)
+      tryY <- Round((Random()-.5)*radius)
+    }
+
+   ##Add the point
+   pts <- Append(pts,[tryX,tryY])
+   ##make the hull
+   pts <- Rest(ConvexHull(pts))
+   num <- Length(pts)
+  }
+
+  return pts
+}
+
+
+
+define Insert(list, item, pos)
+{ 
+   if(pos == 0)
+    { 
+      new <- Merge([item],list)
+    } elseif(pos >= Length(list))
+    {
+      new <- Append(list, item)    
+ 
+    }else {
+
+      new <- FlattenN([SubList(list,1,pos),
+                      [item], 
+                      SubList(list,pos+1,Length(list))],1)
+   }
+
+  return new
+}
+
+
+
+
+
+
+##This is like mod, but 1-based instead of 0-based
+define Mod1(num,mod)
+{
+   tmp <- Mod(num, mod)
+   if(tmp==0)
+     {
+       tmp <- mod
+     }
+   return tmp
+}
+
+
+
+define DistMatrix(pts)
+{
+   mat <- []
+   loop(i,pts)
+   {
+
+     line <- []
+     loop(j, pts)
+     {
+       line <- Append(line, Dist(i,j)) 
+
+     }
+
+	 mat <- Append(mat,line)
+   }
+
+  return mat
+}
+
+
+
+define RemoveObjects(list,win)
+{
+   loop(i,Flatten(list))
+   { 
+     RemoveObject(i,win)
+   }
+}

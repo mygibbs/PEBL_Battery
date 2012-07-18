@@ -1,0 +1,540 @@
+#!/usr/local/bin/pebl
+#################################################################
+##  PEBL Automatic OSPAN (AOSPAN)
+#################################################################
+
+###############################################################################
+##  Main
+###############################################################################
+
+###############################################################################
+##	Start
+##
+##  main runner function
+
+define Start(lPar)
+{
+    # initialize window, objects, etc.
+    Initialize()
+	
+	# displays test page
+	instructions <- "text"
+	DisplayInstructions(instructions)
+	
+	blocks = [1=InstrPracLetter; 2=PracLetter; 3=InstrPracMath; 4=PracMath; 
+	5=InstrPracBoth; 6=PracBoth; 7=InstrTestBoth; 8=TestBoth; 9=InstrFinal]
+	
+    ## pseudo python, can pebl do this?
+    ## starts the blocks
+	for( int block = 1, block <= Length(blocks), block++) {
+        block[block]()
+    }
+    
+    return 0
+}
+
+
+###############################################################################
+##  Letter Trials
+###############################################################################
+
+###############################################################################
+##	Letter Trial comment goes here
+##
+##  TODO
+
+define LetterTrials() {
+
+	<trial show_letter>
+		values.lettercount++
+		item.PresentedLetters.item=text.Letters.currentitem]
+		stimulusframes = [Letters, currentsetsize]
+		trialduration = values.learninginterval
+		validresponse = (noresponse)
+        
+		if(values.lettercount==values.currentsetsize) {
+            trial.recall_letter
+        }
+        
+		if(script.currentblock=="PracLetter") {
+            trial.show_letter
+        } else {
+            trial.InitMathProblem01
+        }
+        
+		trialdata = [Letters]
+
+	<trial recall_letter>
+		values.recallcount++
+        
+        if(values.recallcount==1) {
+            values.recalldelay=500
+        } else { 
+            values.recalldelay=0
+        }
+        
+		pretrialpause = values.recalldelay
+		stimulusframes <- ["F", "H", "J", "K", "L", "N", "P", "Q", "R", "S", "T", "Y", "_", clear, exit, recalledletters, recallprompt, letterstrings]
+		validresponse <- ["F", "H", "J", "K", "L", "N", "P", "Q", "R", "S", "T", "Y", "_", clear, exit)
+        
+		if(trial.recall_letter.response!="exit" && trial.recall_letter.response!="clear") {
+            item.RecalledLetters.item=trial.recall_letter.response; 
+            values.recalledletters=concat(values.recalledletters, trial.recall_letter.response)
+        }
+        
+		if(trial.recall_letter.response=="clear") {
+            clear(item.RecalledLetters); values.recalledletters="" 
+        }
+		
+        responsemessage = (F, clickF, 150)
+		responsemessage = (H, clickH, 150)
+		responsemessage = (J, clickJ, 150)
+		responsemessage = (K, clickK, 150)
+		responsemessage = (L, clickL, 150)
+		responsemessage = (N, clickN, 150)
+		responsemessage = (P, clickP, 150)
+		responsemessage = (Q, clickQ, 150)
+		responsemessage = (R, clickR, 150)
+		responsemessage = (S, clickS, 150)
+		responsemessage = (T, clickT, 150)
+		responsemessage = (Y, clickY, 150)
+		responsemessage = (clear, clickclear, 150)
+		responsemessage = (exit, clickexit, 150)
+		responsemessage = (_, click_, 150)
+		
+        if(trial.recall_letter.response=="exit") {
+            trial.letter_feedback
+        } else { 
+            trial.recall_letter
+        }
+		
+        trialdata = [recalledletters]
+
+	Letters <- ["F","P","Q","J","H","K","T","S","N","R","Y","L"]
+    
+	PresentedLetters <- []
+	RecalledLetters <- []
+    
+    Row1 <- ["F", "H", "J"]
+    Row2 <- ["K", "L", "N"]
+    Row3 <- ["P", "Q", "R"]
+    Row4 <- ["S", "T", "Y"]
+
+	Button <- MakeButton("BLANK")
+	Button <- MakeButton("CLEAR")
+	Button <- MakeButton("EXIT")
+
+    # display the recalled letters in red on the right
+	recallprompt <- "Select the letters in the order presented. Use the blank button to fill in forgotten items."
+}
+
+
+###############################################################################
+##  Math Trials
+###############################################################################
+
+###############################################################################
+##	Generating the math problem has 4 steps
+##	1. Selection of the first operation, MathOpt01: "(9/3)"
+##	2. Selection of the second operation, MathOpt012: "- 2"
+##	3. Selection of whether the answer presented to subjects should be true or false, MathCorrect: "TRUE" or "FALSE"
+##	4. A random number added to the correct answer to make it false, MathRand: "3"
+
+define MathTrials() {
+
+    ##  text and layout items used for the math trials
+    MathProblemDisplay <- MakeLabel("<%text.MathProblem.currentitem%> = ?")
+    MathProblem <- MakeLabel("<%values.tmp_mathopt01%> <%values.tmp_mathsign%> <%values.tmp_mathopt02%>")
+    MathCorrect <- MakeLabel("<%counter.MathCorrect.selectedvalue%>")
+    MathAnswer <- MakeLabel("<%values.mathanswer%>")
+    MathScore <- MakeLabel("<%values.mathaccuracy%>%")
+    MathFeedback <- MakeLabel(
+        "You made <%values.mathcurrenterrors%> math error(s) on this set of trials.",
+        "You have made a total of 3 or more math errors during this set of trials. Please do your best on the math."
+    )
+    TRUE <- MakeLabel("TRUE")
+    FALSE <- MakeLabel("FALSE")
+    TestMathPrompt <- MakeLabel("Click the left mouse button to continue.")
+    PracMathPrompt <- MakeLabel("When you have solved the math problem,~nclick the left mouse button to continue.")
+    correcttext <- MakeLabel("Correct")
+    incorrecttext <- MakeLabel("Incorrect")
+    
+    ## all math related lists
+    AdditionalMathOps <- [
+        "(4*4)", "(2*8)", "(9*2)", "(6*3)", "(3*6)", "(2*9)", "(5*4)", "(4*5)", 
+        "(7*3)", "(3*7)", "(8*3)", "(6*4)", "(4*6)", "(3*8)", "(5*5)", "(9*3)",
+        "(3*9)", "(7*4)", "(4*7)", "(6*5)", "(5*6)", "(8*4)", "(4*8)", "(7*5)", 
+        "(5*7)", "(9*4)", "(6*6)", "(4*9)", "(8*5)", "(5*8)", "(7*6)", "(6*7)",
+        "(9*5)", "(5*9)", "(8*6)", "(6*8)", "(7*7)", "(9*6)", "(6*9)", "(8*7)",
+        "(7*8)", "(9*7)", "(7*9)", "(8*8)", "(9*8)", "(8*9)", "(9*9)"
+	]
+	DiffForAdditionalMathOps <- [
+        "2", "2", "2", "2", "2", "2", "3", "3", 
+        "3", "3", "3", "3", "3", "3", "3", "3", 
+        "3", "3", "3", "3", "3", "3", "3", "3", 
+        "3", "3", "3", "3", "4", "4", "4", "4", 
+        "4", "4", "4", "4", "4", "4", "4", "4",
+        "4", "4", "4", "4", "4", "4", "4"
+	]
+	MathOpt01 <- [
+		"(1/1)", "(2/1)", "(2/2)", "(3/1)", "(3/3)", "(4/1)", "(4/2)", "(4/4)", 
+		"(5/1)", "(5/5)", "(6/1)", "(6/2)", "(6/3)", "(6/6)", "(7/1)", "(7/7)",
+		"(8/1)", "(8/2)", "(8/4)", "(8/8)", "(9/1)", "(9/3)", "(9/9)", "(1*2)", 
+		"(1*3)", "(2*2)", "(1*4)", "(1*5)", "(3*2)", "(2*3)", "(1*6)", "(1*7)", 
+		"(4*2)", "(2*4)", "(1*8)", "(3*3)", "(1*9)", "(5*2)", "(2*5)", "(6*2)", 
+		"(4*3)", "(3*4)", "(2*6)", "(7*2)", "(2*7)", "(5*3)", "(3*5)", "(8*2)"
+	]
+	MathDifficulty <- [
+		"1", "1", "1", "1", "1", "1", "1", "1", 
+		"1", "1", "1", "1", "1", "1", "1", "1", 
+		"1", "1", "1", "1", "1", "1", "1", "1", 
+		"1", "1", "1", "1", "1", "1", "1", "1", 
+		"1", "1", "1", "1", "1", "2", "2", "2", 
+		"2", "2", "2", "2", "2", "2", "2", "2"
+	]
+    MathOpt02 <- [	
+		"1", "2", "3", "4", "5", "6", "7", "8", "9", 
+		"1", "2", "3", "4", "5", "6", "7", "8", "9"
+	]
+	MathSign <- [
+		"+", "+", "+", "+", "+", "+", "+", "+", "+", 
+		"-", "-", "-", "-", "-", "-", "-", "-", "-"
+	]
+	MathCorrect <- [
+		"TRUE", "TRUE", "TRUE", "TRUE", "TRUE", 
+		"FALSE", "FALSE", "FALSE", "FALSE", "FALSE"
+	]
+	AltMathCorrect <- [
+		"TRUE", "TRUE", "TRUE", "TRUE", "TRUE", "TRUE", "TRUE", "TRUE", "TRUE", 
+		"FALSE", "FALSE", "FALSE", "FALSE", "FALSE", "FALSE", "FALSE", "FALSE", "FALSE"
+	]
+	MathRand <- [
+		"1", "2", "3", "4", "5", "6", "7", "8", "9", 
+		"-1", "-2", "-3", "-4", "-5", "-6", "-7", "-8", "-9"
+	]
+
+    
+    ##  trial prac_solve_math>
+        values.mathaccuracy=round(((values.mathproblemcount-values.mathtotalerrors)/values.mathproblemcount)*100)
+    iscorrectresponse = [trial.prac_solve_math.response==counter.PracMathCorrect.selectedvalue]
+    responsemessage = (anyresponse, PracMathAnswer, 800)
+    correctmessage = true(correcttext, 800)
+    errormessage = true(incorrecttext, 800)
+    if(trial.prac_show_math.trialcount >= counter.PracMathCounter.itemcount)
+        trial.prac_math_feedback else trial.prac_show_math]
+
+    ##  block PracMath>
+        values.mathaccuracy=0
+		values.mathtimeout=(2.5*trial.prac_show_math.totalsdlatency)+trial.prac_show_math.totalmeanlatency
+		values.stopblock=0
+		stop = values.stopblock==1
+		trials = [1=prac_show_math]
+
+	PracticeMathProblems <- [
+        "(1*2) + 1 = ?", "(1/1) - 1 = ?", "(7*3) - 3 = ?", "(4*3) + 4 = ?", 
+        "(3/3) + 2 = ?", "(2*6) - 4 = ?", "(8*9) - 8 = ?",	"(4*5) - 5 = ?",
+		"(4*2) + 6 = ?", "(4/4) + 7 = ?", "(8*2) - 8 = ?", "(2*9) - 9 = ?",
+		"(8/2) + 9 = ?", "(3*8) - 1 = ?", "(6/3) + 1 = ?", "(9/3) - 2 = ?",
+	]
+
+	PractMathAnswers <- [
+		"3", "2", "18", "16", "1", "6", "64", "11", "14", "12", "2", "9", "7", 
+		"23", "3", "7"
+	]
+
+	PracMathCorrect <- [
+		"TRUE", "FALSE", "TRUE", "TRUE", "FALSE", "FALSE", "TRUE", "FALSE", 
+		"TRUE", "FALSE", "FALSE", "TRUE", "FALSE", "TRUE", "TRUE", "FALSE"
+	]
+
+    ##  trial InitMathProblem01>
+    tmp_initmath01++
+    if(values.tmp_initmath01==1) {
+        tmp_mathopt01 <- MathOpt01
+        tmp_mathsign <- MathSign
+        tmp_mathopt02 <- MathOpt02
+        mathcorrect <- MathCorrect
+        tmp_mathopt02sign <- concat(tmp_mathsign, tmp_mathopt02);
+        tmp_mathopt02sign <- (tmp_mathopt02sign)
+    }
+    
+    if(values.tmp_initmath01 > 1) {
+        tmp_mathopt02sign =tmp_mathopt02sign+3;
+        tmp_mathopt02=abs(tmp_mathopt02sign)
+    }
+        
+    if(tmp_initmath01 > 1 && tmp_mathopt02sign > 0) {
+        tmp_mathsign <- "+"
+        mathanswer <- evaluate(text.MathProblem.currentitem)
+        mathtrueanswer <- mathanswer
+    }
+    
+    if(mathanswer < 0) {
+        InitMathProblem01
+    }
+    
+    if(values.mathanswer > =0 && values.mathcorrect=="TRUE") {
+        trial.show_math
+    }
+    
+    if(mathanswer >= 0 && mathcorrect == "FALSE") {
+        trial.InitMathProblem02
+    }
+
+    ## trial InitMathProblem02>
+    tmp_initmath02++
+    if(tmp_initmath02 == 1) {
+        tmp_mathrand = counter.MathRand.selectedvalue
+    }
+    if(tmp_initmath02 > 1) {
+        tmp_mathrand = tmp_mathrand+2
+    }
+    
+    mathanswer=evaluate(text.MathProblem.currentitem)+values.tmp_mathrand]
+    
+    if(mathanswer >= 0 && mathanswer != mathtrueanswer) {
+        trial.show_math 
+    } else { 
+        trial.InitMathProblem02 
+    }
+    
+    ##  trial show_math>
+        tmp_initmath01 <- 0
+        tmp_initmath02 <- 0
+        mathproblemcount++
+        
+        if(trial.show_math.response != "lbuttondown") {
+            mathcurrenterrors=values.mathcurrenterrors+1;
+            mathspeederrors=values.mathspeederrors+1;
+            mathtotalerrors=values.mathtotalerrors+1
+        }
+        if(trial.show_math.response != "lbuttondown")
+            trial.show_letter 
+        } else { trial.solve_math }
+
+    ## trial solve_math>
+        if(trial.solve_math.correct==0) {
+            values.mathcurrenterrors=values.mathcurrenterrors+1;
+            values.mathaccerrors=values.mathaccerrors+1;
+            values.mathtotalerrors=values.mathtotalerrors+1
+        }
+
+        values.mathaccuracy=round(((values.mathproblemcount-values.mathtotalerrors)/values.mathproblemcount)*100)]
+        isCorrectResponse = [trial.solve_math.response==values.mathcorrect]
+        trial.show_letter
+}
+
+
+###############################################################################
+##  Helper Methods
+###############################################################################
+
+###############################################################################
+##	Initializes experiment
+##  
+##  creates all initial values, sets up gui
+
+define Initialize()
+{
+    # default monitor size
+    gVideoWidth <- 1024
+    gVideoHeight <- 768
+
+	# fonts
+    black <- MakeColor("BLACK")
+    white <- MakeColor("WHITE")
+    gFont <- MakeFont(gPEBLBaseFont,0,32,white,black,1)
+    gFontInverted <- MakeFont(gPEBLBaseFont, 0,32,black,white,1)
+    
+	# gui
+    gWin <- MakeWindow("black")
+    ShowCursor(0)
+    
+	# report files
+    gSubNum <- GetSubNum(gWin)
+    gFileOut <- FileOpenAppend("iat-" + gSubNum + ".csv")
+	
+	# instruction gui
+	gInstructBox <- MakeTextBox("", gFont, (gVideoWidth - 400), 768) #full height, 200px padding to width margins @windowsize
+    AddObject(gInstructBox, gWin)
+    Move(gInstructBox, 200, 0) #200px padding to width margins @windowsize
+    Hide(gInstructBox)
+
+    # hardcoded instructions
+    # TODO put them in file for better readability
+	gInstructions <- [
+    "In this experiment you will try to memorize letters you see on the screen" +
+	"while you also solve simple math problems." + CR(1) + 
+	"In the next few minutes, you will have some practice to get you familiar with how the experiment works." + CR(1) +
+	"We will begin by practicing the letter part of the experiment." + CR(1) + CR(1) + CR(1) + 
+	"Click the left mouse button to begin.",
+	
+    "For this practice set, letters will appear on the screen one at a time." +
+	"Try to remember each letter in the order presented. + CR(1) + 
+	"After 2-3 letters have been shown, you will see a screen listing 12 possible letters." +
+	"Your job is to select each letter in the order presented." +
+	"To do this, use the mouse to select each letter." + CR(1) + 
+	"The letters you select will appear at the bottom of the screen." + CR(1) + CR(1) + CR(1) + 
+	"Click the mouse button to continue.",
+	
+    "When you have selected all the letters, and they are in the correct order," +
+	"hit the EXIT box at the bottom right of the screen." + CR(1) + 
+	"If you make a mistake, hit the CLEAR box to start over." + CR(1) + 
+	"If you forget one of the letters, click the BLANK box to mark the spot" +
+	"for the missing letter." + CR(1) + 
+	"Remember, it is very important to get the letters in the same order as you see them." +
+	"If you forget one, use the BLANK box to mark the position." + CR(1) + 
+	"Do you have any questions so far?" + CR(1) + CR(1) + CR(1) + 
+	"When you're ready, click the mouse button to start the letter practice.",
+	
+    "Now you will practice doing the math part of the experiment." + CR(1) + CR(1) + 
+	"A math problem will appear on the screen, like this:" + CR(1) + 
+	"(2 * 1) + 1 = ?" + CR(1) + 
+	"As soon as you see the math problem, you should compute the correct answer." +
+	"In the above problem, the answer 3 is correct." + CR(1) +
+	"When you know the correct answer, you will click the mouse button." + CR(1)+ CR(1) +
+	"Click the mouse button to continue.",
+	
+    "You will see a number displayed on the next screen,"
+	"along with a box marked TRUE and a box marked FALSE." + CR(1) +
+	"If the number on the screen is the correct answer to the math problem," +
+	"click on the TRUE box with the mouse." +
+	"If the number is not the correct answer, click on the FALSE box." + CR(1) +
+	"For example, if you see the problem" + CR(1) +
+	"(2 * 2) + 1 = ?" + CR(1) +
+	"and the number on the following screen is 5" +
+	"click the TRUE box, because the answer is correct." + CR(1) + 
+	"If you see the problem" + CR(1) + 
+	"(2 * 2) + 1 =  ?" + CR(1) + 
+	"and the number on the next screen is 6" +
+	"click the FALSE box, because the correct answer is 5, not 6." + CR(1) + 
+	"After you click on one of the boxes," +
+	"the computer will tell you if you made the right choice." + CR(1) + + CR(1)+ CR(1) +
+	"Click the left mouse button to continue.",
+	
+    "It is VERY important that you get the math problems correct." +
+	"It is also important that you try and solve the problem as quickly as you can." + CR(1) + 
+	"Do you have any questions?" + CR(1) + + CR(1)+ CR(1) +
+	"When you're ready, click the mouse to try some practice problems.",
+	
+    "Now you will practice doing both parts of the experiment at the same time." + CR(1) + CR(1) +
+	"In the next practice set, you will be given one of the math problems." +
+	"Once you make your decision about the math problem," +
+	"a letter will appear on the screen. Try and remember the letter." + CR(1) + 
+	"In the previous section where you only solved math problems," +
+	"the computer computed your average time to solve the problems." + CR(1) + 
+	"If you take longer than your average time," +
+	"the computer will automatically move you onto the next letter part," +
+	"thus skipping the True or False part and will count that problem as a math error." + CR(1) + 
+	"Therefore it is VERY important to solve the problems" +
+	"as quickly and as accurately as possible." + CR(1) + CR(1)+ CR(1) +
+	"click the mouse to continue.",
+	
+    "After the letter goes away, another math problem will appear," +
+	"and then another letter." + CR(1) + 
+	"At the end of each set of letters and math problems, a recall screen will appear." +
+	"Use the mouse to select the letters you just saw." +
+	"Try your best to get the letters in the correct order." + CR(1) + 
+	"It is important to work QUICKLY and ACCURATELY on the math." +
+	"Make sure you know the answer to the math problem" +
+	"before clicking to the next screen." +
+	"You will not be told if your answer to the math problem is correct." + CR(1) + 
+	"After the recall screen, you will be given feedback about your performance" +
+	"regarding both the number of letters recalled and the percent correct on" +
+	"the math problems." + CR(1) + 
+	"Do you have any questions?+ CR(1)+ CR(1)+ CR(1) +
+	"Click the mouse to continue.",
+	
+    "During the feedback, you will see a number in red in the top right of the screen." +
+	"This indicates your percent correct for the math problems" +
+	"for the entire experiment." + CR(1) + 
+	"It is VERY important for you to keep this at least at 85%." +
+	"For our purposes, we can only use data where the participant was at least" +
+	"85% accurate on the math." + CR(1) + 
+	"Therefore, in order for you to be asked to come back for future experiments," +
+	"you must perform at least at 85% on the math problems" +
+	"WHILE doing your best to recall as many letters as possible." + CR(1) + 
+	"Do you have any questions?" + CR(1) + + CR(1)+ CR(1) +
+	"Click the mouse to try some practice problems.",
+	
+    10 = "That is the end of the practice." + CR(1) + 
+	"The real trials will look like the practice trials you just completed." + CR(1) + 
+	"First you will get a math problem to solve, then a letter to remember." + CR(1) + 
+	"When you see the recall screen, select the letters in the order presented." +
+	"If you forget a letter, click the BLANK box to mark where it should go." + CR(1) + 
+	"Some of the sets will have more math problems and letters than others." + CR(1) + 
+	"It is important that you do your best on both the math problems and" +
+	"the letter recall parts of this experiment." + CR(1) + 
+	"Remember on the math you must work as QUICKLY and ACCURATELY as possible." +
+	"Also, remember to keep your math accuracy at 85% or above." + CR(1) + 
+	"Do you have any questions?" + CR(1) + 
+	"If not, click the mouse to begin the experiment.",
+	
+    "Thank you for your participation."
+    ]
+	
+    # list for printing instructions
+	gInstructionList <- [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+	
+    # block variables
+	gStopblock=0
+	gLearninginterval=1000
+	gCurrentsetsize=0
+	gLettercount=0
+	gCorrectletters=0
+	gTotalcorrectletters=0
+	gOspan=0
+	gTotalrecalledsets=0
+	gRecalledletters=""
+	gRecallcount=0
+	gRecalldelay=0
+	gMathaccuracy=0
+	gMathaccerrors=0
+	gMathcurrenterrors=0
+	gMathtotalerrors=0
+	gMathspeederrors=0
+	gMathtimeout=5000
+	gMathproblemcount=0
+	gMatherrorswitch=1
+	gMathcorrect=""
+	gTmp_mathopt01=""
+	gTmp_mathopt02=0
+	gTmp_mathsign=""
+	gTmp_mathopt02sign=""
+	gMathtrueanswer=0
+	gTmp_mathrand=0
+	gMathanswer=0
+	gTmp_initmath01=0
+	gTmp_initmath02=0
+
+    # trial lengths
+	gPracLetterSetSize <- [2,2,3,3]
+	gPracBothSetSize <- [2,2,2]
+	gTestBothSetSize <- [3,3,3,4,4,4,5,5,5,6,6,6,7,7,7]
+	gPracLetterCounter <- [1,2,3,4,5,6,7,8,9,10,11,12]
+	gTestLetterCounter <- [1,2,3,4,5,6,7,8,9,10,11,12]
+	gPracMathCounter <- [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]
+
+	return 0
+}
+
+###############################################################################
+##	Display Instructions
+##  
+##  displays instructions and waits for keypress
+
+define DisplayInstructions(text)
+{
+	# display text
+	text <- text
+	SetText(gInstructBox, text)
+    Show(gInstructBox)
+    Draw()
+    WaitForKeyPress("<return>")
+	
+	# Clean Up
+	Hide(gInstructBox)
+	Draw()
+	
+    return 0
+}

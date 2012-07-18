@@ -1,0 +1,229 @@
+
+
+define CalculateOutput(emoList, sexList, rtList) {
+    
+    switchList <- []
+    nonSwitchList <- []
+    
+    aalist <- []
+    anlist <- []
+    nalist <- []
+    nnlist <- []
+    
+    loop(i1, Sequence(1, Length(emoList) - 1, 1)) {
+        if (Nth(emoList, i1) == "angry") {
+            if (Nth(emoList, i1 + 1) == "angry") {
+                aalist <- Append(aalist, Nth(rtList, i1))
+            } else { ## then it's neutral
+                anlist <- Append(anlist, Nth(rtList, i1))
+            }   
+        } else { ## then it's neutral
+            if (Nth(emoList, i1 + 1) == "angry") {
+                nalist <- Append(nalist, Nth(rtList, i1))
+            } else { ## then it's neutral
+                nnlist <- Append(nnlist, Nth(rtList, i1))
+            }
+        }
+    }
+    
+    loop(i2, Sequence(1, Length(sexList) - 1, 1)) {
+        if (Nth(sexList, i1) == Nth (sexList, i1 + 1)) {
+            switchList <- Append(switchList, Nth(rtList, i1))
+        } else {
+            nonSwitchList <- Append(nonSwitchList, Nth(rtList, i1))        
+        }
+    }
+    
+    ##first article output headers
+    ## global
+    FilePrint_(gFileOut, "Mean(rt global),")
+    FilePrint_(gFileOut, "StDev(rt global),")
+    FilePrint_(gFileOut, "Min(rt global),")
+    FilePrint_(gFileOut, "Max(rt global),")
+    FilePrint_(gFileOut, "Range(rt global),")
+    FilePrint_(gFileOut, "Mean(RT no-switch),")
+    FilePrint_(gFileOut, "StDev(RT no-switch),")
+    FilePrint_(gFileOut, "Min(RT no-switch),")
+    FilePrint_(gFileOut, "Max(RT no-switch),")
+    FilePrint_(gFileOut, "Range(RT no-switch),")
+    FilePrint_(gFileOut, "Mean(RT switch),")
+    FilePrint_(gFileOut, "StDev(RT switch),")
+    FilePrint_(gFileOut, "Min(RT switch),")
+    FilePrint_(gFileOut, "Max(RT switch),")
+    FilePrint_(gFileOut, "Range(RT switch),")
+    FilePrint_(gFileOut, "Mean(RT switch cost),")
+    FilePrint_(gFileOut, "StDev(RT switch cost),")
+    FilePrint_(gFileOut, "Min(RT switch cost),")
+    FilePrint_(gFileOut, "Max(RT switch cost),")
+    FilePrint_(gFileOut, "Range(RT switch cost),")
+    # emotion
+    FilePrint_(gFileOut, "Mean(RT emotion condition),")
+    FilePrint_(gFileOut, "StDev(RT emotion condition),")
+    FilePrint_(gFileOut, "Min(RT emotion condition),")
+    FilePrint_(gFileOut, "Min(RT emotion condition),")
+    FilePrint_(gFileOut, "Max(RT emotion condition),")
+    FilePrint_(gFileOut, "Range(RT emotion condition)")
+    FilePrint_(gFileOut, "Mean(RT no-switch),")
+    FilePrint_(gFileOut, "StDev(RT no-switch),")    
+    FilePrint_(gFileOut, "Min(RT no-switch),")
+    FilePrint_(gFileOut, "Max(RT no-switch),")
+    FilePrint_(gFileOut, "Range(RT no-switch),")
+    FilePrint_(gFileOut, "Mean(RT switch),")
+    FilePrint_(gFileOut, "StDev(RT switch),")
+    FilePrint_(gFileOut, "Min(RT switch),")
+    FilePrint_(gFileOut, "Max(RT switch),")
+    FilePrint_(gFileOut, "Range(RT switch),")
+    FilePrint_(gFileOut, "Mean(RT switch cost),")
+    FilePrint_(gFileOut, "StDev(RT switch cost),")
+    FilePrint_(gFileOut, "Min(RT switch cost),")
+    FilePrint_(gFileOut, "Max(RT switch cost),")
+    FilePrint_(gFileOut, "Range(RT switch cost),")
+    # gender
+    FilePrint_(gFileOut, "Mean(RT gender condition),")
+    FilePrint_(gFileOut, "StDev(RT gender condition),")
+    FilePrint_(gFileOut, "Min(RT gender condition),")
+    FilePrint_(gFileOut, "Max(RT gender condition),")
+    FilePrint_(gFileOut, "Range(RT gender condition),")
+    FilePrint_(gFileOut, "Mean(RT no-switch),")
+    FilePrint_(gFileOut, "StDev(RT no-switch),")
+    FilePrint_(gFileOut, "Min(RT no-switch),")
+    FilePrint_(gFileOut, "Max(RT no-switch),")
+    FilePrint_(gFileOut, "Range(RT no-switch),")
+    FilePrint_(gFileOut, "Mean(RT switch),")
+    FilePrint_(gFileOut, "StDev(RT switch),")
+    FilePrint_(gFileOut, "Min(RT switch),")
+    FilePrint_(gFileOut, "Max(RT switch),")
+    FilePrint_(gFileOut, "Range(RT switch),")
+    FilePrint_(gFileOut, "Mean(RT switch cost),")
+    FilePrint_(gFileOut, "StDev(RT switch cost),")
+    FilePrint_(gFileOut, "Min(RT switch cost),")
+    FilePrint_(gFileOut, "Max(RT switch cost),")
+    FilePrint_(gFileOut, "Range(RT switch cost),")
+    
+    ##second article output headers
+    # emotion
+    FilePrint_(gFileOut, "Mean(aalist),")
+    FilePrint_(gFileOut, "StDev(aalist),")
+    FilePrint_(gFileOut, "Min(aalist),")
+    FilePrint_(gFileOut, "Max(aalist),")
+    FilePrint_(gFileOut, "Mean(anlist),")
+    FilePrint_(gFileOut, "StDev(anlist),")
+    FilePrint_(gFileOut, "Min(anlist),")
+    FilePrint_(gFileOut, "Max(anlist),")
+    FilePrint_(gFileOut, "Mean(nalist),")
+    FilePrint_(gFileOut, "StDev(nalist),")
+    FilePrint_(gFileOut, "Min(nalist),")
+    FilePrint_(gFileOut, "Max(nalist),")
+    FilePrint_(gFileOut, "Mean(nnlist),")
+    FilePrint_(gFileOut, "StDev(nnlist),")
+    FilePrint_(gFileOut, "Min(nnlist),")
+    FilePrint_(gFileOut, "Max(nnlist),")
+    # gender
+    FilePrint_(gFileOut, "Mean(switchList),")
+    FilePrint_(gFileOut, "StDev(switchList),")
+    FilePrint_(gFileOut, "Min(switchList),")
+    FilePrint_(gFileOut, "Min(switchList),")
+    FilePrint_(gFileOut, "Max(switchList),")
+    FilePrint_(gFileOut, "Mean(nonSwitchList),")
+    FilePrint_(gFileOut, "StDev(nonSwitchList),")    
+    FilePrint_(gFileOut, "Min(nonSwitchList),")
+    FilePrint_(gFileOut, "Max(nonSwitchList),")
+    
+    output <- []
+    
+    globalSwitch <- Merge(anlist, nalist)
+    globalSwitch <- Merge(globalSwitch, switchList)
+    globalNonSwitch <- Merge(aalist, nnlist)
+    globalNonSwitch <- Merge(globalNonSwitch, nonSwitchList)
+    
+    ## global RT
+    Append(output, Mean(rtList))
+    Append(output, StDev(rtList))
+    Append(output, Min(rtList))
+    Append(output, Max(rtList))
+    ## global switch RT
+    Append(output, Mean(globalSwitch))
+    Append(output, StDev(globalSwitch))
+    Append(output, Min(globalSwitch))
+    Append(output, Max(globalSwitch))
+    ## global nonswitch RT
+    Append(output, Mean(globalNonSwitch))
+    Append(output, StDev(globalNonSwitch))
+    Append(output, Min(globalNonSwitch))
+    Append(output, Max(globalNonSwitch))
+    ## TODO switch cost
+    Append(output, Mean(globalSwitch) - Mean(globalNonSwitch))
+    
+    emotionSwitchRT <- Merge(anlist, nalist)
+    emotionNonSwitchRT <- Merge(aalist, nnlist)
+    
+    ## emotion
+    Append(output, Mean(emotionSwitchRT))
+    Append(output, StDev(emotionSwitchRT))
+    Append(output, Min(emotionSwitchRT))
+    Append(output, Max(emotionSwitchRT))
+    
+    Append(output, Mean(emotionNonSwitchRT))
+    Append(output, StDev(emotionNonSwitchRT))
+    Append(output, Min(emotionNonSwitchRT))
+    Append(output, Max(emotionNonSwitchRT))
+    
+    ## gender
+    Append(output, Mean(switchList))
+    Append(output, StDev(switchList))
+    Append(output, Min(switchList))
+    Append(output, Min(switchList))
+    Append(output, Max(switchList))
+    
+    Append(output, Mean(nonSwitchList))
+    Append(output, StDev(nonSwitchList))    
+    Append(output, Min(nonSwitchList))
+    Append(output, Max(nonSwitchList))
+    
+    ## angry-angry
+    Append(output, Mean(aalist))
+    Append(output, StDev(aalist))
+    Append(output, Min(aalist))
+    Append(output, Max(aalist))
+    Append(output, Range(aalist))
+    
+    ## angry-neutral
+    Append(output, Mean(anlist))
+    Append(output, StDev(anlist))
+    Append(output, Min(anlist))
+    Append(output, Max(anlist))
+    Append(output, Range(anlist))
+    
+    ## neutral-angry
+    Append(output, Mean(nalist))
+    Append(output, StDev(nalist))
+    Append(output, Min(nalist))
+    Append(output, Max(nalist))
+    Append(output, Range(nalist))
+    
+    ## neutral-neutral
+    Append(output, Mean(nnlist))
+    Append(output, StDev(nnlist))
+    Append(output, Min(nnlist))
+    Append(output, Max(nnlist))
+    Append(output, Range(nnlist))
+    
+    ##gender
+    ##switch
+    Append(output, Mean(switchList))
+    Append(output, StDev(switchList))
+    Append(output, Min(switchList))
+    Append(output, Max(switchList))
+    Append(output, Range(switchList))
+    
+    ##non switch
+    Append(output, Mean(nonSwitchList))
+    Append(output, StDev(nonSwitchList))    
+    Append(output, Min(nonSwitchList))
+    Append(output, Max(nonSwitchList))
+    Append(output, Range(nonSwitchList))
+    
+    FilePrint_(gFileOut, output)
+    
+    return 0
+}!

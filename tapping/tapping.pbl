@@ -1,0 +1,291 @@
+define Start(p)
+{
+  #############################################################
+  ## This is a simple keyboard tapping task. It has been
+  ## used to test low-level motor ability, and may be impacted
+  ## by things like fatigue and sleep deprivation.
+  ##
+  ## It is modeled after the Finger Tapping or Oscillation task
+  ## in the Reitan Test battery.  That test uses a special-purpose
+  ## tapping lever to collect data, so the norms for those data may
+  ## not apply to the results of the current test.
+  ##
+  ## (c) 2010 Shane T. Mueller (smueller obereed net)
+  #############################################################
+
+  ## The time of each trial
+  trialtime <- 10*1000   #number of seconds * 1000 = ms
+  maxTrials <- 8
+
+
+  #Change useKeyPad from 0 to 1 to use the keyboard number pad.
+  useKeypad <- 0
+  if(useKeyPad == 1)
+   {
+    usekey <- "<KP_0>"
+    keylabel <- "Keypad 0"
+    contkey <- "<return>"
+    contkeylabel <- "Enter"
+
+   } else {
+    usekey <- "A"
+    keylabel <- "A"
+    contkey <- "<return>"
+    contkeylabel <- "Enter"
+   }
+
+  ShowCursor(0)
+  gSleepEasy <- 1
+  gVideoWidth <- 800
+  gVideoHeight <- 600
+  gWin <- MakeWindow("black")
+
+  gSubNum <- GetSubNum(gWin)
+  gFileOut <-FileOpenAppend("tapping-"+gSubNum+".txt")
+   FilePrint(gFileOut,"sub trial domhand hand tap sumtime trialtime rt")
+  font <-  MakeFont(gPEBLBaseFontMono,0,24,MakeColor("white"),MakeColor("black"),1)
+  
+  inst <- "In this task, you are asked to tap the keyboard as quickly as possible for a maximum of "+ maxtrials +" trials of " +
+  trialtime/1000 + " seconds.  Use  the "+keylabel+" key.  Begin tapping when you see 'GO'."
+
+
+   startinst <- "Choose testing options:
+
+[1] Dominant hand only
+[2] Dominant and non-dominant hand
+[3] Nondominant hand only"
+
+   tb <- MakeTextBox(startinst,font,700,500)
+   AddObject(tb,gWin)
+   Move(tb,50,50)
+   Draw()
+
+   type <- WaitForListKeyPress(["1","2","3"])
+   
+   tb.text <- "Dominant hand:
+[1] Left                       [2] Right"
+    Draw()
+    dom <-  WaitForListKeyPress(["1","2"])
+
+   Draw()
+
+
+  lab <- EasyLabel("",gVideoWidth/2,gVideoHeight/2,gwin,24)
+  Hide(lab)
+
+
+  domname <- Nth(["Left","Right"],ToNumber(dom))
+
+  gProgressSize <- 300
+  progressoutline <- Rectangle(gVideoWidth/2,gVideoHeight/2-100,gProgressSize,30,MakeColor("darkgrey"),1)
+  progressBar <- Rectangle(gVideoWidth/2-gProgressSize/2,gVideoHeight/2-100,
+                             1,30,MakeColor("red"),1)
+  AddObject(progressoutline,gWin)
+  AddObject(progressBar,gWin)
+  Hide(progressoutline)
+  Hide(progressBar)
+
+   if(type == "1")
+    {
+      rounds <- [Nth(["left","right"], ToNumber(dom))]
+    } elseif(type=="2") {
+      rounds <- SortBy(["left","right"],[ToNumber(dom),3-ToNumber(dom)])
+    }else{
+      rounds <- [Nth(["right","left"], ToNumber(dom))]
+    }
+
+
+
+   reportfile <-  FileOpenAppend("tapping-summary-"+gSubNum+".txt")
+   FilePrint(reportfile,"--------------------------------------------------------")
+   FilePrint(reportfile," Report for PEBL Tapping Test, Version 0.1")
+   FilePrint(reportfile, " http://pebl.sf.net")
+   FilePrint(reportfile, " (c) 2010 Shane T. Mueller, Ph.D.")
+   FilePrint(reportfile, " "+GetPEBLVersion())
+   FilePrint(reportfile, " "+TimeStamp())
+   FilePrint(reportfile, " Participant Code: " + gSubNum)
+   FilePrint(reportfile,"--------------------------------------------------------")
+
+  FilePrint(reportfile,"Dominant hand: " + domname)
+
+  ##Loop through both hands here.
+
+  loop(hand,rounds)
+  {
+
+  data <- []
+  trial <- 1
+
+  tb.text <-inst + CR(2) + "On this round, you will use your " +
+  hand + " hand.  "+ CR(2) + "Press the '"+keylabel+"' Key to begin"
+  Draw()
+  WaitForKeyPress(usekey)
+
+
+   FilePrint(reportfile,"--------------------------------------------------------")
+   FilePrint(reportfile,"Current hand: " + hand)
+   
+  ##We do between 5 and ten trials.
+  complete <- 0    
+  while((not complete) and trial <= maxtrials)
+   {
+
+     sumx  <- 0.0
+     sumxx <- 0.0
+     ##On the trial, gate the beginning with the "+keylabel+" press
+     lab.text <- "Press '"+keylabel+"' to begin"
+     Show(lab)
+     DrawProgress(progressbar,0)
+     Show(progressoutline)
+     Show(progressbar)
+     Hide(tb)   
+     Draw()      
+     WaitForKeyPress(usekey)
+     Hide(lab)
+     Draw()
+     Wait(1000)    #Give 1 seconds before trial begins
+
+     lab.text <- "GO:[ ]"
+     Show(lab)
+     Draw()
+
+     ##Give a 500 ms lead time
+     Wait(1000)
+     Draw()
+
+     ##Compute the end-time of the trial
+     timeStart <- GetTime()
+     finaltime <- timeStart + trialtime
+     hits <- 0  
+     while(GetTime() < finaltime)
+     {
+       time0 <- GetTime()
+       x <- []
+
+       
+       while((IsList(x)) and GetTime() < finaltime )
+       {
+
+     	   x <-  WaitForListKeyPressWithTimeout([usekey],50,1)
+           time <- GetTime()
+           remaining <- Ceiling((finaltime - time)/1000)
+     	   lab.text <- "GO: [" + remaining + "]"
+    	   DrawProgress(progressbar,  1.0-(finaltime-time)/trialtime)
+           Draw()   
+
+       }
+
+       rt <- time-time0
+
+	   ##keep track of running sum and sum^2, for comptuing stats.
+       if(not IsList(x))
+         {
+           hits <- hits + 1
+           sumX <- sumX + rt
+           sumXX <- sumXX + (rt)^2
+         }
+
+       FilePrint(gFileOut,gSubNum + " " + trial + " " + domname + " " + hand + " " + hits + " " +  sumX + " " +( time-timestart) + " " + rt )
+     }
+
+
+   n <- hits
+   mean <- sumX/n
+   sd   <- Sqrt(sumXX/n - mean^2)
+
+
+   data <- Append(data,[n,mean, sd, (time-timestart)])
+
+   ## Give feedback for each trial.
+   Hide(progressbar)
+   Hide(progressoutline)
+   Hide(lab)
+   Show(tb)
+   tb.text <-  "Trial "+trial+" ("+hand+") results: "+CR(2)+
+               "Hits:       " + n + " keypresses" + CR(1) +
+               "Mean RT:    "+ Round(mean) + " ms/tap" + CR(1) +
+               "SD RT:      "+ Round(sd) + " ms" + CR(1) +
+               "Total Time: " + (time-timestart) + CR(2) +"Press "+contkeylabel+" to continue."
+   Draw()
+
+
+   ##Now, see if we should stop recording.
+   if(trial >= 5)
+   {
+
+    
+     last5 <- SubList(First(Transpose(data)),trial-5+1,trial)
+	 range <- Max(last5)-Min(last5)
+
+     ##if the range is small, we can quit
+     if(range <= 5)
+     {
+      complete <- 1     ##we completed 5 good trials
+     }
+   }
+
+   trial <- trial + 1
+   WaitForKeyPress(contkey)
+  }
+
+
+  tb.text <- "Summary data ("+hand+"):"+CR(1) + 
+          "Trial   Hits  RT   SD  Time"+
+  CR(1)+ "------------------------------" 
+
+   t <- 1
+   loop(i, data)
+    {
+
+      tb.text <- tb.text +  CR(1)+Print(t + "       " +First(i) +
+                  "    "  +     Round(Second(i)) + "  "  +
+                  Round(Third(i)) + " " +  Fourth(i))
+
+      t <- t + 1
+    }
+  
+
+
+   FilePrint(reportfile, tb.text)
+
+
+  tb.text <- tb.text + CR(2) + "Round complete. Press "+contkeylabel+" to continue."
+  Show(tb)
+  Draw()
+  WaitForKeyPress(contkey)
+
+
+
+
+   if(complete)
+    {
+       last5 <- SubList(data,trial-5,trial-1)
+       d2 <- Transpose(last5)
+
+    } else {
+       d2 <- Transpose(data)
+    }
+
+    FilePrint(reportfile, "Mean:   " + Round(Mean(First(d2))) + " " +
+          Round(Mean(Second(d2))) + " " + Round(Mean(Third(d2))) + " " + Round(Mean(Fourth(d2))))
+    FilePrint(reportfile, "SD:     " + Round(StdDev(First(d2))) + " " +
+          Round(StdDev(Second(d2))) + " " + Round(StdDev(Third(d2))) + " "       + Round(StdDev (Fourth(d2))))
+
+   }
+
+
+  tb.text <-  "Study complete. Press "+contkeylabel+" to exit."
+  Show(tb)
+  Draw()
+  WaitForKeyPress(contkey)
+
+}
+
+##hardcoded with all the right parts.
+##percent is a value between 0 and 1.0
+define DrawProgress(bar,percent)
+{
+
+	bar.x <- gVideoWidth/2-gProgressSize/2 + gProgressSize/2*percent
+	bar.width <- gProgressSize *percent
+}

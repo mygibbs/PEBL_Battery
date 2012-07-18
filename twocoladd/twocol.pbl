@@ -1,0 +1,256 @@
+define Start(p)
+{
+ ## Two-column addition task, as found in UTC-PAB Test No. 4
+ ##
+  gSleepEasy <- 1
+  numPracticeTrials <- 10
+  numTrials         <- 45
+  isi <- 5
+  gTimeout <- 15000
+
+
+  gFileOut <- FileOpenWrite("twocol-"+gsubnum+".txt")
+  gSummaryFile <- FileOpenWrite("twocol-summary-"+gsubnum+".txt")
+
+  win <- MakeWindow()
+  Draw()
+
+  ####################################
+  ## Give instructions
+
+  inst <- "This test examines your ability to perform mathematical calculations.   The computer will present you with two column addliton problems that you are to add as rapidly as possible.  The answer must be given by entering the left hand digit first (usually the hundreds' or tens' digit) followed by the remaining digits. Once you make an entry the math problem will disappear. Therefore, it is very important that you know the entire answer to the problem before making an entry. If you make a mistake you can use the back space key to correct it. When you are satisfied with your answer, press the return key.
+
+       Example:  
+                    29
+                    32
+                    13
+                   ____
+                   ?
+Here you would press the 7-key; then the 4-key; then the return key. Remember to work as quickly and as accurately as possible. It you fail torespond in 15 seconds the problem will disappear and a new problem will be shown.
+
+Press any key to begin."
+
+  instruct <- EasyTextBox(inst,50,20,win,14,500,400)
+  Draw()
+  WaitForAnyKeyPress()
+  Hide(instruct)
+
+
+
+  ####################################
+  ## Make display objects
+
+  glabel1 <- EasyLabel("",gVideoWidth/2,100,win,40)  #top number
+  glabel2 <- EasyLabel("",gVideoWidth/2,150,win,40)  #middle number
+  glabel3 <- EasyLabel("",gVideoWidth/2,200,win,40)  #bottom number
+  gLine <-  Line(gVideoWidth/2-100,250,200,0,MakeColor("black")) #horizontal rule
+  AddObject(gLine,win)
+  gsum   <- EasyTextBox("",gVideoWidth/2-50,300,win, 40, 100,40) #response
+  gFeedback <-EasyLabel("",gVideoWidth/2,400,win,28) #Feedback label
+
+
+  ##label output file
+  FilePrint(gFileOut,"sub cond trial num1 num2 num3 sum resp corr toolong clicks starttime firstclick completetime")
+
+  ####################################
+  #Do practice trials
+  trial <- 1
+  while(trial <= numPracticeTrials)
+  {
+
+    FilePrint_(gFileOut,gSubNum + " 0 " + trial + " ")
+    Trial(1)
+    trial <- trial + 1
+    Wait(isi)
+  }
+
+
+  instruct.text <- "Practice round complete. Now you will be tested on " +
+   numTrials+" additional trials.  You will not be told whether you are correct or incorrect after  you respond.  
+
+Press any key to begin."
+
+  Show(instruct)
+  Draw()
+  Wait(1000)
+  WaitForAnyKeyPress()
+  Hide(instruct)
+  Draw()
+  Wait(1000)
+
+
+  ####################################
+  ##Do regular trials
+
+  trial <- 1
+  while(trial <= numTrials)
+  {
+    FilePrint_(gFileOut,gSubNum + " 1 " + trial + " ")
+
+    result <-  Trial(0)
+
+    trial <- trial + 1
+    Wait(isi)
+  }
+
+  ####################################
+  # Clean up and give feedback
+  FileClose(gFileOut)
+  FileClose(gSummaryFile)
+  ShowAll(0)
+  Hide(gSum)
+  instruct.text <- "Thanks.  Press any key to finish"
+  Show(instruct)
+  Draw()
+
+  WaitForAnyKeyPress()
+
+}
+
+
+define Trial(feedback)
+{
+
+
+   num1 <- GetNum()
+   num2 <- GetNum()
+   num3 <- GetNum()
+
+  gLabel1.text <- num1
+  gLabel2.text <- num2
+  gLabel3.text <- num3
+  gSum.text <- "?"
+  Show(gSum)
+  ShowAll(1)
+
+   starttime <- GetTime()
+   endtime <- starttime + gTimeout
+   continue <- 1
+   text <- ""
+   firstclick <- -1
+   toolong <- 0
+   clicks <- 0
+
+   corrections <- 0
+
+   while(continue) 
+    {
+      resp <-  GetNumberResponse(endtime - GetTime())
+
+      
+      if(clicks == 0) 
+         {
+          firstclick <- GetTime()-starttime
+         }
+
+      if(IsList(resp))
+         {
+           continue <- 0
+           toolong <- 1
+         } 
+
+      if(resp == "<return>" or resp == "<kp_enter>")
+      {
+        continue <- 0
+        completetime <- GetTime()-starttime
+
+      } else {
+
+
+         length <- Max([0,StringLength(text)-1])
+         if(resp == "<backspace>") 
+         {
+
+            text <- SubString(text, 1,length)
+          } else {
+
+             if(length+1<3)
+              {
+             	text <- text + resp
+              }  
+        }
+        clicks <- clicks + 1
+        gSum.text <- text
+        ShowAll(0)
+
+      }
+    }
+
+   if(toolong)
+   {
+
+     completetime <- GetTime()-starttime
+     x <- LoadSound("buzz500ms.wav")
+
+     Show(gFeedback)
+     Hide(gSum)
+     gFeedback.text <- "Too Long"
+     Draw()
+     PlayForeground(x)
+     Hide(gFeedback)
+ 
+     Draw()
+   }
+   resp <- ToInteger(gSum.text)
+   gSum.text <- ""
+
+ 
+
+
+  corr <- 0
+  if(resp  == num1+num2+num3)
+   {
+     corr <- 1
+   } 
+
+   FilePrintList(gFileOut, [num1, num2, num3, (num1+num2+num3), resp, corr, toolong, clicks, starttime, firstclick, completetime])
+
+
+   if(feedback)
+   {
+     if(corr){      
+          gFeedback.text <- "Correct! " + Round(completetime/100)/10 +  " sec"
+      } else {
+          gFeedback.text <- "Incorrect "+ Round(completetime/100)/10 +  " sec"
+      }
+     Show(gFeedback)
+     Draw()
+     Wait(500)
+     Hide(gFeedback)
+     Draw()
+   }
+
+  return corr
+}
+
+
+define ShowAll(p)
+{
+  gLabel1.visible <- p
+  gLabel2.visible <- p
+  gLabel3.visible <- p
+  gLine.visible   <- p
+
+  Draw()
+}
+
+
+define GetNum()
+{
+  ##We need a number between 11 and 99, not including any 0s.
+  return RandomDiscrete(9)*10+RandomDiscrete(9)
+}
+
+
+## You can use either numbers on top or keypad.
+## delete set of digits to restrict to one or the other.
+define GetNumberResponse(timeleft)
+{
+
+   x <-   WaitForListKeyPressWithTimeOut(["1","2","3","4","5","6","7","8","9","0",
+                   "<KP_1>","<KP_2>","<KP_3>","<KP_4>","<KP_5>","<KP_6>","<KP_7>","<KP_8>","<KP_9>","<KP_0>",
+				     "<backspace>", "<return>","<kp_enter>"], 
+              timeleft,1)
+
+ return x
+}
