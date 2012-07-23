@@ -1,0 +1,3 @@
+Known Bugs:
+
+if a data file exists in the files.txt but not in the data folder, it bombs out

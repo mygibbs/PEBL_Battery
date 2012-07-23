@@ -66,10 +66,7 @@ define Start(lPar)
   ## results are stored in this file
 
 
-  gFileOut <-FileOpenWrite("data/bcst-" + gSubNum + ".txt")
-  gRescoreFileList <- FileOpenAppend("bin/files.txt")
-  FilePrint(gRescoreFileList, "bcst-" + gSubNum)
-  FileClose(gRescoreFileList)
+  gFileOut <-FileOpenWrite("bcst-" + gSubNum +".txt")
 
   gSleepEasy <- 1
   persevs <- []
@@ -435,9 +432,9 @@ define Start(lPar)
       }
 
       trialnum <- trialnum + 1
-      if(numCats >= 6 )
+      if(numCats >= 9 )
       {
-        numCatsExp <- 6
+        numCatsExp <- 9
         break
       }
     }
@@ -499,7 +496,7 @@ define Start(lPar)
 
 
    FileClose(gFileOut)
-   report <-FileOpenWrite("reports/bcst-report-" + gSubNum +".txt")
+   report <-FileOpenWrite("bcst-report-" + gSubNum +".txt")
    FilePrint(report,"---------------------------------------------------")
    FilePrint(report," Report for PEBL's _Berg's Card Sorting Task_,")
    FilePrint(report," a free version of the Wisconsin Card Sorting Task (tm)*")

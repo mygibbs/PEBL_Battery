@@ -1,3 +1,0 @@
-Subnum trial run rule lastrule color shape number resp corr last_corr corr_col corr_shape corr_num persev persev_err abstime rt
-0 1 1 2 -1 Blue Cross 1 4 0 0 1 0 0 0 0 3738 1236
-0 2 1 2 -1 Blue Cross 2 4 0 0 1 0 0 0 0 5803 772
