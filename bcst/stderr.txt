@@ -1,0 +1,66 @@
+--------------------------------------
+Path List:
+.\
+
+C:\Program Files (x86)\PEBL\bin\
+C:\Program Files (x86)\PEBL\bin\..\media\fonts\
+C:\Program Files (x86)\PEBL\bin\..\media\sounds\
+C:\Program Files (x86)\PEBL\bin\..\media\images\
+C:\Program Files (x86)\PEBL\bin\..\media\text\
+C:\Program Files (x86)\PEBL\bin\..\pebl-lib\
+--------------------------------------
+Processing PEBL Source File1: .\cardsort.pbl
+File [.\cardsort.pbl] opened successfully.
+Loading file name:Design.pbl
+Processing PEBL Source File2: C:\Program Files (x86)\PEBL\bin\..\pebl-lib\Design.pbl
+File [C:\Program Files (x86)\PEBL\bin\..\pebl-lib\Design.pbl] opened successfully.
+Loading file name:Utility.pbl
+Processing PEBL Source File2: C:\Program Files (x86)\PEBL\bin\..\pebl-lib\Utility.pbl
+File [C:\Program Files (x86)\PEBL\bin\..\pebl-lib\Utility.pbl] opened successfully.
+Loading file name:Math.pbl
+Processing PEBL Source File2: C:\Program Files (x86)\PEBL\bin\..\pebl-lib\Math.pbl
+File [C:\Program Files (x86)\PEBL\bin\..\pebl-lib\Math.pbl] opened successfully.
+Loading file name:Graphics.pbl
+Processing PEBL Source File2: C:\Program Files (x86)\PEBL\bin\..\pebl-lib\Graphics.pbl
+File [C:\Program Files (x86)\PEBL\bin\..\pebl-lib\Graphics.pbl] opened successfully.
+---------Loading Program---------
+Error in function 'DIST'.  Function already exists.
+Analyzing code for functions.
+Loading Library functions.
+Removing residual function tree
+Successfully UNICODED
+Successfully initialized SDL Graphics
+---------Creating Evaluator-----
+---------Evaluating Program-----
+Hardware surfaces NOT available.
+
+
+--------------------------------------------------------------------------------
+ Current Video Mode:
+--------------------------------------------------------------------------------
+hw_available   Is it possible to create hardware surfaces?:           [0]
+wm_available   Is there a window manager available:                   [1]
+blit_hw        Are hardware to hardware blits accelerated?:           [0]
+blit_hw_CC     Are hardware to hardware colorkey blits accelerated?:  [0]
+blit_hw_A      Are hardware to hardware alpha blits accelerated?:     [0]
+blit_sw        Are software to hardware blits accelerated?:           [0]
+blit_sw_CC     Are software to hardware colorkey blits accelerated?:  [0]
+blit_sw_A      Are software to hardware alpha blits accelerated?:     [0]
+blit_fill      Are color fills accelerated?:                          [0]
+video_mem      Total amount of video memory in Kilobytes:             [0]
+Display Mode:  Width  (pixels)                                        [800]
+Display Mode:  Height (pixels)                                        [600]
+Display Mode:  Color Depth (bits)                                     [16]
+---------------------------------- PIXEL FORMAT---------------------------------
+SDL_Palette *palette (0 for realcolor):     [0]
+Using Video Driver: windib
+Surface refcount: 1
+--------------------------------------------------------------------------------
+
+Called from function [] on line [251] of file [.\cardsort.pbl]
+   Called from function [] on line [925] of file [C:\Program Files (x86)\PEBL\bin\..\pebl-lib\Utility.pbl]
+
+Error near line 925 of file C:\Program Files (x86)\PEBL\bin\..\pebl-lib\Utility.pbl:
+	Stopping execution because of quit signal.
+
+Exiting PEBL because of captured signal.
