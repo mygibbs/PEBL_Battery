@@ -3,7 +3,6 @@
 
 define Start(p)
 {
-
 #gWin <- MakeWindow("black")
 #gId <-GetEasyInput("Please Enter your Subject ID",gWin)
 #Draw()
@@ -22,8 +21,19 @@ define Start(p)
 }
 
 define SetElement(list, i, item) {
-    rep <- [[Nth(list, i), item]]
-    Replace(Nth(list, i), rep)
+    len <- Length(list)
+    tmp <- []
+    tmpId <- []
+    newList <- []
+    tmpId <- Append(tmpId, item)
+    
+    if (ListToString(tmp) != "" and ListToString(tmpId) != "") {
+        tmp1 <- SubList(list, 1, i-1)
+        tmp2 <- SubList(list, i+1, len)
+        newList <- Merge(Merge(tmp1, tmpId), tmp2)
+    } 
+    
+    return newList
 } 
  
 define RunFile(fname)
@@ -139,7 +149,7 @@ define ScorePAR(data)
 
      ##Determine whether i was correct:
      corr <-  ToNumber(Nth(j,10))
-     SetElement(corrs,i,corr)
+     corrs <- SetElement(corrs,i,corr)
 
 
      ## Determine whether the PTP rule should 
@@ -261,9 +271,9 @@ define ScorePAR(data)
            ptp <- tentativePTP
 	   loop(ii, Sequence(i-consistentRunCounter+1,i,1))
 	   {
-	      SetElement(ptps,ii,tentativePTP)
+	      ptps <- SetElement(ptps,ii,tentativePTP)
               ptpCorrii <- ToNumber(Nth(Nth(data,ii),11+tentativePTP))==1
-	      SetElement(ptpCorrs,ii,ptpCorrii)
+	      ptpCorrs <- SetElement(ptpCorrs,ii,ptpCorrii)
 	   }
 	}elseif(run==1 and ptp == 0)
          { 
@@ -312,8 +322,8 @@ define ScorePAR(data)
           }
       }
      
-      SetElement(ptps,i,ptp)
-      SetElement(unambigs,i,unambigRule)
+      ptps <- SetElement(ptps,i,ptp)
+      unambigs <- SetElement(unambigs,i,unambigRule)
 
 
       count <- count + 1	
@@ -330,7 +340,9 @@ define ScorePAR(data)
 	 ptpCorrs <- [ptpCorr]
 	  
 	}
-	 
+	 Print("ptp: " + ptps)
+ 	 Print("unambigs: " + unambigs)
+ 	 Print("ptpCorrs: " + ptpCorrs)
 
 
      #############################################
@@ -346,7 +358,7 @@ define ScorePAR(data)
      {
        ptp <- Nth(x,19)
        ptpCorr <- Nth(x,11+ptp)=="1"
-       SetElement(x,21, ptpCorr)
+       x <- SetElement(x,21, ptpCorr)
 
      }
 
@@ -459,7 +471,7 @@ define ScorePAR(data)
 	   }
  
 
-	   SetElement(tentatives,x,tent)
+	   tentatives <- SetElement(tentatives,x,tent)
 	   lasttent <- tent
 	   x <- x  + 1
 
@@ -534,8 +546,21 @@ define ScorePAR(data)
 
 		loop(s,seq)
 		{
-       		   SetElement(Nth(pairs,s),1,good)
-
+            tmpList <- pairs
+            len <- Length(pairs)
+            tmp <- []
+            tmpId <- SetElement(Nth(pairs,s),1,good)
+            if (s == 1) {
+                tmp2 <- Rest(pairs)
+                pairs <- Merge(tmpId, tmp2)
+            } elseif (s == Length(pairs)) {
+                tmp1 <- RemoveSubset(pairs, [len])
+                pairs <- Merge(tmp1, tmpId)
+            } else {
+                tmp1 <- SubList(tmpList, 1, s-1)
+                tmp2 <- SubList(tmpList, s+1, len)
+                pairs <- Merge(Merge(tmp1, tmpId), tmp2)
+            }
 		}
 
             }
@@ -553,7 +578,8 @@ define ScorePAR(data)
 
 	 
 	    persev <- First(pair)>0 and (not First(pair)==5)
-            persevs <- Append(persevs,persev)
+        persevs <- Append(persevs,persev)
+	    
 	    error <-  (ToNumber(Second(pair))==0)
 	    perserrs <- Append(perserrs, persev and error)
 

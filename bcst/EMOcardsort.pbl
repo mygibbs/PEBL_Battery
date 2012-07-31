@@ -19,7 +19,7 @@
 ## Portuguese translation contributed by Arthur Kummer
 ###########################################################
 ##  Raw data file outputs:
-##  subnum, trialnum, category count, color, shape, number, response, accuracy
+##  subnum, trialnum, category count, color, font, number, response, accuracy
 ##  perseveration count, absolute time, response time.
 define Start(lPar)
 {
@@ -93,7 +93,7 @@ define Start(lPar)
    }
 
    gColors <-  ["Red", "Green","Yellow","Blue"]
-   gShapes <-  ["Triangle","Star","Cross","Circle"]
+   gFonts <-  ["B","C","M","T"]
    gNumbers <- ["1","2","3","4"]
    rules <-[1,2,3] ##ShuffleWithoutAdjacents([[1,1,1],[2,2,2],[3,3,3]])
 
@@ -101,10 +101,10 @@ define Start(lPar)
   if(not useCanonical)
    {
      gColors <- Shuffle(gColors)
-     gShapes <- Shuffle(gShapes)
+     gFonts <- Shuffle(gFonts)
    }
   
-  csn <- DesignFullCounterbalance(DesignFullCounterbalance(gColors,gShapes),gNumbers)
+  csn <- DesignFullCounterbalance(DesignFullCounterbalance(gColors,gFonts),gNumbers)
 
 
  if(useReduced)
@@ -117,16 +117,16 @@ define Start(lPar)
      loop(i, csn)
      {
        col <- First(First(i))
-       shape <- Nth(First(i),2)
+       font <- Nth(First(i),2)
        num   <- Nth(i,2)
 
        #compare the card to each pile-card; counting matching features       
 
        maxmatch <- 0
-       cards <- Transpose([gColors,gShapes,gNumbers])
+       cards <- Transpose([gColors,gFonts,gNumbers])
       loop(card,cards) 
         {
-          matches <- (col==First(card)) + (shape ==Nth(card,2)) + (num==Nth(card,3))
+          matches <- (col==First(card)) + (font ==Nth(card,2)) + (num==Nth(card,3))
           maxmatch <- Max([matches,maxmatch])
 
         }
@@ -134,7 +134,7 @@ define Start(lPar)
        ##only add to the used deck if it matches on fewer than two features.
        if(maxmatch <2)
         {
-            ccsn <- Append(ccsn,[[col,shape],num])
+            ccsn <- Append(ccsn,[[col,font],num])
         }
      }
 
@@ -166,7 +166,7 @@ define Start(lPar)
    ## load canonical comparison cards.  This is perhaps supposed to
    ## be randomized.
 
-   comps <- Transpose([gColors,gShapes,gNumbers])
+   comps <- Transpose([gColors,gFonts,gNumbers])
    comp1 <- MakeImage("png/"+ListToString(First(comps))+".png")
    comp2 <- MakeImage("png/"+ListToString(Nth(comps,2))+".png")
    comp3 <- MakeImage("png/"+ListToString(Nth(comps,3))+".png")
@@ -207,7 +207,7 @@ define Start(lPar)
   ## Begin presenting and collecting data
   ####################################################
  
-  FilePrint(gFileOut, "Subnum trial run rule lastrule color shape number resp corr last_corr corr_col corr_shape corr_num persev persev_err abstime rt")
+  FilePrint(gFileOut, "Subnum trial run rule lastrule color font number resp corr last_corr corr_col corr_font corr_num persev persev_err abstime rt")
 ####################################################
 ##  Start the experimental trials.
 ## 
@@ -266,7 +266,7 @@ define Start(lPar)
 
      ##Also compute whether the choice was correct for each given rule
       corrCol   <- Nth(gColors,ToNumber(resp)) == Nth(s,1)
-      corrShape <- Nth(gShapes,ToNumber(resp)) == Nth(s,2)
+      corrShape <- Nth(gFonts,ToNumber(resp)) == Nth(s,2)
       corrNum   <- Nth(gNumbers,ToNumber(resp))== Nth(s,3)
       
       ##animate the card location.
@@ -474,7 +474,7 @@ define Start(lPar)
         loop(i,Transpose([trialspercat,errorspercat]))
          {
            ##Only use this if there were 10 or more trials
-           if(First(i)>=10)
+           if(i>=10)
               {
                   pc <- Second(i)/First(i)*100
               }
@@ -487,7 +487,7 @@ define Start(lPar)
            tt <- tt + 1
            lastpc <- pc
          }
-         learningtolearn <- Mean(diffs)
+         learningtolearn <- Mean(diffS)
 
       } else {
        ##Invalid to compute learning-to-learn
@@ -523,8 +523,8 @@ define Start(lPar)
       }
    FilePrint(report,"")
 
-   FilePrint_(report,"                Rule 2  (shape):  " )
-      loop(i,gShapes)
+   FilePrint_(report,"                Rule 2  (font):  " )
+      loop(i,gFonts)
       {
          FilePrint_(report,i+" ")
       }
@@ -666,12 +666,12 @@ define ScoreTrial(triallist, resp, rule,lastrule)
 {
   ##The piles are defined by:
   ## Rule 1: COLOR:  red green blue yellow
-  ## Rule 2: SHAPE:  circle star triangle cross
+  ## Rule 2: font:  circle star triangle cross
   ## Rule 3: NUMBER: 1 2 3 4
   ## Depending upon the rule (triallist[5]),
   ## the correct response depends upon column 1,2,3
 
-  dimensions <- [gColors, gShapes, gNumbers]
+  dimensions <- [gColors, gFonts, gNumbers]
   dimension <- Nth(triallist, rule)
 
   dimlist <- Nth(dimensions,rule)
