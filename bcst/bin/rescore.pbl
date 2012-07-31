@@ -23,16 +23,25 @@ define Start(p)
 define SetElement(list, i, item) {
     len <- Length(list)
     tmp <- []
+    tmp1 <- []
+    tmp2 <- []
     tmpId <- []
     newList <- []
+    Print("old List" + list)
     tmpId <- Append(tmpId, item)
     
-    if (ListToString(tmp) != "" and ListToString(tmpId) != "") {
+    if (i > 1 and i < len) {
         tmp1 <- SubList(list, 1, i-1)
         tmp2 <- SubList(list, i+1, len)
         newList <- Merge(Merge(tmp1, tmpId), tmp2)
-    } 
-    
+    } elseif(i == len) {
+        tmp1 <- SubList(list, 1, len-1)
+        newList <- Merge(tmp1, tmpId)
+    } else {
+        tmp2 <- Rest(list)
+        newList <- Merge(tmpId, tmp2)
+    }
+    Print("new List" + newList)
     return newList
 } 
  
@@ -272,6 +281,7 @@ define ScorePAR(data)
 	   loop(ii, Sequence(i-consistentRunCounter+1,i,1))
 	   {
 	      ptps <- SetElement(ptps,ii,tentativePTP)
+          Print(ptps)
               ptpCorrii <- ToNumber(Nth(Nth(data,ii),11+tentativePTP))==1
 	      ptpCorrs <- SetElement(ptpCorrs,ii,ptpCorrii)
 	   }
@@ -323,8 +333,9 @@ define ScorePAR(data)
       }
      
       ptps <- SetElement(ptps,i,ptp)
+      Print("ptps: " + ptps)
       unambigs <- SetElement(unambigs,i,unambigRule)
-
+      Print("unambigs: " + unambigs)
 
       count <- count + 1	
       i <- i + 1
