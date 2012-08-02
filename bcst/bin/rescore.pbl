@@ -27,7 +27,7 @@ define SetElement(list, i, item) {
     tmp2 <- []
     tmpId <- []
     newList <- []
-    Print("old List" + list)
+
     tmpId <- Append(tmpId, item)
     
     if (i > 1 and i < len) {
@@ -41,7 +41,7 @@ define SetElement(list, i, item) {
         tmp2 <- Rest(list)
         newList <- Merge(tmpId, tmp2)
     }
-    Print("new List" + newList)
+
     return newList
 } 
  
@@ -159,7 +159,7 @@ define ScorePAR(data)
      ##Determine whether i was correct:
      corr <-  ToNumber(Nth(j,10))
      corrs <- SetElement(corrs,i,corr)
-
+    
 
      ## Determine whether the PTP rule should 
      ##
@@ -281,7 +281,7 @@ define ScorePAR(data)
 	   loop(ii, Sequence(i-consistentRunCounter+1,i,1))
 	   {
 	      ptps <- SetElement(ptps,ii,tentativePTP)
-          Print(ptps)
+          
               ptpCorrii <- ToNumber(Nth(Nth(data,ii),11+tentativePTP))==1
 	      ptpCorrs <- SetElement(ptpCorrs,ii,ptpCorrii)
 	   }
@@ -333,9 +333,9 @@ define ScorePAR(data)
       }
      
       ptps <- SetElement(ptps,i,ptp)
-      Print("ptps: " + ptps)
+      
       unambigs <- SetElement(unambigs,i,unambigRule)
-      Print("unambigs: " + unambigs)
+      
 
       count <- count + 1	
       i <- i + 1
@@ -351,9 +351,9 @@ define ScorePAR(data)
 	 ptpCorrs <- [ptpCorr]
 	  
 	}
-	 Print("ptp: " + ptps)
- 	 Print("unambigs: " + unambigs)
- 	 Print("ptpCorrs: " + ptpCorrs)
+	 
+ 	 
+ 	 
 
 
      #############################################
@@ -399,7 +399,6 @@ define ScorePAR(data)
 	 loop(kk,Sequence(1,Length(newtrials),1))
           {
           k <- Nth(newtrials,kk)
-
 	   iCorr <- ToNumber(Nth(k,10))
            iptp <- ToNumber(Nth(k,19))
 	   iUnambig <- ToNumber(Nth(k,20))
@@ -504,10 +503,10 @@ define ScorePAR(data)
 	 ##Any tentatives must be followed by a 'sure thing'--a 1
 	 ##So---go through tentatives backward and rewrite 3s to 0 when they
 	 ##don't follow a 1 or 3
-
+	 
 	 pairs <- (Transpose([tentatives,corrs]))
-         ids <- Sequence(1,Length(corrs),1)
-
+         ids <- Sequence(1,Length(pairs),1)
+         
 	 ##This just computes the 'sandwich rule'.  
 	 ##it looks for runs of 3s sandwiched between 1s and 2s.
 	 ##Any runs such as this will be changed to 4s;
@@ -516,7 +515,13 @@ define ScorePAR(data)
 	 loop(pairid,ids)
 	 {
 	   pair <- Nth(pairs,pairid)
-	   i <- First(pair)
+	   
+	   if (IsList(pair)) 
+	   {
+	       i <- First(pair)
+	   } else {
+	     break
+	   }
 	   if(i==3)
 	   {
 	    startid <-pairid-1
@@ -561,17 +566,18 @@ define ScorePAR(data)
             len <- Length(pairs)
             tmp <- []
             tmpId <- SetElement(Nth(pairs,s),1,good)
-            if (s == 1) {
-                tmp2 <- Rest(pairs)
-                pairs <- Merge(tmpId, tmp2)
-            } elseif (s == Length(pairs)) {
-                tmp1 <- RemoveSubset(pairs, [len])
-                pairs <- Merge(tmp1, tmpId)
-            } else {
-                tmp1 <- SubList(tmpList, 1, s-1)
-                tmp2 <- SubList(tmpList, s+1, len)
-                pairs <- Merge(Merge(tmp1, tmpId), tmp2)
-            }
+            ##if (s == 1) {
+            ##    tmp2 <- Rest(pairs)
+            ##    pairs <- Merge(tmpId, tmp2)
+            ##} elseif (s == Length(pairs)) {
+            ##    tmp1 <- RemoveSubset(pairs, [len])
+            ##    pairs <- Merge(tmp1, tmpId)
+            ##} else {
+            ##    tmp1 <- SubList(tmpList, 1, s-1)
+            ##    tmp2 <- SubList(tmpList, s+1, len)
+            ##    pairs <- Merge(Merge(tmp1, tmpId), tmp2)
+            ##}
+            pairs <- SetElement(pairs, s, tmpId)
 		}
 
             }
