@@ -1,0 +1,51 @@
+---------------------------------------------------
+ Report for PEBL's _Berg's Card Sorting Task_,
+ a free version of the Wisconsin Card Sorting Task (tm)*
+ (c) 2008-2010 Shane T. Mueller
+ Version 0.8
+ PEBL Version 0.12
+ Mon Jul 23 16:11:49 2012
+ Participant Code: 0
+ http://pebl.sf.net
+---------------------------------------------------
+Parameters:
+Run length to move to next category: 10
+Number of times through deck: 2
+Deck Size: 64
+Order of Cards: Rule 1  (color): Red Green Yellow Blue 
+                Rule 2  (shape):  Triangle Star Cross Circle 
+                Rule 3 (number):  1 2 3 4 
+---------------------------------------------------
+Statistic                    Value
+---------------------------------------------------
+1. Categories Completed/Experienced: 8 / 9
+2. Number of Trials:             128
+                        ---------------------------
+                            Total Percent Mean/Cat
+3. Correct Responses:         100	78.13	11.111
+4. Total Errors:              28	21.88	3.111
+5. Perseverative Responses    44	34.38	5.5
+6. Perseverative Errors       27	21.09	3.375
+7. Non-Perseverative Errors   1	0.78	0.111
+8. Unique Errors              0	0	0
+                        ---------------------------
+8. Trials to complete 1st cat:   10
+9. Failure to maintain set:      2
+10. Learning to Learn:           3.06122
+11. Conceptual Level Responses:  96
+    Percent CLR:                  75
+12. Perseverative Runs: Min    Max   Mean   Total
+                         1  6     3.714   26
+---------------------------------------------------
+Notes:
+Stats 1-11 are standard statistics commonly
+   reported.  #1 contains both categories completed (standard stat)
+   and categories experienced, whether or not the last one was
+   actually completed.  Means are computed based on categories
+   experienced (not categories completed), and perseverative means
+   based on categories experienced AFTER the first category usually a
+   maximum of 8.  Total and percent for 1-11 are computed like the
+   commonly-reported stats, to the best of our knowledge. #12,
+   Perseverative runs, computes the number of error perseverations in
+   a row at the beginning of each new category.
+*PEBL, the PEBL test battery, and this test are unaffiliated with the Wells Printing Company or PAR Inc, the producers of the 'Wisconsin Card Sorting Test' (tm)

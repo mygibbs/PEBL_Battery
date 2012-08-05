@@ -19,7 +19,7 @@
 ## Portuguese translation contributed by Arthur Kummer
 ###########################################################
 ##  Raw data file outputs:
-##  subnum, trialnum, category count, color, font, number, response, accuracy
+##  subnum, trialnum, category count, color, shape, number, response, accuracy
 ##  perseveration count, absolute time, response time.
 define Start(lPar)
 {
@@ -66,10 +66,7 @@ define Start(lPar)
   ## results are stored in this file
 
 
-  gFileOut <-FileOpenWrite("data/bcst-" + gSubNum + ".txt")
-  gRescoreFileList <- FileOpenAppend("bin/files.txt")
-  FilePrint(gRescoreFileList, "bcst-" + gSubNum)
-  FileClose(gRescoreFileList)
+  gFileOut <-FileOpenWrite("bcst-" + gSubNum +".txt")
 
   gSleepEasy <- 1
   persevs <- []
@@ -92,20 +89,20 @@ define Start(lPar)
      ShowCursor(0)  #hide the cursor
    }
 
-   gColors <-  ["R", "G","Y","B"]
-   gFonts <-  ["B","C","M","T"]
+   gColors <-  ["Red", "Green","Yellow","Blue"]
+   gShapes <-  ["Triangle","Star","Cross","Circle"]
    gNumbers <- ["1","2","3","4"]
-   ##rules <-[1,2,3] ##ShuffleWithoutAdjacents([[1,1,1],[2,2,2],[3,3,3]])
-   rules <-[3,1,2]
+   ##Does this really work?
+   rules <- ShuffleWithoutAdjacents([[1,1,1],[2,2,2],[3,3,3]])
 
   ##Mix up the order if we aren't using canonical stimulus cards.
   if(not useCanonical)
    {
      gColors <- Shuffle(gColors)
-     gFonts <- Shuffle(gFonts)
+     gShapes <- Shuffle(gShapes)
    }
   
-  csn <- DesignFullCounterbalance(DesignFullCounterbalance(gColors,gFonts),gNumbers)
+  csn <- DesignFullCounterbalance(DesignFullCounterbalance(gColors,gShapes),gNumbers)
 
 
  if(useReduced)
@@ -118,16 +115,16 @@ define Start(lPar)
      loop(i, csn)
      {
        col <- First(First(i))
-       font <- Nth(First(i),2)
+       shape <- Nth(First(i),2)
        num   <- Nth(i,2)
 
        #compare the card to each pile-card; counting matching features       
 
        maxmatch <- 0
-       cards <- Transpose([gColors,gFonts,gNumbers])
+       cards <- Transpose([gColors,gShapes,gNumbers])
       loop(card,cards) 
         {
-          matches <- (col==First(card)) + (font ==Nth(card,2)) + (num==Nth(card,3))
+          matches <- (col==First(card)) + (shape ==Nth(card,2)) + (num==Nth(card,3))
           maxmatch <- Max([matches,maxmatch])
 
         }
@@ -135,7 +132,7 @@ define Start(lPar)
        ##only add to the used deck if it matches on fewer than two features.
        if(maxmatch <2)
         {
-            ccsn <- Append(ccsn,[[col,font],num])
+            ccsn <- Append(ccsn,[[col,shape],num])
         }
      }
 
@@ -150,7 +147,7 @@ define Start(lPar)
  
   loop(i,stimcat)
   {
-    filename <- "jpg/" + ListToString(i) + ".jpg"
+    filename <- "png/" + ListToString(i) + ".png"
     x <- MakeImage(filename)
     images <- Append(images,x)
 
@@ -167,11 +164,11 @@ define Start(lPar)
    ## load canonical comparison cards.  This is perhaps supposed to
    ## be randomized.
 
-   comps <- Transpose([gColors,gFonts,gNumbers])
-   comp1 <- MakeImage("jpg/"+ListToString(First(comps))+".jpg")
-   comp2 <- MakeImage("jpg/"+ListToString(Nth(comps,2))+".jpg")
-   comp3 <- MakeImage("jpg/"+ListToString(Nth(comps,3))+".jpg")
-   comp4 <- MakeImage("jpg/"+ListToString(Nth(comps,4))+".jpg")
+   comps <- Transpose([gColors,gShapes,gNumbers])
+   comp1 <- MakeImage("png/"+ListToString(First(comps))+".png")
+   comp2 <- MakeImage("png/"+ListToString(Nth(comps,2))+".png")
+   comp3 <- MakeImage("png/"+ListToString(Nth(comps,3))+".png")
+   comp4 <- MakeImage("png/"+ListToString(Nth(comps,4))+".png")
 
 
    AddObject(comp1,gWin)
@@ -208,7 +205,7 @@ define Start(lPar)
   ## Begin presenting and collecting data
   ####################################################
  
-  FilePrint(gFileOut, "Subnum trial run rule lastrule color font number resp corr last_corr corr_col corr_font corr_num persev persev_err abstime rt")
+  FilePrint(gFileOut, "Subnum trial run rule lastrule color shape number resp corr last_corr corr_col corr_shape corr_num persev persev_err abstime rt")
 ####################################################
 ##  Start the experimental trials.
 ## 
@@ -266,10 +263,9 @@ define Start(lPar)
 
 
      ##Also compute whether the choice was correct for each given rule
-     ##color number font (order in jpg filenames)
       corrCol   <- Nth(gColors,ToNumber(resp)) == Nth(s,1)
-      corrNum   <- Nth(gNumbers,ToNumber(resp))== Nth(s,2)
-      corrFont <- Nth(gFonts,ToNumber(resp)) == Nth(s,3)
+      corrShape <- Nth(gShapes,ToNumber(resp)) == Nth(s,2)
+      corrNum   <- Nth(gNumbers,ToNumber(resp))== Nth(s,3)
       
       ##animate the card location.
 
@@ -370,7 +366,7 @@ define Start(lPar)
 	  ## not correct according to any rule
 
       
-      rulesum <- (corrCol + corrFont + corrNum)
+      rulesum <- (corrCol + corrShape + corrNum)
 
         ##It was incorrect, and not correct according to the previous rule, and not 
         ##a match to another property of the card, increment the unique counter
@@ -392,7 +388,7 @@ define Start(lPar)
        index <- index + 1
       }
 
-	  FilePrint_(gFileOut, resp + " " + corr + " " + corrLast + " " +  corrCol + " " + corrFont + " " + corrNum + " ")
+	  FilePrint_(gFileOut, resp + " " + corr + " " + corrLast + " " +  corrCol + " " + corrShape + " " + corrNum + " ")
       FilePrint( gFileOut, trialpersev + " " + trialperseverr + " " +  time0 + " " + rt )
       Show(feedback)
       Draw()
@@ -437,9 +433,9 @@ define Start(lPar)
       }
 
       trialnum <- trialnum + 1
-      if(numCats >= 6 )
+      if(numCats >= 9 )
       {
-        numCatsExp <- 6
+        numCatsExp <- 9
         break
       }
     }
@@ -501,7 +497,7 @@ define Start(lPar)
 
 
    FileClose(gFileOut)
-   report <-FileOpenWrite("reports/bcst-report-" + gSubNum +".txt")
+   report <-FileOpenWrite("bcst-report-" + gSubNum +".txt")
    FilePrint(report,"---------------------------------------------------")
    FilePrint(report," Report for PEBL's _Berg's Card Sorting Task_,")
    FilePrint(report," a free version of the Wisconsin Card Sorting Task (tm)*")
@@ -525,8 +521,8 @@ define Start(lPar)
       }
    FilePrint(report,"")
 
-   FilePrint_(report,"                Rule 2  (font):  " )
-      loop(i,gFonts)
+   FilePrint_(report,"                Rule 2  (shape):  " )
+      loop(i,gShapes)
       {
          FilePrint_(report,i+" ")
       }
@@ -668,12 +664,12 @@ define ScoreTrial(triallist, resp, rule,lastrule)
 {
   ##The piles are defined by:
   ## Rule 1: COLOR:  red green blue yellow
-  ## Rule 2: font:  bauhaus curlz mercurius times new roman
+  ## Rule 2: SHAPE:  circle star triangle cross
   ## Rule 3: NUMBER: 1 2 3 4
   ## Depending upon the rule (triallist[5]),
   ## the correct response depends upon column 1,2,3
 
-  dimensions <- [gColors, gFonts, gNumbers]
+  dimensions <- [gColors, gShapes, gNumbers]
   dimension <- Nth(triallist, rule)
 
   dimlist <- Nth(dimensions,rule)

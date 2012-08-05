@@ -1,0 +1,40 @@
+--------------------------------------
+Path List:
+.\
+
+C:\Program Files (x86)\PEBL\bin\
+C:\Program Files (x86)\PEBL\bin\..\media\fonts\
+C:\Program Files (x86)\PEBL\bin\..\media\sounds\
+C:\Program Files (x86)\PEBL\bin\..\media\images\
+C:\Program Files (x86)\PEBL\bin\..\media\text\
+C:\Program Files (x86)\PEBL\bin\..\pebl-lib\
+--------------------------------------
+Processing PEBL Source File1: .\rescore.pbl
+File [.\rescore.pbl] opened successfully.
+Loading file name:Design.pbl
+Processing PEBL Source File2: C:\Program Files (x86)\PEBL\bin\..\pebl-lib\Design.pbl
+File [C:\Program Files (x86)\PEBL\bin\..\pebl-lib\Design.pbl] opened successfully.
+Loading file name:Utility.pbl
+Processing PEBL Source File2: C:\Program Files (x86)\PEBL\bin\..\pebl-lib\Utility.pbl
+File [C:\Program Files (x86)\PEBL\bin\..\pebl-lib\Utility.pbl] opened successfully.
+Loading file name:Math.pbl
+Processing PEBL Source File2: C:\Program Files (x86)\PEBL\bin\..\pebl-lib\Math.pbl
+File [C:\Program Files (x86)\PEBL\bin\..\pebl-lib\Math.pbl] opened successfully.
+Loading file name:Graphics.pbl
+Processing PEBL Source File2: C:\Program Files (x86)\PEBL\bin\..\pebl-lib\Graphics.pbl
+File [C:\Program Files (x86)\PEBL\bin\..\pebl-lib\Graphics.pbl] opened successfully.
+---------Loading Program---------
+Error in function 'DIST'.  Function already exists.
+Analyzing code for functions.
+Loading Library functions.
+Removing residual function tree
+Successfully UNICODED
+Successfully initialized SDL Graphics
+---------Creating Evaluator-----
+---------Evaluating Program-----
+Called from function [] on line [18] of file [.\rescore.pbl]
+   Called from function [] on line [56] of file [.\rescore.pbl]
+
+Error near line 519 of file .\rescore.pbl:
+	Argument error in function [First(<list>)]:  Wanted list but got PEBL Integer Type: 1
+Exiting PEBL because of captured signal.

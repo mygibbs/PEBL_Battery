@@ -1,0 +1,17 @@
+define SetElement(list, i, item) 
+{
+    len <- Length(list)
+    tmp <- list
+    tmp1 <- SubList(tmp, 1, i-1)
+    tmp2 <- SubList(tmp, i+1, len)
+    return Flatten(Merge(Merge(tmp1, [item]), tmp2))
+} 
+
+define Start(p)
+{
+    list <- ["a", "b", "c", "d"]
+    list <- SetElement(list, 2, "1")
+    Print("final " + list)
+}
+
+
