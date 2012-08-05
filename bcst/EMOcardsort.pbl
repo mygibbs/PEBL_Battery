@@ -96,7 +96,7 @@ define Start(lPar)
    gFonts <-  ["B","C","M","T"]
    gNumbers <- ["1","2","3","4"]
    ##rules <-[1,2,3] ##ShuffleWithoutAdjacents([[1,1,1],[2,2,2],[3,3,3]])
-   rules <-[3,1,2]
+   rules <-[1,2,3]
 
   ##Mix up the order if we aren't using canonical stimulus cards.
   if(not useCanonical)
