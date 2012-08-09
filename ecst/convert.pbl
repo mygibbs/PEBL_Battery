@@ -1,0 +1,12 @@
+define Start(lPar) {
+    gFileIn <- FileReadTable("print.txt", " ") 
+    gFileOut <- FileOpenWrite("output.txt") 
+    loop (i, gFileIn) {
+        loop (j, i){
+            if (j != ""){
+                
+           FilePrint(gFileOut, j)}
+        }
+    }
+}
+    

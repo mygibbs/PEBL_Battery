@@ -232,7 +232,9 @@ define Start(lPar)
   trialnum <- 1
   numCats <- 0
   numCatsExp <- 1
-
+  firstCatPersCounter <- 0
+  ptp <- 0
+  
   ##Loop through each stimulus card
    loop(s,stim)
    {
@@ -320,15 +322,17 @@ define Start(lPar)
      
       }
 
-
+     ## check to see if it's unambiguous
+     unambig <- corrShape + corrCol + corrNum
  
      ##If it was correct according to the last rule, increment counters.
       if(corrLast == 1) {
-
-           totPers <- totPers + 1
-           persev <- persev + 1
-           trialpersev <- 1	
-           trialPersevErr <- 0
+           if (unambig == 1) {
+               totPers <- totPers + 1
+               persev <- persev + 1
+               trialpersev <- 1	
+               trialPersevErr <- 0
+           }
 
 
 
@@ -340,6 +344,21 @@ define Start(lPar)
                   trialPersevErr <- 1
               }
 
+          } elseif (corrLast == -1 and corr==0 and unambig == 1) {
+                if (firstCatPersCounter == 0) {
+                    firstCatPersCounter <- 1
+                    ptp <- ToNumber(resp)
+                } else {
+                    if (ptp == ToNumber(resp)) {
+                       totPers <- totPers + 1
+                       persev <- persev + 1
+                       trialpersev <- 1	
+                       totPersErr <- totPersErr +1 
+                       trialPersevErr <- 1
+                    }
+                }
+                
+          
           } else {
 
          #####################

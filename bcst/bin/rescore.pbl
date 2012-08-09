@@ -20,30 +20,23 @@ define Start(p)
 
 }
 
-define SetElement(list, i, item) {
-    len <- Length(list)
-    tmp <- []
-    tmp1 <- []
-    tmp2 <- []
-    tmpId <- []
-    newList <- []
+define SetElement(list,element,data)
+{
+   newlist <- []
+   id <- 1
+   loop(i, list)
+    {
+      if (id==element)
+        {
+          newlist<- Append(newlist,data)
+        } else {
+          newlist<- Append(newlist,i)
+        }
 
-    tmpId <- Append(tmpId, item)
-    
-    if (i > 1 and i < len) {
-        tmp1 <- SubList(list, 1, i-1)
-        tmp2 <- SubList(list, i+1, len)
-        newList <- Merge(Merge(tmp1, tmpId), tmp2)
-    } elseif(i == len) {
-        tmp1 <- SubList(list, 1, len-1)
-        newList <- Merge(tmp1, tmpId)
-    } else {
-        tmp2 <- Rest(list)
-        newList <- Merge(tmpId, tmp2)
+      id <- id + 1
     }
-
-    return newList
-} 
+  return newlist
+}
  
 define RunFile(fname)
 {
@@ -562,22 +555,8 @@ define ScorePAR(data)
 
 		loop(s,seq)
 		{
-            tmpList <- pairs
-            len <- Length(pairs)
-            tmp <- []
-            tmpId <- SetElement(Nth(pairs,s),1,good)
-            ##if (s == 1) {
-            ##    tmp2 <- Rest(pairs)
-            ##    pairs <- Merge(tmpId, tmp2)
-            ##} elseif (s == Length(pairs)) {
-            ##    tmp1 <- RemoveSubset(pairs, [len])
-            ##    pairs <- Merge(tmp1, tmpId)
-            ##} else {
-            ##    tmp1 <- SubList(tmpList, 1, s-1)
-            ##    tmp2 <- SubList(tmpList, s+1, len)
-            ##    pairs <- Merge(Merge(tmp1, tmpId), tmp2)
-            ##}
-            pairs <- SetElement(pairs, s, tmpId)
+            tmp <- SetElement(Nth(pairs,s),1,good)
+            pairs <- SetElement(pairs, s, tmp)
 		}
 
             }
