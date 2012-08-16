@@ -138,12 +138,14 @@ define Start(p)
     
     InitPoles()   
    
-    FilePrint(gFileOut,"trial,move,pegcount,minmove,sourcepeg,destpeg,putime,tottime")
+    FilePrint(gFileOut,"trial,move,pegcount,minmove,sourcepeg,destpeg,putime,tottime,totmove")
    
 
     ## keeps track of when to start printing output to file
     gTrialCount <- 0 
     trial  <- 1
+    ##keeps track of total clicks
+    gTotalStep <- 1
 
     ## if the type of test is changed this stim value may need to be changed
     stim <- Shallice()
@@ -306,21 +308,30 @@ define Start(p)
                     success <- 0
                     continue <- 0
                     step <- 20
+                    if(trial > 3) 
+                    {
+                        gTotalStep <- gTotalStep + 20
+                    }
                 }
             }
             
-            FilePrint(gFileOut, trial + "," + step + "," + numdisks + "," + Nth(minMoves, trial) + "," + gFirst + "," + gNext + "," + (gPutime-time) + "," + (storeEndTime) )
+            FilePrint(gFileOut, trial + "," + step + "," + numdisks + "," + Nth(minMoves, trial) + "," + gFirst + "," + gNext + "," + (gPutime-time) + "," + (storeEndTime) + "," + gTotalStep)
             ##if(success==1) { 
             ##    endTime <- 0
             ##}
             Draw()
             
             step <- step + 1 
+            
+            if(trial > 3) 
+            {
+                gTotalStep <- gTotalStep+1
+            }
         }
  
         Wait(100)
         
-        total_step <- ToString((step-1))
+        ##total_step <- ToString((step-1))
         total_time <- ToString((time-starttime))
         comma <- ","
         if (trial > 3)
@@ -370,7 +381,6 @@ define Start(p)
             RemoveComplex(cGraph)
         }
     }
-    
     
     gInstructions.text <- gDebriefing
   
