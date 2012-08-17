@@ -1,0 +1,44 @@
+define Start(lPar) {
+    gFileIn <- FileReadTable("Images/stimuli/Positive/filenamelist.txt", " ") 
+    gFileIn <- Shuffle(gFileIn)
+    gFileIn <- Shuffle(gFileIn)
+    gFileIn <- Shuffle(gFileIn)
+    gFileIn <- Shuffle(gFileIn)
+    gFileIn <- Shuffle(gFileIn)
+    gFileIn <- Shuffle(gFileIn)
+    gFileIn <- Shuffle(gFileIn)
+    gFileIn <- Shuffle(gFileIn)
+    gFileIn <- Shuffle(gFileIn)
+    gFileIn <- Shuffle(gFileIn)
+    gFileIn <- Shuffle(gFileIn)
+    gFileIn <- Shuffle(gFileIn)
+    gFileIn <- Shuffle(gFileIn)
+    gFileIn <- Shuffle(gFileIn)
+    gFileIn <- Shuffle(gFileIn)
+    gFileIn <- Shuffle(gFileIn)
+    gFileIn <- Shuffle(gFileIn)
+    gFileIn <- Shuffle(gFileIn)
+    gFileIn <- Shuffle(gFileIn)
+    gFileIn <- Shuffle(gFileIn)
+    gFileIn <- Shuffle(gFileIn)
+    gFileIn <- Shuffle(gFileIn)
+    gFileIn <- Shuffle(gFileIn)
+    gFileIn <- Shuffle(gFileIn)
+    gFileIn <- Shuffle(gFileIn)
+    gFileIn <- Shuffle(gFileIn)
+    gFileIn <- Shuffle(gFileIn)
+    gFileIn <- Shuffle(gFileIn)
+    gFileIn <- Shuffle(gFileIn)
+    gFileIn <- Shuffle(gFileIn)
+    gFileIn <- Shuffle(gFileIn)
+    gFileIn <- Shuffle(gFileIn)
+    gFileOut <- FileOpenWrite("Images/stimuli/Positive/files.txt") 
+    loop (i, gFileIn) {
+        loop (j, i){
+            if (j != ""){
+                
+           FilePrint(gFileOut, j)}
+        }
+    }
+}
+    

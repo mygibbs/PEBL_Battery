@@ -74,9 +74,9 @@ define Start(lPar)
   
   ## reads pic filenames from .txt and stores it in a list
   ## the filenamelist is randomly sorted
-  gPositivePics <- FileReadList("Images/stimuli/Positive/filenamelist.txt")
-  gNeutralPics <- FileReadList("Images/stimuli/Neutral/filenamelist.txt")
-  gNegativePics <- FileReadList("Images/stimuli/Negative/filenamelist.txt")
+  gPositivePics <- FileReadList("Images/stimuli/Positive/files.txt")
+  gNeutralPics <- FileReadList("Images/stimuli/Neutral/files.txt")
+  gNegativePics <- FileReadList("Images/stimuli/Negative/files.txt")
 
   gSleepEasy <- 1
   persevs <- []
@@ -97,13 +97,8 @@ define Start(lPar)
      ShowCursor(0)  #hide the cursor
    }
    
-   ## order of positive/neutral/negative blocks
-   gOrder <- ["Positive", "Neutral", "Negative"]
-   
-   firstBlock <- (gSubNum+2 % 3) + 1
-   if (firstBlock == 1) { gOrder <- ["Positive", "Neutral", "Negative"] 
-   } elseif(firstBlock == 2) { gOrder <- ["Neutral", "Negative", "Positive"] 
-   } else { gOrder <- ["Negative", "Positive", "Neutral"] }
+   ## TODO
+   gOrder <- CounterBalanceValence()
 
    gColors <-  ["R","G","Y","B"] ##red,green,yellow,blue
    gFonts <-  ["B","C","M","T"]  ##bauhaus,curlz,mercurius,timesnewroman
@@ -111,11 +106,11 @@ define Start(lPar)
    rules <-[1,2,3] ##ShuffleWithoutAdjacents([[1,1,1],[2,2,2],[3,3,3]])
 
   ##Mix up the order if we aren't using canonical stimulus cards.
-  if(not useCanonical)
-   {
-     gColors <- Shuffle(gColors)
-     gFonts <- Shuffle(gFonts)
-   }
+  ##if(not useCanonical)
+  ## {
+  ##   gColors <- Shuffle(gColors)
+  ##   gFonts <- Shuffle(gFonts)
+  ## }
   
   csn <- DesignFullCounterbalance(DesignFullCounterbalance(gColors,gFonts),gNumbers)
 
@@ -203,6 +198,8 @@ define Start(lPar)
    Move(gHeader,320,220)
    Show(gHeader)
 
+
+    ## TODO
 	gInstructions.text <- Nth(textlist,2)
    Draw()
    WaitForIt()
@@ -225,6 +222,12 @@ define Start(lPar)
 ####################################################
 ##  Start the experimental trials.
 ## 
+
+  ## cycled through the positive, negative, and neutral trials
+  ## TODO
+  
+  loop( x > ) {
+  
 
   rule <- First(rules)
   rules <- Rotate(rules,1)
@@ -615,7 +618,8 @@ define Start(lPar)
    Print("Finished with the Card Sort Task")
    WaitForIt()
    ShowCursor(1) 
- }
+   }## TODO this is the end of the block loop (cycles through positive neutral and negative valences)
+}
 
 
 ##  This is a standard initializer function that sets up typical
@@ -742,4 +746,19 @@ define WaitForIt()
    }
 }
 
+define GetCFN(s)
+{
+    len <- StringLength(s)
+    return SubString(s, len-2, 3)
+}
 
+define CounterBalanceValence()
+{
+   ## order of positive/neutral/negative blocks
+   ##gOrder <- ["Positive", "Neutral", "Negative"]
+   
+   firstBlock <- (gSubNum+2 % 3) + 1
+   if (firstBlock == 1) { return ["Positive", "Neutral", "Negative"] 
+   } elseif(firstBlock == 2) { return ["Neutral", "Negative", "Positive"] 
+   } else { return ["Negative", "Positive", "Neutral"] }
+}
