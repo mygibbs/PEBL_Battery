@@ -117,7 +117,8 @@ define Start(lPar)
 
  if(useReduced)
    {
-    #compute the reduced deck, dependent on the current pile stacks
+    #compute the reduc
+    ed deck, dependent on the current pile stacks
 
     ccsn <- []
      #Go through each possible card
@@ -161,7 +162,6 @@ define Start(lPar)
     filename <- "Images/stimuli/" + ListToString(i) + ".jpg"
     x <- MakeImage(filename)
     images <- Append(images,x)
-
   }
   Draw()
   stim <-	Shuffle(Transpose(Append( Transpose(stimcat),images)))
@@ -176,10 +176,10 @@ define Start(lPar)
    ## be randomized.
 
    comps <- Transpose([gColors,gFonts,gNumbers])
-   comp1 <- MakeImage("Images/comparison/"+ListToString(First(comps))+".jpg")
-   comp2 <- MakeImage("Images/comparison/"+ListToString(Nth(comps,2))+".jpg")
-   comp3 <- MakeImage("Images/comparison/"+ListToString(Nth(comps,3))+".jpg")
-   comp4 <- MakeImage("Images/comparison/"+ListToString(Nth(comps,4))+".jpg")
+   comp1 <- MakeImage("Images/comparison/Item1.jpg")
+   comp2 <- MakeImage("Images/comparison/Item2.jpg")
+   comp3 <- MakeImage("Images/comparison/Item3.jpg")
+   comp4 <- MakeImage("Images/comparison/Item4.jpg")
 
 
    AddObject(comp1,gWin)

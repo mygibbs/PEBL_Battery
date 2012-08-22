@@ -55,7 +55,6 @@ define Start(lPar)
 
     tag <- "-keyboard"
    }
-   
  
   ## The labels/instructions live in the file labels-en.txt.  Change
   ## that file to translate to a new language.
@@ -66,10 +65,8 @@ define Start(lPar)
   gIncorrectText <- Nth(textlist,7)
   ## results are stored in this file
 
-  ## Initialize global objects for use later. Defined at end of file
-  Initialize()
 
-  gFileOut <-FileOpenWrite("data/bcst-" + gSubNum + ".txt")
+  gFileOut <-FileOpenWrite("data/bcst-" + gSubNum + ".csv")
   gRescoreFileList <- FileOpenAppend("bin/files.txt")
   FilePrint(gRescoreFileList, "bcst-" + gSubNum)
   FileClose(gRescoreFileList)
@@ -84,6 +81,8 @@ define Start(lPar)
   persrun <- []  ##computes length of 'perseverative runs'
   persrunflag <- 1
 
+  ## Initialize global objects for use later. Defined at end of file
+  Initialize()
 
 #  Print(gPEBLBaseFont)
 #  Print(gPEBLBaseFontMono)
@@ -233,9 +232,7 @@ define Start(lPar)
   trialnum <- 1
   numCats <- 0
   numCatsExp <- 1
-  firstCatPersCounter <- 0
-  ptp <- 0
-  
+
   ##Loop through each stimulus card
    loop(s,stim)
    {
@@ -323,17 +320,15 @@ define Start(lPar)
      
       }
 
-     ## check to see if it's unambiguous
-     unambig <- corrShape + corrCol + corrNum
+
  
      ##If it was correct according to the last rule, increment counters.
       if(corrLast == 1) {
-           if (unambig == 1) {
-               totPers <- totPers + 1
-               persev <- persev + 1
-               trialpersev <- 1	
-               trialPersevErr <- 0
-           }
+
+           totPers <- totPers + 1
+           persev <- persev + 1
+           trialpersev <- 1	
+           trialPersevErr <- 0
 
 
 
@@ -345,21 +340,6 @@ define Start(lPar)
                   trialPersevErr <- 1
               }
 
-          } elseif (corrLast == -1 and corr==0 and unambig == 1) {
-                if (firstCatPersCounter == 0) {
-                    firstCatPersCounter <- 1
-                    ptp <- ToNumber(resp)
-                } else {
-                    if (ptp == ToNumber(resp)) {
-                       totPers <- totPers + 1
-                       persev <- persev + 1
-                       trialpersev <- 1	
-                       totPersErr <- totPersErr +1 
-                       trialPersevErr <- 1
-                    }
-                }
-                
-          
           } else {
 
          #####################
@@ -629,8 +609,7 @@ define Start(lPar)
 define Initialize()
 {
   ##Initialize Window, etc.
-  gWin <- MakeWindow("black")  
-    gSubNum <- GetSubNum(gWin) 
+  gWin <- MakeWindow("black")   
             
   ##Initialize Font and colors
   gSleepEasy <- 1
