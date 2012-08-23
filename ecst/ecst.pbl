@@ -115,56 +115,77 @@ define Start(lPar)
   csn <- DesignFullCounterbalance(DesignFullCounterbalance(gColors,gFonts),gNumbers)
 
 
- if(useReduced)
-   {
-    #compute the reduc
-    ed deck, dependent on the current pile stacks
+ ##if(useReduced)
+   ##{
+    #compute the reduced deck, dependent on the current pile stacks
 
-    ccsn <- []
+    ##ccsn <- []
      #Go through each possible card
 
-     loop(i, csn)
-     {
-       col <- First(First(i))
-       font <- Nth(First(i),2)
-       num   <- Nth(i,2)
+     ##loop(i, csn)
+     ##{
+     ##  col <- First(First(i))
+     ##  font <- Nth(First(i),2)
+     ##  num   <- Nth(i,2)
 
        #compare the card to each pile-card; counting matching features       
 
-       maxmatch <- 0
-       cards <- Transpose([gColors,gFonts,gNumbers])
-      loop(card,cards) 
-        {
-          matches <- (col==First(card)) + (font ==Nth(card,2)) + (num==Nth(card,3))
-          maxmatch <- Max([matches,maxmatch])
-
-        }
-
-       ##only add to the used deck if it matches on fewer than two features.
-       if(maxmatch <2)
-        {
-            ccsn <- Append(ccsn,[[col,font],num])
-        }
-     }
-
-    csn <- ccsn
-   }
+     ##  maxmatch <- 0
+     ##  cards <- Transpose([gColors,gFonts,gNumbers])
+     ## loop(card,cards) 
+     ##   {
+     ##     matches <- (col==First(card)) + (font ==Nth(card,2)) + (num==Nth(card,3))
+     ##     maxmatch <- Max([matches,maxmatch])
+##
+##        }
+##
+##       ##only add to the used deck if it matches on fewer than two features.
+##       if(maxmatch <2)
+##        {
+##            ccsn <- Append(ccsn,[[col,font],num])
+##        }
+##     }
+##
+##    csn <- ccsn
+##   }
 
   decksize <- Length(csn)
-
-  stimcat <- FoldList(Flatten(Repeat(csn,repeats)),3)
 
   images<-[]
  
 
-  loop(i,stimcat)
+  loop(i,gPositivePics)
   {
-    filename <- "Images/stimuli/" + ListToString(i) + ".jpg"
+    filename <- "Images/stimuli/Positive/" + i + ".jpg"
     x <- MakeImage(filename)
-    images <- Append(images,x)
+    positiveImages <- Append(positiveImages,x)
+    posCFN <- Append(posCFN, GetCFN(i))
   }
+  
+  loop(i,gNeutralPics)
+  {
+    filename <- "Images/stimuli/Neutral/" + i + ".jpg"
+    x <- MakeImage(filename)
+    neutralImages <- Append(neutralImages,x)
+    neuCFN <- Append(neuCFN, GetCFN(i))
+  }
+  
+  loop(i,gNegativePics)
+  {
+    filename <- "Images/stimuli/Negative/" + i + ".jpg"
+    x <- MakeImage(filename)
+    negativeImages <- Append(negativeImages,x)
+    negCFN <- Append(negCFN, GetCFN(i))
+  }
+  
   Draw()
-  stim <-	Shuffle(Transpose(Append( Transpose(stimcat),images)))
+  
+  posStimcat <- FoldList(Flatten(Repeat(posCFN,repeats)),3)
+  neuStimcat <- FoldList(Flatten(Repeat(neuCFN,repeats)),3)
+  negStimcat <- FoldList(Flatten(Repeat(negCFN,repeats)),3)
+  positiveStim <-	Shuffle(Transpose(Append( Transpose(posStimcat),positiveImages)))
+  neutralStim <-	Shuffle(Transpose(Append( Transpose(neuStimcat),neutralImages)))
+  negativeStim <-	Shuffle(Transpose(Append( Transpose(negStimcat),negativeImages)))
 
    ## Give instructions; wait for them to hit a key, 
    SetText(gInstructions,Nth(textlist,1))
@@ -226,7 +247,7 @@ define Start(lPar)
   ## cycled through the positive, negative, and neutral trials
   ## TODO
   
-  loop( x > ) {
+  loop(o, gOrder) {
   
 
   rule <- First(rules)
@@ -250,6 +271,14 @@ define Start(lPar)
   numCats <- 0
   numCatsExp <- 1
 
+    if (o == "Positive") {
+        stim <- positiveStim
+    } elseif(o == "Neutral") {
+        stim <- neutralStim    
+    } else {
+        stim <- negativeStim    
+    }
+    
   ##Loop through each stimulus card
    loop(s,stim)
    {
