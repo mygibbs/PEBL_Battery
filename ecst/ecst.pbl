@@ -97,9 +97,19 @@ define Start(lPar)
      ShowCursor(0)  #hide the cursor
    }
    
-   ## TODO
-   gOrder <- CounterBalanceValence()
-
+   
+      ## order of positive/neutral/negative blocks
+   positive <- ["Positive", "Neutral", "Negative"] 
+   neutral <- ["Neutral", "Negative", "Positive"] 
+   negative <- ["Negative", "Positive", "Neutral"] 
+   firstBlock <- Mod(ToNumber(gSubNum)+2, 3) + 1
+   if (firstBlock == 1) { 
+    gOrder <- positive
+   } elseif(firstBlock == 2) { 
+    gOrder <- neutral
+   } else { 
+    gOrder <- negative
+   }
    gColors <-  ["R","G","Y","B"] ##red,green,yellow,blue
    gFonts <-  ["B","C","M","T"]  ##bauhaus,curlz,mercurius,timesnewroman
    gNumbers <- ["1","2","3","4"]
@@ -151,29 +161,33 @@ define Start(lPar)
 
   decksize <- Length(csn)
 
-  images<-[]
- 
+  positiveImages<-[]
+  neutralImages<-[]
+  negativeImages<-[]
+  posCFN<-[]
+  neuCFN<-[]
+  negCFN<-[]
 
   loop(i,gPositivePics)
   {
-    filename <- "Images/stimuli/Positive/" + i + ".jpg"
-    x <- MakeImage(filename)
+    filename <- "Images/stimuli/Positive/" + StripSpace(i)
+    x <- MakeImage(StripSpace(filename))
     positiveImages <- Append(positiveImages,x)
     posCFN <- Append(posCFN, GetCFN(i))
   }
   
   loop(i,gNeutralPics)
   {
-    filename <- "Images/stimuli/Neutral/" + i + ".jpg"
-    x <- MakeImage(filename)
+    filename <- "Images/stimuli/Neutral/" + StripSpace(i)
+    x <- MakeImage(StripSpace(filename))
     neutralImages <- Append(neutralImages,x)
     neuCFN <- Append(neuCFN, GetCFN(i))
   }
   
   loop(i,gNegativePics)
   {
-    filename <- "Images/stimuli/Negative/" + i + ".jpg"
-    x <- MakeImage(filename)
+    filename <- "Images/stimuli/Negative/" + StripSpace(i)
+    x <- MakeImage(StripSpace(filename))
     negativeImages <- Append(negativeImages,x)
     negCFN <- Append(negCFN, GetCFN(i))
   }
@@ -775,19 +789,10 @@ define WaitForIt()
    }
 }
 
+
 define GetCFN(s)
 {
     len <- StringLength(s)
     return SubString(s, len-2, 3)
 }
 
-define CounterBalanceValence()
-{
-   ## order of positive/neutral/negative blocks
-   ##gOrder <- ["Positive", "Neutral", "Negative"]
-   
-   firstBlock <- (gSubNum+2 % 3) + 1
-   if (firstBlock == 1) { return ["Positive", "Neutral", "Negative"] 
-   } elseif(firstBlock == 2) { return ["Neutral", "Negative", "Positive"] 
-   } else { return ["Negative", "Positive", "Neutral"] }
-}
