@@ -142,9 +142,9 @@ define Start(lPar)
    }
 
   decksize <- Length(csn)
-
   stimcat <- FoldList(Flatten(Repeat(csn,repeats)),3)
 
+Print("stimcat: " + stimcat)
   images<-[]
  
   loop(i,stimcat)

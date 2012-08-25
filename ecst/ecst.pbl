@@ -167,39 +167,52 @@ define Start(lPar)
   posCFN<-[]
   neuCFN<-[]
   negCFN<-[]
-
+  
   loop(i,gPositivePics)
   {
-    filename <- "Images/stimuli/Positive/" + StripSpace(i)
-    x <- MakeImage(StripSpace(filename))
-    positiveImages <- Append(positiveImages,x)
-    posCFN <- Append(posCFN, GetCFN(i))
+    if (StripSpace(i) != "") 
+    {
+        filename <- "Images/stimuli/Positive/" + StripSpace(i)
+        x <- MakeImage(StripSpace(filename))
+        positiveImages <- Append(positiveImages,x)
+        posCFN <- Append(posCFN, SplitString(GetCFN(i), ""))
+    }
   }
   
   loop(i,gNeutralPics)
   {
-    filename <- "Images/stimuli/Neutral/" + StripSpace(i)
-    x <- MakeImage(StripSpace(filename))
-    neutralImages <- Append(neutralImages,x)
-    neuCFN <- Append(neuCFN, GetCFN(i))
+    if (StripSpace(i) != "") 
+    {
+        filename <- "Images/stimuli/Neutral/" + StripSpace(i)
+        x <- MakeImage(StripSpace(filename))
+        neutralImages <- Append(neutralImages,x)
+        neuCFN <- Append(neuCFN, SplitString(GetCFN(i), ""))
+    }
   }
   
   loop(i,gNegativePics)
   {
-    filename <- "Images/stimuli/Negative/" + StripSpace(i)
-    x <- MakeImage(StripSpace(filename))
-    negativeImages <- Append(negativeImages,x)
-    negCFN <- Append(negCFN, GetCFN(i))
+    if (StripSpace(i) != "") 
+    {
+        filename <- "Images/stimuli/Negative/" + StripSpace(i)
+        x <- MakeImage(StripSpace(filename))
+        negativeImages <- Append(negativeImages,x)
+        negCFN <- Append(negCFN, SplitString(GetCFN(i), ""))
+    }
   }
   
   Draw()
-  
+  Print("posCFN: " + posCFN)
   posStimcat <- FoldList(Flatten(Repeat(posCFN,repeats)),3)
   neuStimcat <- FoldList(Flatten(Repeat(neuCFN,repeats)),3)
   negStimcat <- FoldList(Flatten(Repeat(negCFN,repeats)),3)
-  positiveStim <-	Shuffle(Transpose(Append( Transpose(posStimcat),positiveImages)))
-  neutralStim <-	Shuffle(Transpose(Append( Transpose(neuStimcat),neutralImages)))
-  negativeStim <-	Shuffle(Transpose(Append( Transpose(negStimcat),negativeImages)))
+  Print("posStimcat: " + posStimcat)
+  ##posStimcat <- Flatten(Repeat(posCFN,repeats))
+  ##neuStimcat <- Flatten(Repeat(neuCFN,repeats))
+  ##negStimcat <- Flatten(Repeat(negCFN,repeats))
+  positiveStim <-	Shuffle(Transpose(Append( Transpose(posStimcat), Flatten( Repeat( positiveImages, repeats)))))
+  neutralStim <-	Shuffle(Transpose(Append( Transpose(neuStimcat), Flatten( Repeat( neutralImages, repeats)))))
+  negativeStim <-	Shuffle(Transpose(Append( Transpose(negStimcat), Flatten( Repeat( negativeImages, repeats)))))
 
    ## Give instructions; wait for them to hit a key, 
    SetText(gInstructions,Nth(textlist,1))
@@ -793,6 +806,6 @@ define WaitForIt()
 define GetCFN(s)
 {
     len <- StringLength(s)
-    return SubString(s, len-2, 3)
+    return SubString(s, len-6, 3)
 }
 
