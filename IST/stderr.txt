@@ -1,0 +1,249 @@
+--------------------------------------
+Path List:
+.\
+
+C:\Program Files (x86)\PEBL\bin\
+C:\Users\Owner\PEBL\PEBL_Battery\IST\
+C:\Program Files (x86)\PEBL\bin\..\media\fonts\
+C:\Program Files (x86)\PEBL\bin\..\media\sounds\
+C:\Program Files (x86)\PEBL\bin\..\media\images\
+C:\Program Files (x86)\PEBL\bin\..\media\text\
+C:\Program Files (x86)\PEBL\bin\..\pebl-lib\
+--------------------------------------
+Processing PEBL Source File1: C:\Users\Owner\PEBL\PEBL_Battery\IST\IST.pbl
+File [C:\Users\Owner\PEBL\PEBL_Battery\IST\IST.pbl] opened successfully.
+Loading file name:Design.pbl
+Processing PEBL Source File2: C:\Program Files (x86)\PEBL\bin\..\pebl-lib\Design.pbl
+File [C:\Program Files (x86)\PEBL\bin\..\pebl-lib\Design.pbl] opened successfully.
+Loading file name:Utility.pbl
+Processing PEBL Source File2: C:\Program Files (x86)\PEBL\bin\..\pebl-lib\Utility.pbl
+File [C:\Program Files (x86)\PEBL\bin\..\pebl-lib\Utility.pbl] opened successfully.
+Loading file name:Math.pbl
+Processing PEBL Source File2: C:\Program Files (x86)\PEBL\bin\..\pebl-lib\Math.pbl
+File [C:\Program Files (x86)\PEBL\bin\..\pebl-lib\Math.pbl] opened successfully.
+Loading file name:Graphics.pbl
+Processing PEBL Source File2: C:\Program Files (x86)\PEBL\bin\..\pebl-lib\Graphics.pbl
+File [C:\Program Files (x86)\PEBL\bin\..\pebl-lib\Graphics.pbl] opened successfully.
+---------Loading Program---------
+Error in function 'DIST'.  Function already exists.
+Analyzing code for functions.
+Loading Library functions.
+Removing residual function tree
+
+
+--------------------------------
+Functions used in program: 
+--------------------------------
+---------------------------
+    Function Map:
+Function Name:  [ABS::<OpNode of Type: PEBL_LIBRARYFUNCTION>]
+Function Name:  [ACOS::<OpNode of Type: PEBL_LIBRARYFUNCTION>]
+Function Name:  [ADDOBJECT::<OpNode of Type: PEBL_LIBRARYFUNCTION>]
+Function Name:  [APPEND::<OpNode of Type: PEBL_LIBRARYFUNCTION>]
+Function Name:  [ATAN::<OpNode of Type: PEBL_LIBRARYFUNCTION>]
+Function Name:  [BLOCKE::<OpNode of Type: PEBL_LAMBDAFUNCTION>]
+Function Name:  [CEILING::<OpNode of Type: PEBL_LIBRARYFUNCTION>]
+Function Name:  [CHOOSEN::<OpNode of Type: PEBL_LAMBDAFUNCTION>]
+Function Name:  [CONVERTIPSTRING::<OpNode of Type: PEBL_LAMBDAFUNCTION>]
+Function Name:  [CONVEXHULL::<OpNode of Type: PEBL_LAMBDAFUNCTION>]
+Function Name:  [COS::<OpNode of Type: PEBL_LIBRARYFUNCTION>]
+Function Name:  [CR::<OpNode of Type: PEBL_LAMBDAFUNCTION>]
+Function Name:  [CUMNORMINV::<OpNode of Type: PEBL_LAMBDAFUNCTION>]
+Function Name:  [DEGTORAD::<OpNode of Type: PEBL_LIBRARYFUNCTION>]
+Function Name:  [DESIGNBALANCEDSAMPLING::<OpNode of Type: PEBL_LAMBDAFUNCTION>]
+Function Name:  [DESIGNGRECOLATINSQUARE::<OpNode of Type: PEBL_LAMBDAFUNCTION>]
+Function Name:  [DESIGNLATINSQUARE::<OpNode of Type: PEBL_LAMBDAFUNCTION>]
+Function Name:  [DIST::<OpNode of Type: PEBL_LAMBDAFUNCTION>]
+Function Name:  [DRAW::<OpNode of Type: PEBL_LIBRARYFUNCTION>]
+Function Name:  [EASYLABEL::<OpNode of Type: PEBL_LAMBDAFUNCTION>]
+Function Name:  [EASYTEXTBOX::<OpNode of Type: PEBL_LAMBDAFUNCTION>]
+Function Name:  [ENDOFFILE::<OpNode of Type: PEBL_LIBRARYFUNCTION>]
+Function Name:  [ENDOFLINE::<OpNode of Type: PEBL_LIBRARYFUNCTION>]
+Function Name:  [ENQUOTE::<OpNode of Type: PEBL_LAMBDAFUNCTION>]
+Function Name:  [EXP::<OpNode of Type: PEBL_LIBRARYFUNCTION>]
+Function Name:  [EXTRACTLISTITEMS::<OpNode of Type: PEBL_LAMBDAFUNCTION>]
+Function Name:  [FILECLOSE::<OpNode of Type: PEBL_LIBRARYFUNCTION>]
+Function Name:  [FILEOPENAPPEND::<OpNode of Type: PEBL_LIBRARYFUNCTION>]
+Function Name:  [FILEOPENREAD::<OpNode of Type: PEBL_LIBRARYFUNCTION>]
+Function Name:  [FILEPRINT::<OpNode of Type: PEBL_LIBRARYFUNCTION>]
+Function Name:  [FILEPRINTLIST::<OpNode of Type: PEBL_LAMBDAFUNCTION>]
+Function Name:  [FILEPRINT_::<OpNode of Type: PEBL_LIBRARYFUNCTION>]
+Function Name:  [FILEREADCHARACTER::<OpNode of Type: PEBL_LIBRARYFUNCTION>]
+Function Name:  [FIRST::<OpNode of Type: PEBL_LIBRARYFUNCTION>]
+Function Name:  [FLATTEN::<OpNode of Type: PEBL_LAMBDAFUNCTION>]
+Function Name:  [FLATTENN::<OpNode of Type: PEBL_LAMBDAFUNCTION>]
+Function Name:  [FLOOR::<OpNode of Type: PEBL_LIBRARYFUNCTION>]
+Function Name:  [FOLDLIST::<OpNode of Type: PEBL_LAMBDAFUNCTION>]
+Function Name:  [FORMAT::<OpNode of Type: PEBL_LAMBDAFUNCTION>]
+Function Name:  [GETANGLE::<OpNode of Type: PEBL_LAMBDAFUNCTION>]
+Function Name:  [GETANGLE3::<OpNode of Type: PEBL_LAMBDAFUNCTION>]
+Function Name:  [GETEASYINPUT::<OpNode of Type: PEBL_LAMBDAFUNCTION>]
+Function Name:  [GETFILENAME::<OpNode of Type: PEBL_LAMBDAFUNCTION>]
+Function Name:  [GETINPUT::<OpNode of Type: PEBL_LIBRARYFUNCTION>]
+Function Name:  [GETNIMHDEMOGRAPHICS::<OpNode of Type: PEBL_LAMBDAFUNCTION>]
+Function Name:  [GETSIZE::<OpNode of Type: PEBL_LIBRARYFUNCTION>]
+Function Name:  [GETSUBNUM::<OpNode of Type: PEBL_LAMBDAFUNCTION>]
+Function Name:  [GETTIME::<OpNode of Type: PEBL_LIBRARYFUNCTION>]
+Function Name:  [HIDE::<OpNode of Type: PEBL_LIBRARYFUNCTION>]
+Function Name:  [INSERT::<OpNode of Type: PEBL_LAMBDAFUNCTION>]
+Function Name:  [INSERTATTNEAVEPOINTRANDOM::<OpNode of Type: PEBL_LAMBDAFUNCTION>]
+Function Name:  [INSIDE::<OpNode of Type: PEBL_LAMBDAFUNCTION>]
+Function Name:  [ISCANVAS::<OpNode of Type: PEBL_LIBRARYFUNCTION>]
+Function Name:  [ISCOLOR::<OpNode of Type: PEBL_LIBRARYFUNCTION>]
+Function Name:  [ISIMAGE::<OpNode of Type: PEBL_LIBRARYFUNCTION>]
+Function Name:  [ISINTEGER::<OpNode of Type: PEBL_LIBRARYFUNCTION>]
+Function Name:  [ISLABEL::<OpNode of Type: PEBL_LIBRARYFUNCTION>]
+Function Name:  [ISLIST::<OpNode of Type: PEBL_LIBRARYFUNCTION>]
+Function Name:  [ISMEMBER::<OpNode of Type: PEBL_LIBRARYFUNCTION>]
+Function Name:  [ISNUMBER::<OpNode of Type: PEBL_LIBRARYFUNCTION>]
+Function Name:  [ISSTRING::<OpNode of Type: PEBL_LIBRARYFUNCTION>]
+Function Name:  [ISTEXT::<OpNode of Type: PEBL_LIBRARYFUNCTION>]
+Function Name:  [ISTEXTBOX::<OpNode of Type: PEBL_LIBRARYFUNCTION>]
+Function Name:  [ISWIDGET::<OpNode of Type: PEBL_LIBRARYFUNCTION>]
+Function Name:  [ISWINDOW::<OpNode of Type: PEBL_LIBRARYFUNCTION>]
+Function Name:  [LATINSQUARE::<OpNode of Type: PEBL_LAMBDAFUNCTION>]
+Function Name:  [LENGTH::<OpNode of Type: PEBL_LIBRARYFUNCTION>]
+Function Name:  [LIKERTTRIAL::<OpNode of Type: PEBL_LAMBDAFUNCTION>]
+Function Name:  [LISTBY::<OpNode of Type: PEBL_LAMBDAFUNCTION>]
+Function Name:  [LISTTOSTRING::<OpNode of Type: PEBL_LAMBDAFUNCTION>]
+Function Name:  [LN::<OpNode of Type: PEBL_LIBRARYFUNCTION>]
+Function Name:  [LOOKUP::<OpNode of Type: PEBL_LAMBDAFUNCTION>]
+Function Name:  [MAKEATTNEAVE::<OpNode of Type: PEBL_LAMBDAFUNCTION>]
+Function Name:  [MAKECANVAS::<OpNode of Type: PEBL_LIBRARYFUNCTION>]
+Function Name:  [MAKECOLOR::<OpNode of Type: PEBL_LIBRARYFUNCTION>]
+Function Name:  [MAKEFONT::<OpNode of Type: PEBL_LIBRARYFUNCTION>]
+Function Name:  [MAKEGABOR::<OpNode of Type: PEBL_LAMBDAFUNCTION>]
+Function Name:  [MAKEIMAGE::<OpNode of Type: PEBL_LIBRARYFUNCTION>]
+Function Name:  [MAKELABEL::<OpNode of Type: PEBL_LIBRARYFUNCTION>]
+Function Name:  [MAKENGONPOINTS::<OpNode of Type: PEBL_LAMBDAFUNCTION>]
+Function Name:  [MAKESTARPOINTS::<OpNode of Type: PEBL_LAMBDAFUNCTION>]
+Function Name:  [MAKETEXTBOX::<OpNode of Type: PEBL_LIBRARYFUNCTION>]
+Function Name:  [MAKEWINDOW::<OpNode of Type: PEBL_LIBRARYFUNCTION>]
+Function Name:  [MAX::<OpNode of Type: PEBL_LAMBDAFUNCTION>]
+Function Name:  [MEAN::<OpNode of Type: PEBL_LAMBDAFUNCTION>]
+Function Name:  [MEDIAN::<OpNode of Type: PEBL_LAMBDAFUNCTION>]
+Function Name:  [MERGE::<OpNode of Type: PEBL_LIBRARYFUNCTION>]
+Function Name:  [MESSAGEBOX::<OpNode of Type: PEBL_LAMBDAFUNCTION>]
+Function Name:  [MIN::<OpNode of Type: PEBL_LAMBDAFUNCTION>]
+Function Name:  [MOD::<OpNode of Type: PEBL_LIBRARYFUNCTION>]
+Function Name:  [MOVE::<OpNode of Type: PEBL_LIBRARYFUNCTION>]
+Function Name:  [MOVECENTER::<OpNode of Type: PEBL_LAMBDAFUNCTION>]
+Function Name:  [MOVECORNER::<OpNode of Type: PEBL_LAMBDAFUNCTION>]
+Function Name:  [NORMALDENSITY::<OpNode of Type: PEBL_LAMBDAFUNCTION>]
+Function Name:  [NTH::<OpNode of Type: PEBL_LIBRARYFUNCTION>]
+Function Name:  [ORDER::<OpNode of Type: PEBL_LAMBDAFUNCTION>]
+Function Name:  [PLUS::<OpNode of Type: PEBL_LAMBDAFUNCTION>]
+Function Name:  [POLYGON::<OpNode of Type: PEBL_LIBRARYFUNCTION>]
+Function Name:  [PRINT::<OpNode of Type: PEBL_LIBRARYFUNCTION>]
+Function Name:  [PRINTACCURACIES::<OpNode of Type: PEBL_LAMBDAFUNCTION>]
+Function Name:  [PRINTDATA::<OpNode of Type: PEBL_LAMBDAFUNCTION>]
+Function Name:  [PRINTHEADERS::<OpNode of Type: PEBL_LAMBDAFUNCTION>]
+Function Name:  [PRINTLIST::<OpNode of Type: PEBL_LAMBDAFUNCTION>]
+Function Name:  [PRINTTOTALS::<OpNode of Type: PEBL_LAMBDAFUNCTION>]
+Function Name:  [PRINT_::<OpNode of Type: PEBL_LIBRARYFUNCTION>]
+Function Name:  [QUANTILE::<OpNode of Type: PEBL_LAMBDAFUNCTION>]
+Function Name:  [RADTODEG::<OpNode of Type: PEBL_LIBRARYFUNCTION>]
+Function Name:  [RANDOM::<OpNode of Type: PEBL_LIBRARYFUNCTION>]
+Function Name:  [RANDOMBERNOULLI::<OpNode of Type: PEBL_LIBRARYFUNCTION>]
+Function Name:  [RANDOMDISCRETE::<OpNode of Type: PEBL_LIBRARYFUNCTION>]
+Function Name:  [RANK::<OpNode of Type: PEBL_LAMBDAFUNCTION>]
+Function Name:  [READCSV::<OpNode of Type: PEBL_LAMBDAFUNCTION>]
+Function Name:  [RECTANGLE::<OpNode of Type: PEBL_LIBRARYFUNCTION>]
+Function Name:  [REFLECTPOINTS::<OpNode of Type: PEBL_LAMBDAFUNCTION>]
+Function Name:  [REMOVEOBJECT::<OpNode of Type: PEBL_LIBRARYFUNCTION>]
+Function Name:  [REMOVESUBSET::<OpNode of Type: PEBL_LAMBDAFUNCTION>]
+Function Name:  [REPEAT::<OpNode of Type: PEBL_LIBRARYFUNCTION>]
+Function Name:  [REPLACE::<OpNode of Type: PEBL_LAMBDAFUNCTION>]
+Function Name:  [REPLACECHAR::<OpNode of Type: PEBL_LAMBDAFUNCTION>]
+Function Name:  [RESETCANVAS::<OpNode of Type: PEBL_LAMBDAFUNCTION>]
+Function Name:  [REST::<OpNode of Type: PEBL_LAMBDAFUNCTION>]
+Function Name:  [REVERSE::<OpNode of Type: PEBL_LAMBDAFUNCTION>]
+Function Name:  [RGBTOHSV::<OpNode of Type: PEBL_LAMBDAFUNCTION>]
+Function Name:  [ROTATE::<OpNode of Type: PEBL_LIBRARYFUNCTION>]
+Function Name:  [ROTATEPOINTS::<OpNode of Type: PEBL_LAMBDAFUNCTION>]
+Function Name:  [ROUND::<OpNode of Type: PEBL_LIBRARYFUNCTION>]
+Function Name:  [SAMPLE::<OpNode of Type: PEBL_LAMBDAFUNCTION>]
+Function Name:  [SAMPLEN::<OpNode of Type: PEBL_LAMBDAFUNCTION>]
+Function Name:  [SAMPLENWITHREPLACEMENT::<OpNode of Type: PEBL_LAMBDAFUNCTION>]
+Function Name:  [SDTBETA::<OpNode of Type: PEBL_LAMBDAFUNCTION>]
+Function Name:  [SDTDPRIME::<OpNode of Type: PEBL_LAMBDAFUNCTION>]
+Function Name:  [SECOND::<OpNode of Type: PEBL_LIBRARYFUNCTION>]
+Function Name:  [SEGMENTSINTERSECT::<OpNode of Type: PEBL_LAMBDAFUNCTION>]
+Function Name:  [SEQUENCE::<OpNode of Type: PEBL_LIBRARYFUNCTION>]
+Function Name:  [SETPOINT::<OpNode of Type: PEBL_LIBRARYFUNCTION>]
+Function Name:  [SETTEXT::<OpNode of Type: PEBL_LIBRARYFUNCTION>]
+Function Name:  [SHOW::<OpNode of Type: PEBL_LIBRARYFUNCTION>]
+Function Name:  [SHOWCURSOR::<OpNode of Type: PEBL_LIBRARYFUNCTION>]
+Function Name:  [SHUFFLE::<OpNode of Type: PEBL_LIBRARYFUNCTION>]
+Function Name:  [SHUFFLEREPEAT::<OpNode of Type: PEBL_LAMBDAFUNCTION>]
+Function Name:  [SHUFFLEWITHOUTADJACENTS::<OpNode of Type: PEBL_LAMBDAFUNCTION>]
+Function Name:  [SIGNALFATALERROR::<OpNode of Type: PEBL_LIBRARYFUNCTION>]
+Function Name:  [SIN::<OpNode of Type: PEBL_LIBRARYFUNCTION>]
+Function Name:  [SORT::<OpNode of Type: PEBL_LIBRARYFUNCTION>]
+Function Name:  [SORTBY::<OpNode of Type: PEBL_LIBRARYFUNCTION>]
+Function Name:  [SPLITSTRING::<OpNode of Type: PEBL_LAMBDAFUNCTION>]
+Function Name:  [SQRT::<OpNode of Type: PEBL_LIBRARYFUNCTION>]
+Function Name:  [START::<OpNode of Type: PEBL_LAMBDAFUNCTION>]
+Function Name:  [STDDEV::<OpNode of Type: PEBL_LAMBDAFUNCTION>]
+Function Name:  [STRINGLENGTH::<OpNode of Type: PEBL_LIBRARYFUNCTION>]
+Function Name:  [STRIPQUOTES::<OpNode of Type: PEBL_LAMBDAFUNCTION>]
+Function Name:  [STRIPSPACE::<OpNode of Type: PEBL_LAMBDAFUNCTION>]
+Function Name:  [SUBLIST::<OpNode of Type: PEBL_LIBRARYFUNCTION>]
+Function Name:  [SUBSET::<OpNode of Type: PEBL_LAMBDAFUNCTION>]
+Function Name:  [SUBSTRING::<OpNode of Type: PEBL_LIBRARYFUNCTION>]
+Function Name:  [SUM::<OpNode of Type: PEBL_LAMBDAFUNCTION>]
+Function Name:  [SUMMARYSTATS::<OpNode of Type: PEBL_LAMBDAFUNCTION>]
+Function Name:  [TAB::<OpNode of Type: PEBL_LAMBDAFUNCTION>]
+Function Name:  [THICKLINE::<OpNode of Type: PEBL_LAMBDAFUNCTION>]
+Function Name:  [THIRD::<OpNode of Type: PEBL_LIBRARYFUNCTION>]
+Function Name:  [TIMESTAMP::<OpNode of Type: PEBL_LIBRARYFUNCTION>]
+Function Name:  [TONUMBER::<OpNode of Type: PEBL_LIBRARYFUNCTION>]
+Function Name:  [TORIGHT::<OpNode of Type: PEBL_LAMBDAFUNCTION>]
+Function Name:  [TOSTRING::<OpNode of Type: PEBL_LIBRARYFUNCTION>]
+Function Name:  [TRANSPOSE::<OpNode of Type: PEBL_LIBRARYFUNCTION>]
+Function Name:  [VALIDATEATTNEAVESHAPE::<OpNode of Type: PEBL_LAMBDAFUNCTION>]
+Function Name:  [WAIT::<OpNode of Type: PEBL_LIBRARYFUNCTION>]
+Function Name:  [WAITFORCLICKONTARGET::<OpNode of Type: PEBL_LAMBDAFUNCTION>]
+Function Name:  [WAITFORDOWNCLICK::<OpNode of Type: PEBL_LAMBDAFUNCTION>]
+Function Name:  [WAITFORKEYPRESS::<OpNode of Type: PEBL_LIBRARYFUNCTION>]
+Function Name:  [WAITFORLISTKEYPRESS::<OpNode of Type: PEBL_LIBRARYFUNCTION>]
+Function Name:  [WAITFORMOUSEBUTTON::<OpNode of Type: PEBL_LIBRARYFUNCTION>]
+Function Name:  [YESNOTRIAL::<OpNode of Type: PEBL_LAMBDAFUNCTION>]
+Function Name:  [ZEROPAD::<OpNode of Type: PEBL_LAMBDAFUNCTION>]
+Function Name:  [ZOOMPOINTS::<OpNode of Type: PEBL_LAMBDAFUNCTION>]
+--------------------------------
+
+Successfully initialized SDL Graphics
+Using audio driver: dsound
+---------Creating Evaluator-----
+---------Evaluating Program-----
+Hardware surfaces NOT available.
+
+
+--------------------------------------------------------------------------------
+ Current Video Mode:
+--------------------------------------------------------------------------------
+hw_available   Is it possible to create hardware surfaces?:           [0]
+wm_available   Is there a window manager available:                   [1]
+blit_hw        Are hardware to hardware blits accelerated?:           [0]
+blit_hw_CC     Are hardware to hardware colorkey blits accelerated?:  [0]
+blit_hw_A      Are hardware to hardware alpha blits accelerated?:     [0]
+blit_sw        Are software to hardware blits accelerated?:           [0]
+blit_sw_CC     Are software to hardware colorkey blits accelerated?:  [0]
+blit_sw_A      Are software to hardware alpha blits accelerated?:     [0]
+blit_fill      Are color fills accelerated?:                          [0]
+video_mem      Total amount of video memory in Kilobytes:             [0]
+Display Mode:  Width  (pixels)                                        [1024]
+Display Mode:  Height (pixels)                                        [768]
+Display Mode:  Color Depth (bits)                                     [24]
+---------------------------------- PIXEL FORMAT---------------------------------
+SDL_Palette *palette (0 for realcolor):     [0]
+Using Video Driver: windib
+Surface refcount: 1
+--------------------------------------------------------------------------------
+
+Called from function [] on line [238] of file [C:\Users\Owner\PEBL\PEBL_Battery\IST\IST.pbl]
+
+Error near line 476 of file C:\Users\Owner\PEBL\PEBL_Battery\IST\IST.pbl:
+	Trying to use an undefined variable:  RTLIST
+Exiting PEBL because of captured signal.

@@ -110,8 +110,8 @@ define Start(lPar)
    } else { 
     gOrder <- negative
    }
-   gColors <-  ["R","G","Y","B"] ##red,green,yellow,blue
-   gFonts <-  ["B","C","M","T"]  ##bauhaus,curlz,mercurius,timesnewroman
+   gColors <-  ["R","G","B","Y"] ##red,green,yellow,blue
+   gFonts <-  ["B","T","M","C"]  ##bauhaus,curlz,mercurius,timesnewroman
    gNumbers <- ["1","2","3","4"]
    rules <-[1,2,3] ##ShuffleWithoutAdjacents([[1,1,1],[2,2,2],[3,3,3]])
 
@@ -202,11 +202,11 @@ define Start(lPar)
   }
   
   Draw()
-  Print("posCFN: " + posCFN)
+  
   posStimcat <- FoldList(Flatten(Repeat(posCFN,repeats)),3)
   neuStimcat <- FoldList(Flatten(Repeat(neuCFN,repeats)),3)
   negStimcat <- FoldList(Flatten(Repeat(negCFN,repeats)),3)
-  Print("posStimcat: " + posStimcat)
+  
   ##posStimcat <- Flatten(Repeat(posCFN,repeats))
   ##neuStimcat <- Flatten(Repeat(neuCFN,repeats))
   ##negStimcat <- Flatten(Repeat(negCFN,repeats))
@@ -224,10 +224,10 @@ define Start(lPar)
    ## be randomized.
 
    comps <- Transpose([gColors,gFonts,gNumbers])
-   comp1 <- MakeImage("Images/comparison/Item1.jpg")
-   comp2 <- MakeImage("Images/comparison/Item2.jpg")
-   comp3 <- MakeImage("Images/comparison/Item3.jpg")
-   comp4 <- MakeImage("Images/comparison/Item4.jpg")
+   comp1 <- MakeImage("Images/comparison/ItemRB1.jpg")
+   comp2 <- MakeImage("Images/comparison/ItemGT2.jpg")
+   comp3 <- MakeImage("Images/comparison/ItemBM3.jpg")
+   comp4 <- MakeImage("Images/comparison/ItemYC4.jpg")
 
 
    AddObject(comp1,gWin)
@@ -664,6 +664,8 @@ define Start(lPar)
    FileClose(report)
    ##Now, show debriefing info.
 
+   }## TODO this is the end of the block loop (cycles through positive neutral and negative valences)
+
    feedback <-  Nth(textlist,4)
 
    SetText(gInstructions, feedback)
@@ -674,7 +676,7 @@ define Start(lPar)
    Print("Finished with the Card Sort Task")
    WaitForIt()
    ShowCursor(1) 
-   }## TODO this is the end of the block loop (cycles through positive neutral and negative valences)
+   
 }
 
 
