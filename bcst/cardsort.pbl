@@ -142,9 +142,9 @@ define Start(lPar)
    }
 
   decksize <- Length(csn)
+
   stimcat <- FoldList(Flatten(Repeat(csn,repeats)),3)
 
-Print("stimcat: " + stimcat)
   images<-[]
  
   loop(i,stimcat)
@@ -610,6 +610,7 @@ define Initialize()
 {
   ##Initialize Window, etc.
   gWin <- MakeWindow("black")   
+  gSubNum <- GetSubNum(gWin)
             
   ##Initialize Font and colors
   gSleepEasy <- 1

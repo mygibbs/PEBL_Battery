@@ -47,30 +47,33 @@ define SetElement(list, i, item) {
  
 define RunFile(fname)
 {
-  ##Step-by-step instructions:
+    ##Step-by-step instructions:
+    gOrder <- ["Positive", "Neutral", "Negative"]
+  
+    loop(i, gOrder) {
 
-  ##1. read a bcst data file in:
-  data <- FileReadTable("../data/"+fname+".txt")
+        ##1. read a ecst data file in:
+        data <- FileReadTable("../data/"+i+"/"+fname+".csv")
 
-  ##2. ScorePars expects a header row (with non-data)!!!!
-  x <- ScorePAR(data)
+        ##2. ScorePars expects a header row (with non-data)!!!!
+        x <- ScorePAR(data)
 
-  ##3. cobble the header back together:
-  header <- Merge(First(data),["ptp","unambig","ptpCorr","tent","tent2","corr2","PARPERS","PARPERSERR"])
+        ##3. cobble the header back together:
+        header <- Merge(First(data),["ptp","unambig","ptpCorr","tent","tent2","corr2","PARPERS","PARPERSERR"])
 
-  ##4. Write out to a new file
-  WriteCSV("../output/"+fname + "-rescore.csv", Merge([header],x))
+        ##4. Write out to a new file
+        WriteCSV("../output/"+i+"/"+fname + "-rescore.csv", Merge([header],x))
 
-  ##Calculate summaries of the two new statistics:
-  sumPEBLPers <- SumUp(Nth(Transpose(x),15))
-  sumPEBLPersErr <- SumUp(Nth(Transpose(x),16))
+        ##Calculate summaries of the two new statistics:
+        sumPEBLPers <- SumUp(Nth(Transpose(x),15))
+        sumPEBLPersErr <- SumUp(Nth(Transpose(x),16))
 
-  sumPers <-  Sum(Nth(Transpose(x),25))
-  sumPersErr <- Sum(Nth(Transpose(x),26))
+        sumPers <-  Sum(Nth(Transpose(x),25))
+        sumPersErr <- Sum(Nth(Transpose(x),26))
 
-  FilePrint(gfile,fname+"," +sumPEBLPers+","+sumPEBLPersErr+","+sumPers+","+sumPersErr)
+        FilePrint(gfile,fname+"," +sumPEBLPers+","+sumPEBLPersErr+","+sumPers+","+sumPersErr)
 
-     
+    }
 }
 
 

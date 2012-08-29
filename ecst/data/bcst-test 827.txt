@@ -1,0 +1,4 @@
+Subnum trial run rule lastrule color font number resp corr last_corr corr_col corr_font corr_num persev persev_err abstime rt
+test 827 1 1 1 -1 R T 3 1 1 0 1 0 0 0 0 949068 48881
+test 827 2 1 1 -1 Y C 1 4 1 0 1 1 0 0 0 998835 4215
+test 827 3 1 1 -1 R M 4 1 1 0 1 0 0 0 0 1003855 3831
