@@ -274,7 +274,7 @@ define Start(lPar)
   ####################################################
   ## Begin presenting and collecting data
   ####################################################
-  gFileOut <-FileOpenWrite("data/" + o + "/ecst-" + gSubNum + ".csv")
+  gFileOut <-FileOpenWrite("data/" + o + "-" + gSubNum + ".csv")
   FilePrint(gFileOut, "Subnum trial run rule lastrule color font number resp corr last_corr corr_col corr_font corr_num persev persev_err abstime rt")
   
   rules <-[1,2,3] ##ShuffleWithoutAdjacents([[1,1,1],[2,2,2],[3,3,3]])
@@ -573,7 +573,7 @@ define Start(lPar)
 
 
    FileClose(gFileOut)
-   report <-FileOpenWrite("reports/" + o + "/ecst-report-" + gSubNum +".txt")
+   report <-FileOpenWrite("data/" + o + "-report-" + gSubNum +".txt")
    FilePrint(report,"---------------------------------------------------")
    FilePrint(report," Report for PEBL's _Berg's Emotional Card Sorting Task_,")
    FilePrint(report," a free version of the Emotional Wisconsin Card Sorting Task (tm)*")
@@ -704,7 +704,7 @@ define Initialize()
    gIncorrFont       <- MakeFont(gPEBLBaseFontMono, 0, 30,colRed,   bg,0)
 
 
-   gInstructionsFont <- MakeFont(gPEBLBaseFont,0,18, fg,bg2,1)  
+   gInstructionsFont <- MakeFont(gPEBLBaseFont,0,24, fg,bg2,1)  
    gHeaderFont       <- MakeFont(gPEBLBaseFont, 0,36,fg,bg,1)       
  
    ## Make and place the instruction box, then hide it  

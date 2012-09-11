@@ -627,7 +627,7 @@ define Initialize()
    gIncorrFont       <- MakeFont(gPEBLBaseFontMono, 0, 30,colRed,   bg,0)
 
 
-   gInstructionsFont <- MakeFont(gPEBLBaseFont,0,18, fg,bg2,1)  
+   gInstructionsFont <- MakeFont(gPEBLBaseFont,0,24, fg,bg2,1)  
    gHeaderFont       <- MakeFont(gPEBLBaseFont, 0,36,fg,bg,1)       
  
    ## Make and place the instruction box, then hide it  
